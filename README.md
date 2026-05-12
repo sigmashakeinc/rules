@@ -10,4 +10,4 @@ ssg hub pull rules-<name>
 
 Browse at [hub.sigmashake.com](https://hub.sigmashake.com).
 
-Last updated: 2026-05-12T21:04:13.665Z
+Last updated: 2026-05-12T21:13:01.534Z

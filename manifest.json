@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-05-12T21:04:13.665Z",
+  "updated_at": "2026-05-12T21:13:01.534Z",
   "repo": "sigmashakeinc/rules",
   "ref": "main",
   "signing_key": {
@@ -3584,5 +3584,5 @@
       "updated_at": "2026-04-19T14:54:58.082Z"
     }
   ],
-  "envelope_signature": "a3a36329658fcf109880af0a2a05cde015d1ac9dd8511c1b234d9ff3a21f026c0eb3784da27735ff986f5405b807d44d032be929716d443e50cbd1cf1e6f2708"
+  "envelope_signature": "5b8b3475968dd2a0b46dd3fa22b80fbd771a1313519cb34686192f79a5696b9027e11edaceb7c06ec39e5de0c211c79148b49f616cf9f836598e6035259f6501"
 }
