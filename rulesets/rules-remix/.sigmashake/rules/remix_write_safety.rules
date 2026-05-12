@@ -1,0 +1,20 @@
+# remix_write_safety.rules
+# Technology: remix | Capability: write
+
+rule remix-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "dangerouslySetInnerHTML"
+  MESSAGE "Blocked an unsafe pattern in remix. Use the recommended best practices for 2025/2026."
+}
+
+rule remix-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "CatchBoundary"
+  MESSAGE "You are using an outdated API for remix. Please upgrade to the newer API."
+}

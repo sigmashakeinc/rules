@@ -1,0 +1,3 @@
+{
+  "description": "esbuild is an extremely fast JavaScript bundler and minifier written in Go. These rules govern the configuration of high-performance build pipelines, code splitting, and optimization for modern web development."
+}

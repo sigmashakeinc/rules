@@ -1,0 +1,20 @@
+# elk_write_safety.rules
+# Technology: elk | Capability: write
+
+rule elk-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "script.inline: true"
+  MESSAGE "Blocked an unsafe pattern in elk. Use the recommended best practices for 2025/2026."
+}
+
+rule elk-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "elasticsearch-transport"
+  MESSAGE "You are using an outdated API for elk. Please upgrade to the newer API."
+}

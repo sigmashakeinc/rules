@@ -1,0 +1,20 @@
+# jax_write_safety.rules
+# Technology: jax | Capability: write
+
+rule jax-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "jax.custom_jvp"
+  MESSAGE "Blocked an unsafe pattern in jax. Use the recommended best practices for 2025/2026."
+}
+
+rule jax-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "jax.experimental.optimizers"
+  MESSAGE "You are using an outdated API for jax. Please upgrade to the newer API."
+}

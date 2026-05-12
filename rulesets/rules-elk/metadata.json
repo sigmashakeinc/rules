@@ -1,0 +1,3 @@
+{
+  "description": "The ELK Stack (Elasticsearch, Logstash, Kibana) is a toolset for log searching and visualization. These rules govern log aggregation, index management, and dashboard creation for observability and security analytics."
+}

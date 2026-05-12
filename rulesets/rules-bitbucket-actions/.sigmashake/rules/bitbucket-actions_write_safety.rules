@@ -1,0 +1,65 @@
+# bitbucket-actions_write_safety.rules
+# Technology: bitbucket-actions | Capability: write
+
+rule bitbucket-actions-command-injection-unquoted-variable {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "bitbucket-pipelines.yml" AND content CONTAINS "script:" AND content CONTAINS "$BITBUCKET_BRANCH" AND NOT content CONTAINS "\"$BITBUCKET_BRANCH\"" AND NOT content CONTAINS "$(printf %q \"$BITBUCKET_BRANCH\")"
+  MESSAGE "Potential command injection vulnerability. The variable `BITBUCKET_BRANCH` is used unquoted in a shell command within a `script:` block. Malicious branch names (e.g., `feature/branch; rm -rf /`) could execute arbitrary commands. Always quote variables like `\"${BITBUCKET_BRANCH}\"` or use `printf %q` for robust escaping: `$(printf %q \"$BITBUCKET_BRANCH\")`."
+}
+
+rule bitbucket-actions-insecure-docker-image-tag {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "bitbucket-pipelines.yml" AND content CONTAINS "image:" AND (content CONTAINS ":latest" OR (content CONTAINS "image: " AND NOT content CONTAINS ":"))
+  MESSAGE "Insecure Docker image tag. Using `:latest` or no tag (which defaults to `:latest`) for Docker images can lead to non-reproducible builds and introduce unknown vulnerabilities if the image changes upstream. Pin to a specific, immutable version tag (e.g., `node:16.14.0-alpine`) or a digest for security and stability."
+}
+
+rule bitbucket-actions-secrets-exposure-in-logs {
+  enabled true
+  priority 98
+  severity error
+  DENY write
+  IF path GLOB "bitbucket-pipelines.yml" AND content CONTAINS "script:" AND (content CONTAINS "set -x" OR content CONTAINS "printenv")
+  MESSAGE "Potential secret exposure. `set -x` (xtrace) or `printenv` can log sensitive environment variables, including Bitbucket secure variables, to pipeline logs. Remove `set -x` from production steps and avoid `printenv` to prevent accidental information disclosure."
+}
+
+rule bitbucket-actions-disable-ssl-verification {
+  enabled true
+  priority 99
+  severity error
+  DENY write
+  IF path GLOB "bitbucket-pipelines.yml" AND (content CONTAINS "allow-unverified-ssl: true" OR content CONTAINS "curl -k" OR content CONTAINS "wget --no-check-certificate")
+  MESSAGE "Disabling SSL/TLS verification. Using `allow-unverified-ssl: true`, `curl -k`, or `wget --no-check-certificate` bypasses critical security checks, making your pipeline vulnerable to Man-in-the-Middle (MITM) attacks. Ensure proper certificate setup and remove these insecure options."
+}
+
+rule bitbucket-actions-untrusted-script-execution {
+  enabled true
+  priority 97
+  severity error
+  DENY write
+  IF path GLOB "bitbucket-pipelines.yml" AND content CONTAINS "script:" AND (content CONTAINS "curl -sL" AND (content CONTAINS "| bash" OR content CONTAINS "| sh")) OR (content CONTAINS "wget -qO-" AND (content CONTAINS "| bash" OR content CONTAINS "| sh"))
+  MESSAGE "Untrusted script execution via `curl | bash`. Piping scripts directly from external URLs to a shell is a major supply chain risk, allowing arbitrary code execution if the remote script is compromised. Download scripts explicitly, review their content, and then execute them locally."
+}
+
+rule bitbucket-actions-insecure-eval-usage {
+  enabled true
+  priority 96
+  severity error
+  DENY write
+  IF path GLOB "bitbucket-pipelines.yml" AND content CONTAINS "script:" AND content CONTAINS "eval \"$"
+  MESSAGE "Insecure use of `eval`. Using `eval` with variables that might contain user-controlled input (e.g., from branch names, commit messages, or external sources) is a severe security risk, leading to arbitrary code execution. Refactor scripts to avoid `eval` or ensure all input is rigorously sanitized and validated."
+}
+
+rule bitbucket-actions-enforce-security-policy-header {
+  enabled true
+  priority 50
+  severity warning
+  LOG write
+  IF path GLOB "bitbucket-pipelines.yml" AND NOT content CONTAINS "# Security Policy Adherence: v1.0"
+  MESSAGE "Missing required security policy header. All `bitbucket-pipelines.yml` files must include the `# Security Policy Adherence: v1.0` header at the top to indicate compliance with internal security guidelines. This helps ensure AI-generated code adheres to organizational standards and facilitates review."
+}

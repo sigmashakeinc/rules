@@ -1,0 +1,30 @@
+# gemini_cli_yolo_safety.rules
+
+rule audit-yolo-mode {
+  MESSAGE "Agent is entering 'Yolo Mode' for autonomous execution without confirmation."
+  IF input.command CONTAINS "--yolo"
+  OR input.command CONTAINS "yolo"
+  OR input.flags CONTAINS "yolo"
+  severity warning
+  priority 90
+  ASK any
+  PROMPT "The agent is entering 'Yolo Mode' which allows autonomous execution of potentially destructive commands. Allow?"
+}
+
+rule block-yolo-production {
+  MESSAGE "Blocked 'Yolo Mode' in potential production environment."
+  IF (input.command CONTAINS "--yolo" OR input.command CONTAINS "yolo")
+  AND (path CONTAINS "/prod/" OR path CONTAINS "/production/")
+  severity error
+  priority 100
+  DENY any
+}
+
+rule warn-plan-mode-bypass {
+  MESSAGE "Agent is attempting to bypass 'Plan Mode' and execute directly."
+  IF tool EQUALS "GeminiTool"
+  AND input.plan_required EQUALS "false"
+  severity info
+  priority 50
+  LOG any
+}

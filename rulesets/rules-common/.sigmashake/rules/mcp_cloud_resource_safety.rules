@@ -1,0 +1,31 @@
+# mcp_cloud_resource_safety.rules
+
+rule block-cloud-instance-delete {
+  MESSAGE "Blocked direct deletion of cloud instances (EC2, Azure VM) via MCP."
+  IF (tool STARTS_WITH "aws_" OR tool STARTS_WITH "azure_")
+  AND (tool CONTAINS "terminate" OR tool CONTAINS "delete")
+  AND tool CONTAINS "instance"
+  severity error
+  priority 100
+  DENY any
+}
+
+rule warn-cloud-config-change {
+  MESSAGE "Agent is attempting to change cloud resource configurations."
+  IF (tool STARTS_WITH "aws_" OR tool STARTS_WITH "azure_")
+  AND (tool CONTAINS "update" OR tool CONTAINS "modify")
+  severity warning
+  priority 80
+  ASK any
+  PROMPT "Allow the agent to modify cloud resource configurations?"
+}
+
+rule block-docker-container-stop {
+  MESSAGE "Blocked agent from stopping or removing Docker containers."
+  IF tool STARTS_WITH "docker_"
+  AND (tool CONTAINS "stop" OR tool CONTAINS "remove")
+  severity warning
+  priority 90
+  ASK any
+  PROMPT "The agent is trying to stop or remove a Docker container. Allow?"
+}

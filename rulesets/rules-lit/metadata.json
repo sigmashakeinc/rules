@@ -1,0 +1,3 @@
+{
+  "description": "Lit is a library for building fast, lightweight web components. These rules govern the development of Lit components, ensuring proper lifecycle management, reactive property handling, and accessibility compliance."
+}

@@ -1,0 +1,20 @@
+# claude_schedule_any_infra.rules
+
+rule warn-scheduled-task {
+  MESSAGE "Agent is attempting to schedule a recurring task on Anthropic-managed infrastructure."
+  IF tool EQUALS "ScheduleTool"
+  OR input.command CONTAINS "/schedule"
+  severity warning
+  priority 90
+  ASK any
+  PROMPT "Allow scheduling a recurring task? Note: This will run on external infrastructure and could result in persistent access."
+}
+
+rule block-unauthorized-scheduling {
+  MESSAGE "Blocked unauthorized scheduling of tasks in CI/CD environment."
+  IF (tool EQUALS "ScheduleTool" OR input.command CONTAINS "/schedule")
+  AND (path STARTS_WITH ".github/workflows/" OR path STARTS_WITH ".circleci/")
+  severity error
+  priority 100
+  DENY any
+}

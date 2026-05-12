@@ -1,0 +1,29 @@
+# claude_supply_chain_any_config.rules
+
+rule audit-claude-config-write {
+  MESSAGE "Agent is modifying the .claude directory or its configuration files. This could result in malicious hooks or RCE on subsequent runs."
+  IF path GLOB "**/.claude/*"
+  OR path GLOB "**/.anthropic/*"
+  severity warning
+  priority 95
+  LOG write
+}
+
+rule block-suspicious-mcp-config {
+  MESSAGE "Blocked modification of MCP configuration to prevent unauthorized external tool loading."
+  IF path GLOB "**/mcp.json"
+  OR path GLOB "**/.claude/mcp.json"
+  severity error
+  priority 100
+  DENY write
+}
+
+rule block-claude-init-untrusted {
+  MESSAGE "Blocked '/init' command in potential untrusted directory. Please inspect the repo first."
+  IF input.command CONTAINS "/init"
+  AND (path STARTS_WITH "/tmp/" OR path STARTS_WITH "/var/tmp/")
+  severity warning
+  priority 90
+  ASK execution
+  PROMPT "The agent is initializing Claude Code in a temporary directory. Allow?"
+}

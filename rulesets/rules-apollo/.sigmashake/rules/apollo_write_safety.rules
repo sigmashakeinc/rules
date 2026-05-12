@@ -1,0 +1,65 @@
+# apollo_write_safety.rules
+# Technology: apollo | Capability: write
+
+rule apollo-command-injection-executeCommand {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.(cpp|h|py|go)" AND content CONTAINS "apollo::system::executeCommand("
+  MESSAGE "Potential command injection vulnerability detected. The function `apollo::system::executeCommand()` is known to be vulnerable if its argument is derived from untrusted input without rigorous sanitization. Prefer using `apollo::system::safeExecuteCommand()` with a predefined allowlist of commands and arguments, or use language-specific subprocess APIs with explicit argument arrays (e.g., `subprocess.run` with `shell=False` in Python, `execve` in C++) after thorough validation."
+}
+
+rule apollo-use-after-free-legacy-buffer-pool {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.(cpp|h)" AND (content CONTAINS "apollo::memory::LegacyBufferPool::allocate" OR content CONTAINS "apollo::memory::releaseBuffer(")
+  MESSAGE "Use of `apollo::memory::LegacyBufferPool` or `apollo::memory::releaseBuffer()` is highly discouraged due to its susceptibility to Use-After-Free (UAF) vulnerabilities. This legacy API requires manual memory management and lacks modern safety features. Migrate to `apollo::memory::ManagedBuffer` or standard smart pointers like `std::unique_ptr`/`std::shared_ptr` for safer memory handling."
+}
+
+rule apollo-path-traversal-config-loadFile {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.(cpp|h|py|go)" AND content CONTAINS "apollo::config::loadFile("
+  MESSAGE "Potential path traversal vulnerability detected with `apollo::config::loadFile()`. Loading configuration files using unvalidated paths, especially those derived from user input, can allow attackers to access or modify arbitrary files outside the intended directory. Ensure all paths are strictly validated against a canonical base directory using `apollo::filesystem::validateSecurePath()` before being passed to `loadFile()`."
+}
+
+rule apollo-deprecated-insecure-rpc-client {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.(cpp|h|py|go)" AND content CONTAINS "apollo::network::LegacyRPCClient"
+  MESSAGE "Usage of `apollo::network::LegacyRPCClient` is deprecated and insecure. This client uses unencrypted HTTP and `apollo::serialization::InsecureProtoV1`, which lacks authentication, integrity, and confidentiality. Migrate to `apollo::network::SecureGRPCClient` with `apollo::serialization::SecureProtoV2` for encrypted, authenticated, and integrity-protected communication."
+}
+
+rule apollo-insecure-debug-logging-default {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/*.(cpp|h|py|go)" AND content CONTAINS "apollo::logging::initLogger(" AND content CONTAINS ", true)"
+  MESSAGE "Explicitly enabling debug output (`true`) in `apollo::logging::initLogger()` in production-like code can lead to sensitive information disclosure. Debug logs often contain internal state, user data, or stack traces that should not be exposed. Ensure debug output is disabled in production environments or controlled via secure configuration. Consider using `apollo::logging::initProductionLogger()` for hardened defaults."
+}
+
+rule apollo-style-guide-no-raw-new-delete {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/*.(cpp|h)" AND (content CONTAINS " new " OR content CONTAINS " delete ") AND NOT content CONTAINS "apollo::memory::ManagedBuffer" AND NOT content CONTAINS "std::unique_ptr" AND NOT content CONTAINS "std::shared_ptr"
+  MESSAGE "Violation of Google apollo C++ Style Guide: Avoid raw `new` and `delete` for general object management. This practice is error-prone and can lead to memory leaks or corruption. Prefer using `std::unique_ptr`, `std::shared_ptr`, or `apollo::memory::ManagedBuffer` for automatic resource management. Raw `new`/`delete` should only be used in specific, carefully audited memory management components."
+}
+
+rule apollo-data-race-shared-state-direct-access {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.(cpp|h|py|go)" AND content CONTAINS "apollo::core::SharedState::data_ =" AND NOT content CONTAINS "apollo::core::ScopedLock" AND NOT content CONTAINS "std::lock_guard"
+  MESSAGE "Direct assignment to `apollo::core::SharedState::data_` without an explicit lock (e.g., `apollo::core::ScopedLock` or `std::lock_guard`) immediately preceding it can lead to severe data races and inconsistent state. All modifications to `SharedState::data_` must be protected by a mutex to ensure thread safety. Review the surrounding code for proper synchronization mechanisms."
+}

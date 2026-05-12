@@ -1,0 +1,20 @@
+# mikro-orm_write_safety.rules
+# Technology: mikro-orm | Capability: write
+
+rule mikro-orm-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "em.execute"
+  MESSAGE "Blocked an unsafe pattern in mikro-orm. Use the recommended best practices for 2025/2026."
+}
+
+rule mikro-orm-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "MikroORM.init()"
+  MESSAGE "You are using an outdated API for mikro-orm. Please upgrade to the newer API."
+}

@@ -1,0 +1,29 @@
+# agent_any_recursion.rules
+
+rule limit-subagent-spawning {
+  MESSAGE "Detected sub-agent spawning attempt. Large numbers of sub-agents can consume context and API credits rapidly."
+  IF tool EQUALS "AgentTool"
+  OR tool EQUALS "subagent"
+  severity warning
+  priority 80
+  ASK any
+  PROMPT "Allow spawning a sub-agent for this task? Note: This will increase context usage."
+}
+
+rule block-infinite-agent-loop {
+  MESSAGE "Detected potential infinite sub-agent loop where the sub-task is identical to the parent task."
+  IF tool EQUALS "AgentTool"
+  AND input.task CONTAINS "recurse"
+  severity error
+  priority 100
+  DENY any
+}
+
+rule warn-dev-team-mode {
+  MESSAGE "Claude 'Dev Team Mode' activated. This will spawn multiple parallel agents."
+  IF tool EQUALS "AgentTool"
+  AND input.subagent_type EQUALS "Team"
+  severity info
+  priority 50
+  LOG any
+}

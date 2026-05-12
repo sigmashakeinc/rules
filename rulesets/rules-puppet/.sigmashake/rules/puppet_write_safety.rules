@@ -1,0 +1,20 @@
+# puppet_write_safety.rules
+# Technology: puppet | Capability: write
+
+rule puppet-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "exec {"
+  MESSAGE "Blocked an unsafe pattern in puppet. Use the recommended best practices for 2025/2026."
+}
+
+rule puppet-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "hiera("
+  MESSAGE "You are using an outdated API for puppet. Please upgrade to the newer API."
+}

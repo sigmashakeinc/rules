@@ -1,0 +1,41 @@
+# github_actions_workflow_safety.rules
+
+rule block-gh-actions-secrets-log {
+  MESSAGE "Detected potential logging of secrets in GitHub Actions. This could leak credentials."
+  IF path GLOB ".github/workflows/*.yaml"
+  OR path GLOB ".github/workflows/*.yml"
+  AND content CONTAINS "echo"
+  AND content REGEX "\$\{\{.*(secret|token).*[ \n\r]|(\$|\$\{)(SECRET|TOKEN)"
+  severity error
+  priority 100
+  DENY write
+}
+
+rule warn-gh-actions-unpinned-version {
+  MESSAGE "Detected unpinned action version using '@main' or '@master'. This is a supply chain risk."
+  IF path GLOB ".github/workflows/*.yaml"
+  AND content REGEX "uses: [a-zA-Z0-9\-]+\/[a-zA-Z0-9\-]+@(main|master|v[0-9]+)$"
+  severity warning
+  priority 90
+  LOG write
+}
+
+rule block-gh-actions-pull-request-target {
+  MESSAGE "Detected 'pull_request_target' trigger with potential checkout. This is a common RCE vector in CI."
+  IF path GLOB ".github/workflows/*.yaml"
+  AND content CONTAINS "on: pull_request_target"
+  AND content CONTAINS "checkout"
+  severity error
+  priority 100
+  DENY write
+}
+
+rule audit-gh-actions-external-curl {
+  MESSAGE "GitHub Actions workflow is using curl to download external scripts. This is a supply chain risk."
+  IF path GLOB ".github/workflows/*.yaml"
+  AND (content CONTAINS "curl" OR content CONTAINS "wget")
+  AND (content CONTAINS "| bash" OR content CONTAINS "| sh")
+  severity warning
+  priority 95
+  LOG write
+}

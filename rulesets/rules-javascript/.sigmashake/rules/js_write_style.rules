@@ -1,0 +1,44 @@
+# js_write_style.rules — JavaScript code quality and anti-pattern rules.
+# Technology: js | Capability: write
+# Covers: var declarations, empty catch, console.log in src, loose equality, typeof comparisons.
+
+rule no-var-declaration {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "^\\s*var\\s+"
+  OR path GLOB "**/*.mjs" AND content LINE_REGEX "^\\s*var\\s+"
+  MESSAGE "var has function scope and hoisting behavior that causes subtle bugs. Use const for values that don't change, or let for values that do."
+}
+
+rule no-empty-catch-js {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "catch\\s*\\([^)]*\\)\\s*\\{\\s*\\}"
+  OR path GLOB "**/*.mjs" AND content LINE_REGEX "catch\\s*\\([^)]*\\)\\s*\\{\\s*\\}"
+  MESSAGE "Empty catch blocks silently swallow errors, hiding bugs in production. Log the error or re-throw it: catch (err) { console.error(err); throw err; }"
+}
+
+rule no-console-log-in-src-js {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "src/**/*.js" AND content CONTAINS "console.log("
+  OR path GLOB "lib/**/*.js" AND content CONTAINS "console.log("
+  OR path GLOB "app/**/*.js" AND content CONTAINS "console.log("
+  MESSAGE "console.log() in source code — use a structured logging library (pino, winston) that can be controlled in production."
+}
+
+rule no-loose-equality {
+  enabled true
+  priority 65
+  severity warning
+  LOG write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "[^=!]==[^=]"
+  OR path GLOB "**/*.js" AND content LINE_REGEX "!=[^=]"
+  MESSAGE "Loose equality (==, !=) performs type coercion with surprising results (e.g., '' == 0). Use strict equality (===, !==) instead."
+}

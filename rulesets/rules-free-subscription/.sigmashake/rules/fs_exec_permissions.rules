@@ -1,0 +1,24 @@
+# fs_exec_permissions.rules
+# Technology: fs | Capability: exec | Description: Prevent destructive permission changes
+
+rule block-chmod-777-recursive {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command CONTAINS "chmod -R 777"
+  OR command CONTAINS "chmod -R 755 /"
+  OR command CONTAINS "chown -R" AND command CONTAINS "/"
+  MESSAGE "Free Protection: Recursive wide-open permission changes are blocked to prevent breaking system security."
+}
+
+rule block-process-nuke {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command CONTAINS "killall -9"
+  OR command CONTAINS "pkill -u root"
+  OR command CONTAINS "kill -9 -1"
+  MESSAGE "Free Protection: Mass process termination commands are blocked."
+}

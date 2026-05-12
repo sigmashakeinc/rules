@@ -1,0 +1,33 @@
+# pwsh_exec_footguns.rules
+# Technology: pwsh | Capability: exec | Description: Prevent PowerShell specific footguns
+
+rule block-pwsh-iex {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command WORD "Invoke-Expression"
+  OR command WORD "IEX"
+  MESSAGE "Free Protection: Invoke-Expression (IEX) is blocked to prevent execution of arbitrary or malicious strings."
+}
+
+rule block-pwsh-remove-item-root {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command WORD "Remove-Item" AND command CONTAINS "-Recurse" AND command CONTAINS "-Force" AND command CONTAINS ":\\*"
+  MESSAGE "Free Protection: Highly destructive Remove-Item commands targeting drive roots are blocked."
+}
+
+rule block-pwsh-registry-remove {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command WORD "Remove-Item" AND command CONTAINS "HKLM:"
+  OR command WORD "Remove-Item" AND command CONTAINS "HKCU:"
+  OR command WORD "Clear-Item" AND command CONTAINS "HKLM:"
+  OR command WORD "Clear-Item" AND command CONTAINS "HKCU:"
+  MESSAGE "Free Protection: Destructive commands targeting Windows Registry drives are blocked."
+}

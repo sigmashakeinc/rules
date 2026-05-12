@@ -1,0 +1,94 @@
+# php_write_safety.rules — PHP write-time security enforcement.
+# Technology: php | Capability: write
+# Covers: eval, command injection, SQL injection, file inclusion, XSS, unserialize, SSRF.
+
+rule no-eval-php {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.php" AND content CONTAINS "eval("
+  MESSAGE "eval() executes arbitrary PHP code — a critical RCE vector, especially with user-controlled input. Refactor to use safe alternatives: conditional logic, lookup tables, or template engines."
+}
+
+rule no-command-injection-php {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.php" AND content LINE_REGEX "(system|exec|passthru|shell_exec|popen|proc_open)\\s*\\(\\s*\\$"
+  OR path GLOB "**/*.php" AND content LINE_REGEX "`.*\\$"
+  MESSAGE "system()/exec()/passthru() with user-controlled input enables command injection. Use escapeshellarg() on every argument, or avoid shell calls entirely and use PHP built-ins."
+}
+
+rule no-sql-injection-php {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.php" AND content LINE_REGEX "(mysql_query|mysqli_query|pg_query)\\s*\\([^)]*\\."
+  OR path GLOB "**/*.php" AND content LINE_REGEX "(mysql_query|mysqli_query|pg_query)\\s*\\(\\s*[\"'].*\\."
+  OR path GLOB "**/*.php" AND content LINE_REGEX "->query\\s*\\(\\s*[\"'].*\\$"
+  MESSAGE "String concatenation in SQL queries enables SQL injection. Use PDO or MySQLi prepared statements: $stmt = $pdo->prepare('SELECT * FROM t WHERE id = ?'); $stmt->execute([$id]);"
+}
+
+rule no-dynamic-file-inclusion {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.php" AND content LINE_REGEX "(include|require|include_once|require_once)\\s*\\(\\s*\\$"
+  OR path GLOB "**/*.php" AND content LINE_REGEX "(include|require|include_once|require_once)\\s+\\$"
+  MESSAGE "Dynamic file inclusion with user-controlled paths enables remote/local file inclusion (RFI/LFI). Whitelist allowed file names and never include paths from user input."
+}
+
+rule no-echo-unescaped-input {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.php" AND content LINE_REGEX "echo\\s+\\$_(GET|POST|REQUEST|COOKIE|SERVER)"
+  OR path GLOB "**/*.php" AND content LINE_REGEX "print\\s+\\$_(GET|POST|REQUEST|COOKIE|SERVER)"
+  OR path GLOB "**/*.php" AND content LINE_REGEX "echo\\s+\\$_(GET|POST|REQUEST|COOKIE)\\['"
+  MESSAGE "Echoing unsanitized user input enables reflected XSS. Always use htmlspecialchars($input, ENT_QUOTES, 'UTF-8') before outputting user-controlled data in HTML context."
+}
+
+rule no-unserialize-user-input {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.php" AND content LINE_REGEX "unserialize\\s*\\(\\s*\\$_(GET|POST|REQUEST|COOKIE)"
+  OR path GLOB "**/*.php" AND content LINE_REGEX "unserialize\\s*\\(\\s*base64_decode"
+  MESSAGE "unserialize() with untrusted data is a critical RCE vulnerability (PHP Object Injection). Use JSON for data interchange: json_decode($input, true) instead."
+}
+
+rule no-ssrf-php {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.php" AND content LINE_REGEX "file_get_contents\\s*\\(\\s*\\$_(GET|POST|REQUEST)"
+  OR path GLOB "**/*.php" AND content LINE_REGEX "curl_setopt.*CURLOPT_URL.*\\$_(GET|POST|REQUEST)"
+  OR path GLOB "**/*.php" AND content LINE_REGEX "fopen\\s*\\(\\s*\\$_(GET|POST|REQUEST)"
+  MESSAGE "Fetching URLs from user input enables Server-Side Request Forgery (SSRF). Validate that the URL is in an allowed whitelist and block internal/private IP ranges."
+}
+
+rule no-hardcoded-secrets-php {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.php" AND content LINE_REGEX "(password|passwd|api_key|secret|token)\\s*=\\s*['\"][^'\"]{8,}['\"]"
+  MESSAGE "Hardcoded secrets in PHP source code are exposed in version control. Use environment variables: getenv('DB_PASSWORD') or $_ENV['API_KEY']."
+}
+
+rule no-disabled-error-reporting {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.php" AND content CONTAINS "error_reporting(0)"
+  OR path GLOB "**/*.php" AND content CONTAINS "display_errors = On"
+  MESSAGE "Disabling error reporting or enabling display_errors in production leaks stack traces and sensitive data. Set display_errors = Off in production php.ini."
+}

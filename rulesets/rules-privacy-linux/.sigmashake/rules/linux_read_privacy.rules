@@ -1,0 +1,92 @@
+# linux_read_privacy.rules — Linux privacy protection for AI coding agents.
+# Technology: linux | Capability: exec + read
+# Covers: browser history, /proc/environ, GNOME keyring, user activity logs, mail, SSH keys.
+
+rule no-read-browser-history-linux {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF command REGEX "cat.*\\.mozilla.*places\\.sqlite"
+  OR command REGEX "cat.*\\.config/google-chrome.*History"
+  OR command REGEX "cat.*\\.config/chromium.*History"
+  OR command REGEX "sqlite3.*places\\.sqlite"
+  OR command REGEX "sqlite3.*chrome.*History"
+  MESSAGE "Reading browser history databases accesses private browsing data including visited URLs, search queries, and timestamps. This data is personal and should not be read by AI agents."
+  PROMPT "Is accessing browser history required for this task? Prefer user-exported bookmarks or privacy-safe alternatives that don't expose full browsing history."
+}
+
+rule no-read-proc-environ {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "cat\\s+/proc/[0-9]+/environ"
+  OR command REGEX "strings\\s+/proc/[0-9]+/environ"
+  OR command REGEX "cat\\s+/proc/\\*/environ"
+  MESSAGE "/proc/<pid>/environ exposes the full environment of running processes, which often includes API keys, database passwords, auth tokens, and other sensitive credentials passed via environment variables."
+}
+
+rule no-read-user-ssh-keys {
+  enabled true
+  priority 100
+  severity error
+  ASK execution
+  IF command REGEX "cat.*\\.ssh/id_(rsa|ecdsa|ed25519|dsa)$"
+  OR command REGEX "cp.*\\.ssh/id_(rsa|ecdsa|ed25519|dsa)\\b"
+  OR command REGEX "cat.*\\.ssh/.*_rsa$"
+  MESSAGE "Reading SSH private key files exposes authentication credentials that grant access to remote servers. Private keys should never be read, copied, or transmitted by an AI agent."
+  PROMPT "Is reading the SSH private key necessary? Consider using SSH agent forwarding (ssh-agent) or deploying a new key pair rather than accessing an existing private key."
+}
+
+rule no-gnome-keyring-dump {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF command CONTAINS "gnome-keyring-daemon --unlock"
+  OR command REGEX "secret-tool\\s+lookup"
+  OR command REGEX "secret-tool\\s+search"
+  OR command CONTAINS "libsecret"
+  MESSAGE "Accessing the GNOME keyring retrieves passwords, tokens, and secrets stored by desktop applications. This includes WiFi passwords, email credentials, and application API keys."
+  PROMPT "Is keyring access required? Consider prompting the user to retrieve the specific secret they need rather than programmatic keyring access."
+}
+
+rule no-read-user-activity-logs {
+  enabled true
+  priority 80
+  severity warning
+  ASK execution
+  IF command REGEX "cat\\s+/var/log/(wtmp|btmp|lastlog)"
+  OR command CONTAINS "last -F"
+  OR command CONTAINS "lastlog"
+  OR command REGEX "journalctl.*_UID=[0-9]"
+  MESSAGE "Reading user activity logs (wtmp, lastlog, journald) reveals when users logged in, from where, and command history — personal activity data that should not be collected without consent."
+  PROMPT "Is reading user login history necessary for this task? Ensure there is a legitimate administrative or security reason for accessing this personal activity data."
+}
+
+rule no-read-user-mail {
+  enabled true
+  priority 90
+  severity error
+  ASK execution
+  IF command REGEX "cat\\s+/var/mail/\\w+"
+  OR command REGEX "cat\\s+/var/spool/mail/\\w+"
+  OR command REGEX "cat.*mbox"
+  OR command REGEX "cat.*\\.thunderbird.*\\.msf"
+  MESSAGE "Reading user mail files or mail spool entries accesses private communications. Email content is personal data protected by privacy laws in many jurisdictions."
+  PROMPT "Is reading user email content required for this task? Ensure explicit user consent and that this access is necessary and proportionate to the task."
+}
+
+rule no-read-shell-history {
+  enabled true
+  priority 85
+  severity warning
+  ASK execution
+  IF command REGEX "cat.*\\.bash_history"
+  OR command REGEX "cat.*\\.zsh_history"
+  OR command REGEX "cat.*\\.sh_history"
+  OR command REGEX "history\\s*$"
+  MESSAGE "Reading shell history exposes all commands a user has run, which may include passwords typed by mistake, API keys, and personal workflow data."
+  PROMPT "Is reading shell history necessary? This reveals sensitive command patterns. Ensure the user is aware their command history is being accessed."
+}

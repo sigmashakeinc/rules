@@ -1,0 +1,101 @@
+# security_write_owasp.rules — OWASP Top 10 cross-language security rules.
+# Technology: security | Capability: write
+# Covers: injection, broken auth, sensitive data exposure, XXE, SSRF, path traversal, IDOR patterns.
+
+rule no-hardcoded-password {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "(password|passwd|pwd)\\s*[:=]\\s*['\"][^'\"]{4,}"
+  OR path GLOB "**/*.js" AND content LINE_REGEX "(password|passwd|pwd)\\s*[:=]\\s*['\"][^'\"]{4,}"
+  OR path GLOB "**/*.py" AND content LINE_REGEX "(password|passwd|pwd)\\s*[:=]\\s*['\"][^'\"]{4,}"
+  OR path GLOB "**/*.java" AND content LINE_REGEX "(password|passwd|pwd)\\s*=\\s*\"[^\"]{4,}\""
+  OR path GLOB "**/*.go" AND content LINE_REGEX "(password|passwd|pwd)\\s*:?=\\s*\"[^\"]{4,}\""
+  MESSAGE "Hardcoded password detected. Store credentials in environment variables or a secrets manager — never in source code."
+}
+
+rule no-md5-sha1-crypto {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF content CONTAINS "md5("
+  OR content CONTAINS "MD5("
+  OR content CONTAINS "sha1("
+  OR content CONTAINS "SHA1("
+  OR content CONTAINS "createHash('md5')"
+  OR content CONTAINS "createHash('sha1')"
+  OR content CONTAINS "hashlib.md5"
+  OR content CONTAINS "hashlib.sha1"
+  MESSAGE "MD5 and SHA-1 are cryptographically broken and must not be used for security purposes (passwords, signatures, certificates). Use SHA-256 or bcrypt/argon2 for passwords."
+}
+
+rule no-insecure-random {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "Math\\.random\\(\\).*(?:token|secret|key|password|salt|nonce|csrf)"
+  OR path GLOB "**/*.js" AND content LINE_REGEX "Math\\.random\\(\\).*(?:token|secret|key|password|salt|nonce|csrf)"
+  OR path GLOB "**/*.py" AND content LINE_REGEX "random\\.(?:random|randint|choice)\\(.*(?:token|secret|key|password)"
+  MESSAGE "Math.random() and Python's random module are not cryptographically secure. Use crypto.randomBytes() (Node.js) or secrets.token_hex() (Python) for security-sensitive values."
+}
+
+rule no-cors-wildcard-with-credentials {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF content CONTAINS "Access-Control-Allow-Origin: *" AND content CONTAINS "credentials"
+  OR content CONTAINS "origin: '*'" AND content CONTAINS "credentials: true"
+  OR content CONTAINS "allowedOrigins: ['*']" AND content CONTAINS "credentials"
+  MESSAGE "CORS wildcard (*) with credentials:true is rejected by browsers and is a security misconfiguration. Specify explicit allowed origins for authenticated APIs."
+}
+
+rule ask-disable-ssl-verify {
+  enabled true
+  priority 95
+  severity error
+  LOG write
+  IF content CONTAINS "verify=False"
+  OR content CONTAINS "rejectUnauthorized: false"
+  OR content CONTAINS "InsecureRequestWarning"
+  OR content CONTAINS "ssl._create_unverified_context"
+  MESSAGE "SSL/TLS certificate verification is disabled. This makes connections vulnerable to man-in-the-middle attacks. Fix the certificate issue instead of disabling verification."
+}
+
+rule no-xml-external-entities {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content CONTAINS "etree.parse(" AND content NOT CONTAINS "defusedxml"
+  OR path GLOB "**/*.py" AND content CONTAINS "xml.etree" AND content NOT CONTAINS "defusedxml"
+  OR path GLOB "**/*.java" AND content CONTAINS "DocumentBuilderFactory" AND content NOT CONTAINS "setFeature"
+  MESSAGE "Standard XML parsers are vulnerable to XXE (XML External Entity) injection. Use defusedxml (Python) or disable external entities in the parser configuration."
+}
+
+rule no-ssrf-unvalidated-url {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "(fetch|axios\\.get|axios\\.post|http\\.get|https\\.get)\\s*\\(\\s*(req\\.|request\\.|params\\.|query\\.)"
+  OR path GLOB "**/*.js" AND content LINE_REGEX "(fetch|axios\\.get|axios\\.post|http\\.get|https\\.get)\\s*\\(\\s*(req\\.|request\\.|params\\.|query\\.)"
+  OR path GLOB "**/*.py" AND content LINE_REGEX "(requests\\.get|requests\\.post|urllib\\.request)\\s*\\(\\s*(request\\.|req\\.|params\\[)"
+  OR path GLOB "**/*.go" AND content LINE_REGEX "(http\\.Get|http\\.Post)\\s*\\(\\s*(r\\.URL|r\\.Form|params)"
+  MESSAGE "Fetching URLs from user-controlled input enables Server-Side Request Forgery (SSRF). Validate URLs against an allowlist of trusted domains and block requests to private IP ranges (10.x, 172.16-31.x, 192.168.x, 169.254.x)."
+}
+
+rule no-path-traversal {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "(readFile|writeFile|createReadStream|unlink).*req\\."
+  OR path GLOB "**/*.js" AND content LINE_REGEX "(readFile|writeFile|createReadStream|unlink).*req\\."
+  OR path GLOB "**/*.py" AND content LINE_REGEX "(open|os\\.path\\.join)\\s*\\(.*request\\."
+  OR path GLOB "**/*.go" AND content LINE_REGEX "(os\\.Open|os\\.ReadFile|ioutil\\.ReadFile)\\s*\\(\\s*(r\\.URL|r\\.Form|params)"
+  MESSAGE "File operations with user-controlled path components enable path traversal attacks (../../etc/passwd). Validate that the resolved path is within an allowed base directory using path.resolve() and startsWith() checks."
+}

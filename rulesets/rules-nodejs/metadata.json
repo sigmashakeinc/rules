@@ -1,0 +1,3 @@
+{
+  "description": "Node.js is an open-source, cross-platform, JavaScript runtime environment. These rules govern Node.js application development, preventing common vulnerabilities like command injection, insecure file system access, and improper error handling."
+}

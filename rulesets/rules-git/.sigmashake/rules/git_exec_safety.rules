@@ -1,0 +1,67 @@
+# git_exec_safety.rules — Block destructive git operations.
+# Technology: git | Capability: exec
+# Covers: force push, hard reset, force clean, branch delete, rebase, checkout destructive.
+
+rule no-force-push {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command CONTAINS "git push --force"
+  OR command CONTAINS "git push -f "
+  OR command REGEX "git push -f$"
+  OR command CONTAINS "git push --force-with-lease"
+  MESSAGE "Force push is blocked. It rewrites shared history and can permanently destroy teammates' work. Use 'git revert' to undo changes safely."
+}
+
+rule no-hard-reset {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command CONTAINS "git reset --hard"
+  MESSAGE "Hard reset is blocked. It permanently discards uncommitted changes and commits. Use 'git stash' to save work, or 'git revert' to undo commits safely."
+}
+
+rule no-git-clean-force {
+  enabled true
+  priority 90
+  severity error
+  DENY execution
+  IF command REGEX "git clean -[^ ]*f"
+  OR command CONTAINS "git clean --force"
+  MESSAGE "Force-clean is blocked. It permanently deletes untracked files with no recovery path. Review untracked files with 'git status' first."
+}
+
+rule ask-branch-delete-force {
+  enabled true
+  priority 85
+  severity warning
+  ASK execution
+  IF command CONTAINS "git branch -D "
+  MESSAGE "Force branch deletion detected. This removes the branch even if it hasn't been merged. Verify the branch is no longer needed."
+  PROMPT "Has this branch been merged or its work preserved? Use 'git branch -d' (soft delete) instead if possible."
+}
+
+rule ask-rebase {
+  enabled true
+  priority 80
+  severity warning
+  ASK execution
+  IF command CONTAINS "git rebase"
+  MESSAGE "Rebase rewrites commit history. On shared branches this causes problems for anyone who has pulled. Confirm this is on a local or personal branch."
+  PROMPT "Is this branch local-only or a personal feature branch? Rebasing shared branches forces teammates to re-sync and can cause conflicts."
+}
+
+rule ask-checkout-destructive {
+  enabled true
+  priority 85
+  severity warning
+  ASK execution
+  IF command REGEX "git checkout -- "
+  OR command REGEX "git restore --staged\\s"
+  OR command REGEX "git restore \\."
+  OR command REGEX "git checkout \\."
+  MESSAGE "Destructive checkout detected. This discards uncommitted changes permanently. Stash your work first if you want to recover it."
+  PROMPT "Have you stashed or committed any work you want to keep? This operation cannot be undone."
+}

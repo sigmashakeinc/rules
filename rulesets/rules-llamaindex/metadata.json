@@ -1,0 +1,3 @@
+{
+  "description": "LlamaIndex is a data framework for LLM applications that connects custom data to LLMs. These rules ensure secure and efficient data indexing, retrieval, and synthesis patterns to prevent data leakage and suboptimal query performance."
+}

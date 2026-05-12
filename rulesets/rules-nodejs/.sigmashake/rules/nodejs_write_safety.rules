@@ -1,0 +1,189 @@
+# nodejs_write_safety.rules
+# Technology: nodejs | Capability: write
+
+rule nodejs-block-eval {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.js" AND content CONTAINS "eval("
+  OR path GLOB "**/*.ts" AND content CONTAINS "eval("
+  MESSAGE "RISK: eval() executes arbitrary strings as code, a top RCE vector when any input is attacker-influenced. FIX: parse JSON with JSON.parse, resolve functions via a lookup table, or use a typed config loader."
+}
+
+rule nodejs-block-new-function {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "new\\s+Function\\s*\\("
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "new\\s+Function\\s*\\("
+  MESSAGE "RISK: 'new Function(...)' is an eval-equivalent that compiles arbitrary strings into callable code, enabling RCE if inputs are tainted. FIX: replace with real functions or a safe expression library (expr-eval, jsep) with an allow-listed grammar."
+}
+
+rule nodejs-warn-child-process-exec {
+  enabled true
+  priority 90
+  severity warning
+  LOG write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "child_process\\.exec\\("
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "child_process\\.exec\\("
+  MESSAGE "RISK: child_process.exec spawns a shell, so any interpolated value can break out into arbitrary commands (classic command injection). FIX: use execFile or spawn with an argv array and never pass user input as part of the command string."
+}
+
+rule nodejs-warn-prototype-pollution {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "\\b__proto__\\s*="
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "\\b__proto__\\s*="
+  MESSAGE "RISK: assigning to __proto__ mutates Object.prototype across the app, a documented path to auth bypass and RCE (e.g. CVE-2022-21824, Lodash CVE-2019-10744). FIX: use Object.create(null) maps, Map, or explicit property assignment with hasOwnProperty guards."
+}
+
+rule nodejs-warn-insecure-cookie {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "res\\.cookie\\(" AND content NOT CONTAINS "httpOnly"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "res\\.cookie\\(" AND content NOT CONTAINS "httpOnly"
+  MESSAGE "RISK: cookies without httpOnly are readable from client JS, so any XSS immediately steals the session. FIX: set { httpOnly: true, secure: true, sameSite: 'lax' } on every res.cookie call."
+}
+
+rule nodejs-block-vm-as-sandbox {
+  enabled true
+  priority 85
+  severity warning
+  ASK write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "vm\\.(runInNewContext|runInThisContext|runInContext|compileFunction)\\("
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "vm\\.(runInNewContext|runInThisContext|runInContext|compileFunction)\\("
+  MESSAGE "RISK: the Node 'vm' module is explicitly NOT a security sandbox — attackers escape via 'this.constructor.constructor' and similar tricks (confirmed in Node docs and CVE-2023-30581). FIX: run untrusted code in a separate process with resource limits, or use isolated-vm / vm2-successors with threat modeling."
+  PROMPT "Is the code passed to vm.* from a fully trusted source? If it could ever be attacker-influenced, switch to isolated-vm or a child process."
+}
+
+rule nodejs-block-jwt-algorithm-none {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "algorithm[s]?\\s*:\\s*\\[?\\s*['\"]none['\"]"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "algorithm[s]?\\s*:\\s*\\[?\\s*['\"]none['\"]"
+  MESSAGE "RISK: accepting the 'none' JWT algorithm lets an attacker forge tokens without a signature (classic jsonwebtoken vuln, CVE-2015-9235 family still recurring). FIX: pin algorithms to ['RS256'] or ['HS256'] explicitly in jwt.verify and never include 'none'."
+}
+
+rule nodejs-warn-jwt-verify-without-algorithms {
+  enabled true
+  priority 90
+  severity warning
+  LOG write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "jwt\\.verify\\(" AND content NOT CONTAINS "algorithms"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "jwt\\.verify\\(" AND content NOT CONTAINS "algorithms"
+  MESSAGE "RISK: jwt.verify without an explicit algorithms option trusts the token header, enabling alg-confusion attacks (HS256 signed with the RSA public key). FIX: always pass { algorithms: ['RS256'] } (or your chosen alg) to jwt.verify."
+}
+
+rule nodejs-block-tls-reject-unauthorized-false {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "rejectUnauthorized\\s*:\\s*false"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "rejectUnauthorized\\s*:\\s*false"
+  MESSAGE "RISK: rejectUnauthorized:false disables TLS certificate validation, exposing traffic to trivial MITM and credential theft. FIX: fix the trust store (NODE_EXTRA_CA_CERTS or ca option with the specific CA), never disable verification."
+}
+
+rule nodejs-block-node-serialize {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.js" AND content CONTAINS "node-serialize"
+  OR path GLOB "**/*.ts" AND content CONTAINS "node-serialize"
+  OR path GLOB "**/*.js" AND content LINE_REGEX "\\bunserialize\\s*\\("
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "\\bunserialize\\s*\\("
+  MESSAGE "RISK: node-serialize.unserialize() executes embedded IIFEs on deserialization — documented RCE (CVE-2017-5941) and the package is unmaintained. FIX: use JSON.parse for data, or a schema-validated format (zod, ajv) over a structured wire format."
+}
+
+rule nodejs-warn-yaml-load-unsafe {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "yaml\\.load\\s*\\(" AND content NOT CONTAINS "FAILSAFE_SCHEMA"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "yaml\\.load\\s*\\(" AND content NOT CONTAINS "FAILSAFE_SCHEMA"
+  MESSAGE "RISK: js-yaml v3 'load' used the DEFAULT schema which instantiates arbitrary tagged types (RCE); legacy code still calls it. FIX: pin js-yaml >=4 and pass { schema: FAILSAFE_SCHEMA } for untrusted input, or use yaml.load with explicit safe schema."
+}
+
+rule nodejs-block-settimeout-string {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "set(Timeout|Interval)\\s*\\(\\s*['\"]"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "set(Timeout|Interval)\\s*\\(\\s*['\"]"
+  MESSAGE "RISK: setTimeout/setInterval with a string argument invokes the eval path internally (per MDN), turning any interpolated value into RCE. FIX: always pass a function reference or arrow function."
+}
+
+rule nodejs-warn-math-random-crypto {
+  enabled true
+  priority 80
+  severity warning
+  ASK write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "(token|secret|password|salt|nonce|apiKey|session).{0,40}Math\\.random"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "(token|secret|password|salt|nonce|apiKey|session).{0,40}Math\\.random"
+  OR path GLOB "**/*.js" AND content LINE_REGEX "Math\\.random.{0,40}(token|secret|password|salt|nonce)"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "Math\\.random.{0,40}(token|secret|password|salt|nonce)"
+  MESSAGE "RISK: Math.random is a predictable PRNG — using it for tokens/secrets lets attackers recover values from a few samples. FIX: use crypto.randomBytes(n).toString('hex') or crypto.randomUUID() for any security-sensitive value."
+  PROMPT "Is this Math.random value security-sensitive (token/secret/nonce/password)? If yes, replace with crypto.randomBytes or crypto.randomUUID."
+}
+
+rule nodejs-warn-cors-wildcard-credentials {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "origin\\s*:\\s*['\"]\\*['\"]" AND content CONTAINS "credentials"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "origin\\s*:\\s*['\"]\\*['\"]" AND content CONTAINS "credentials"
+  MESSAGE "RISK: CORS origin '*' combined with credentials:true is either rejected by browsers or, via misconfig, leaks authenticated responses to arbitrary sites. FIX: reflect a strict allow-list of origins and only set credentials:true for those exact origins."
+}
+
+rule nodejs-warn-hardcoded-secret {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30,}|sk-[A-Za-z0-9]{20,}|xox[baprs]-[A-Za-z0-9-]{10,})"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30,}|sk-[A-Za-z0-9]{20,}|xox[baprs]-[A-Za-z0-9-]{10,})"
+  OR path GLOB "**/*.json" AND content LINE_REGEX "(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30,}|sk-[A-Za-z0-9]{20,}|xox[baprs]-[A-Za-z0-9-]{10,})"
+  MESSAGE "RISK: AWS/GitHub/OpenAI/Slack token patterns in source get scraped by bots within minutes of a push (Shai-Hulud 2025 campaign weaponized exactly this). FIX: move to env vars or a secrets manager, rotate the exposed key immediately, and add the pattern to your pre-commit scanner."
+}
+
+rule nodejs-warn-shelljs-exec {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "shell\\.exec\\s*\\("
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "shell\\.exec\\s*\\("
+  MESSAGE "RISK: shelljs.exec runs through a real shell and has the same injection surface as child_process.exec (CVE-2022-0144 regressed this). FIX: use execFile/spawn with an argv array, or shelljs.exec only with static strings."
+}
+
+rule nodejs-warn-dynamic-require {
+  enabled true
+  priority 80
+  severity warning
+  ASK write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "require\\(\\s*[^'\"`)][^)]*\\+"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "require\\(\\s*[^'\"`)][^)]*\\+"
+  MESSAGE "RISK: require() with a concatenated/variable path can load attacker-chosen modules (including postinstall-backdoored packages from Shai-Hulud-style attacks). FIX: use a static require or a hard-coded switch on validated identifiers."
+  PROMPT "Is the path to require() fully static or allow-listed? If any part comes from config/user input, replace with a switch over validated names."
+}
+
+rule nodejs-warn-eol-node-engine {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/package.json" AND content LINE_REGEX "\"node\"\\s*:\\s*\"[^\"]*(0\\.|4\\.|6\\.|8\\.|10\\.|12\\.|14\\.|16\\.|18\\.)"
+  MESSAGE "RISK: Node.js 18 reached EOL in April 2025 and earlier majors get no security fixes — January 2026 CVEs (e.g. CVE-2025-55131) are only patched on 20.x+. FIX: set engines.node to '>=20.19' (current LTS line) and upgrade CI/runtime images."
+}

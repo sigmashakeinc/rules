@@ -1,0 +1,20 @@
+# keras_write_safety.rules
+# Technology: keras | Capability: write
+
+rule keras-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "Lambda("
+  MESSAGE "Blocked an unsafe pattern in keras. Use the recommended best practices for 2025/2026."
+}
+
+rule keras-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "keras.backend.get_session"
+  MESSAGE "You are using an outdated API for keras. Please upgrade to the newer API."
+}

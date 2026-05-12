@@ -1,0 +1,20 @@
+# vertexai_write_safety.rules
+# Technology: vertexai | Capability: write
+
+rule vertexai-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "credentials="
+  MESSAGE "Blocked an unsafe pattern in vertexai. Use the recommended best practices for 2025/2026."
+}
+
+rule vertexai-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "aiplatform.init"
+  MESSAGE "You are using an outdated API for vertexai. Please upgrade to the newer API."
+}

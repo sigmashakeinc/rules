@@ -1,0 +1,66 @@
+# scala_write_safety.rules — Scala write-time security enforcement.
+# Technology: scala | Capability: write
+# Covers: Java deserialization, SQL injection, command injection, unchecked casts, hardcoded secrets.
+
+rule no-java-deserialize-scala {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.scala" AND content CONTAINS "ObjectInputStream"
+  OR path GLOB "**/*.scala" AND content CONTAINS "readObject("
+  OR path GLOB "**/*.sc" AND content CONTAINS "ObjectInputStream"
+  MESSAGE "Java ObjectInputStream deserialization is a well-known RCE vector. Use circe, play-json, upickle, or protobuf for safe serialization instead."
+}
+
+rule no-sql-interpolation-scala {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.scala" AND content LINE_REGEX "(executeQuery|executeUpdate|prepareStatement).*s\""
+  OR path GLOB "**/*.scala" AND content LINE_REGEX "(executeQuery|executeUpdate).*\\+"
+  OR path GLOB "**/*.scala" AND content LINE_REGEX "sql\"\"\".*\\$\\{" AND content NOT CONTAINS "sqlu"
+  MESSAGE "String interpolation in SQL queries enables SQL injection. Use Slick's sql/sqlu interpolators with explicit parameters, or Doobie's fr interpolator which handles parameterization safely."
+}
+
+rule no-runtime-exec-scala {
+  enabled true
+  priority 95
+  severity error
+  LOG write
+  IF path GLOB "**/*.scala" AND content LINE_REGEX "Runtime\\.getRuntime\\.exec\\s*\\("
+  OR path GLOB "**/*.scala" AND content LINE_REGEX "Process\\s*\\(\\s*s\""
+  OR path GLOB "**/*.scala" AND content LINE_REGEX "Seq\\s*\\(['\"]sh['\"]"
+  MESSAGE "Runtime.exec() or scala.sys.process.Process with shell and interpolated strings enables command injection. Use the Seq form: Process(Seq('cmd', arg1, userArg)) — no shell involved."
+}
+
+rule no-unchecked-asInstanceOf {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.scala" AND content LINE_REGEX "\\.asInstanceOf\\["
+  OR path GLOB "**/*.sc" AND content LINE_REGEX "\\.asInstanceOf\\["
+  MESSAGE "asInstanceOf[] throws ClassCastException if the runtime type doesn't match. Use pattern matching instead: value match { case x: TargetType => ... case _ => ... }"
+}
+
+rule no-hardcoded-secrets-scala {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.scala" AND content LINE_REGEX "val\\s+(password|apiKey|api_key|secret|token)\\s*=\\s*\"[^\"]{8,}\""
+  OR path GLOB "**/*.sc" AND content LINE_REGEX "(password|secret|token)\\s*=\\s*\"[^\"]{8,}\""
+  MESSAGE "Hardcoded credentials in Scala source are compiled into the JAR. Use sys.env('SECRET_KEY') or a configuration library (PureConfig, Typesafe Config) reading from environment variables."
+}
+
+rule no-scala-xml-external-entity {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.scala" AND content CONTAINS "scala.xml.XML.load"
+  OR path GLOB "**/*.scala" AND content CONTAINS "scala.xml.XML.loadString"
+  MESSAGE "scala.xml.XML.load/loadString may process external entities (XXE). Create a custom SAXParser with DOCTYPE processing disabled: SAXParserFactory with setFeature(DISALLOW_DOCTYPE_DECL)."
+}

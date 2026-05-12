@@ -1,0 +1,167 @@
+# tailwindcss_write_safety.rules
+# Technology: tailwindcss | Capability: write
+
+rule tailwindcss-warn-dynamic-class {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "className\\s*=\\s*\\{.*\\+.*\\}"
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "className\\s*=\\s*\\{.*\\+.*\\}"
+  OR path GLOB "**/*.tsx" AND content LINE_REGEX "className\\s*=\\s*\\{.*`.*\\$\\{.*\\}.*`\\}"
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "className\\s*=\\s*\\{.*`.*\\$\\{.*\\}.*`\\}"
+  MESSAGE "RISK: Dynamically constructing Tailwind classes via concatenation/interpolation breaks JIT detection so styles are missing in production. FIX: Use complete class strings, a clsx/cva mapping, or an explicit safelist."
+}
+
+rule tailwindcss-deny-wildcard-safelist {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/tailwind.config.*" AND content LINE_REGEX "safelist\\s*:\\s*\\[\\s*['\"]\\.\\*['\"]\\s*\\]"
+  MESSAGE "RISK: A '.*' safelist disables purging and ships a multi-MB CSS bundle. FIX: Use precise class names or scoped {pattern: /^bg-(red|blue)-\\d+$/} entries."
+}
+
+rule tailwindcss-deny-play-cdn-prod {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.html" AND content CONTAINS "cdn.tailwindcss.com"
+  OR path GLOB "**/*.tsx" AND content CONTAINS "cdn.tailwindcss.com"
+  OR path GLOB "**/*.jsx" AND content CONTAINS "cdn.tailwindcss.com"
+  OR path GLOB "**/*.vue" AND content CONTAINS "cdn.tailwindcss.com"
+  OR path GLOB "**/*.svelte" AND content CONTAINS "cdn.tailwindcss.com"
+  MESSAGE "RISK: Tailwind Play CDN is dev-only per official docs — it ships the full generator, runs at runtime, and is a supply-chain dependency on a third-party origin. FIX: Install tailwindcss as a build dependency (npm i tailwindcss @tailwindcss/postcss) and compile locally."
+}
+
+rule tailwindcss-warn-v3-directives {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.css" AND content LINE_REGEX "@tailwind\\s+(base|components|utilities)"
+  MESSAGE "RISK: The @tailwind base/components/utilities directives are deprecated in Tailwind v4. FIX: Replace with a single '@import \"tailwindcss\";' at the top of your entry CSS (see v4 upgrade guide)."
+}
+
+rule tailwindcss-deny-jit-mode {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/tailwind.config.*" AND content LINE_REGEX "mode\\s*:\\s*['\"]jit['\"]"
+  MESSAGE "RISK: 'mode: jit' was removed — JIT is always-on since v3.0 and the key is invalid in v4. FIX: Delete the mode key entirely."
+}
+
+rule tailwindcss-warn-purge-key {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/tailwind.config.*" AND content LINE_REGEX "^\\s*purge\\s*:"
+  MESSAGE "RISK: The 'purge' config key was renamed to 'content' in v3 and removed in v4. FIX: Rename to 'content' (v3) or migrate to v4 CSS-first @source directives."
+}
+
+rule tailwindcss-warn-deprecated-opacity-utils {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "\\b(bg|text|border|ring|divide|placeholder)-opacity-\\d"
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "\\b(bg|text|border|ring|divide|placeholder)-opacity-\\d"
+  OR path GLOB "**/*.html" AND content LINE_REGEX "\\b(bg|text|border|ring|divide|placeholder)-opacity-\\d"
+  OR path GLOB "**/*.vue" AND content LINE_REGEX "\\b(bg|text|border|ring|divide|placeholder)-opacity-\\d"
+  MESSAGE "RISK: bg-opacity-*/text-opacity-*/etc were removed in Tailwind v4. FIX: Use slash color syntax such as bg-black/50, text-white/75."
+}
+
+rule tailwindcss-warn-deprecated-flex-shrink-grow {
+  enabled true
+  priority 55
+  severity warning
+  LOG write
+  IF path GLOB "**/*.{tsx,jsx,html,vue,svelte}" AND content LINE_REGEX "\\bflex-(shrink|grow)-\\d"
+  MESSAGE "RISK: flex-shrink-* and flex-grow-* were renamed to shrink-* / grow-* in Tailwind v4. FIX: Replace with shrink-0, grow, etc."
+}
+
+rule tailwindcss-warn-decoration-slice {
+  enabled true
+  priority 50
+  severity warning
+  LOG write
+  IF path GLOB "**/*.{tsx,jsx,html,vue,svelte,css}" AND content LINE_REGEX "\\bdecoration-(slice|clone)\\b"
+  MESSAGE "RISK: decoration-slice/clone utilities were removed in v4. FIX: Use box-decoration-slice / box-decoration-clone."
+}
+
+rule tailwindcss-deny-arbitrary-url-interpolation {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.{tsx,jsx,vue,svelte}" AND content LINE_REGEX "(bg|content|mask)-\\[url\\(['\"]?\\$\\{"
+  MESSAGE "RISK: Interpolating values into a Tailwind arbitrary url() class enables CSS-based data exfiltration (the URL is fetched by the browser even though React escapes attributes). FIX: Use a fixed allow-list of asset URLs or set the background via a sanitized inline style with a parsed URL."
+}
+
+rule tailwindcss-deny-javascript-url-arbitrary {
+  enabled true
+  priority 99
+  severity error
+  DENY write
+  IF path GLOB "**/*.{tsx,jsx,html,vue,svelte,css}" AND content LINE_REGEX "\\[url\\(['\"]?javascript:"
+  MESSAGE "RISK: javascript: URLs inside Tailwind arbitrary values execute in some legacy contexts and indicate an XSS sink. FIX: Remove the javascript: URL; use event handlers in JS instead."
+}
+
+rule tailwindcss-ask-content-glob-too-broad {
+  enabled true
+  priority 75
+  severity warning
+  ASK write
+  IF path GLOB "**/tailwind.config.*" AND content LINE_REGEX "content\\s*:\\s*\\[[^\\]]*['\"]\\./\\*\\*/\\*['\"]"
+  MESSAGE "RISK: A bare './**/*' content glob scans node_modules, .env, and build artifacts — secrets can leak into the generated CSS as class strings, and builds become very slow. FIX: Restrict to source dirs, e.g. ['./src/**/*.{js,ts,jsx,tsx,html}']."
+  PROMPT "Is this broad './**/*' content glob intentional? It will scan node_modules and dotfiles. Confirm or scope to ./src/**/*.{js,ts,jsx,tsx,html}."
+}
+
+rule tailwindcss-ask-safelist-from-variable {
+  enabled true
+  priority 80
+  severity warning
+  ASK write
+  IF path GLOB "**/tailwind.config.*" AND content LINE_REGEX "safelist\\s*:\\s*[A-Za-z_$]"
+  MESSAGE "RISK: Building safelist from a variable/import can pull untrusted strings into CSS generation, bloating output or enabling regex DoS. FIX: Inline a static array of safelisted classes or {pattern: /.../} entries."
+  PROMPT "The safelist is sourced from a variable rather than an inline array. Confirm the source is fully trusted or replace with a static safelist."
+}
+
+rule tailwindcss-deny-postcss-vulnerable {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/package.json" AND content LINE_REGEX "\"postcss\"\\s*:\\s*\"[~^]?(([0-7]\\.)|8\\.[0-3]\\.|8\\.4\\.([0-9]|[12][0-9]|30)([^0-9]|$))"
+  MESSAGE "RISK: PostCSS <8.4.31 is vulnerable to CVE-2023-44270 (ReDoS in line/source-map parsing). FIX: Upgrade to postcss ^8.4.31 or newer."
+}
+
+rule tailwindcss-warn-apply-in-templated-css {
+  enabled true
+  priority 65
+  severity warning
+  LOG write
+  IF path GLOB "**/*.css" AND content LINE_REGEX "@apply\\s+[^;]*\\$\\{"
+  MESSAGE "RISK: @apply with template-interpolated class names executes at build time on attacker-controllable input and can pull arbitrary utilities into a selector. FIX: Use only static class names with @apply; compose dynamic styles in JS."
+}
+
+rule tailwindcss-warn-v4-postcss-plugin {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/postcss.config.*" AND content LINE_REGEX "tailwindcss['\"]?\\s*:\\s*\\{"
+  MESSAGE "RISK: In Tailwind v4 the PostCSS plugin moved to the separate '@tailwindcss/postcss' package; using 'tailwindcss' directly in postcss.config will fail to build. FIX: Install @tailwindcss/postcss and reference it instead."
+}
+
+rule tailwindcss-warn-apply-in-css-modules {
+  enabled true
+  priority 50
+  severity info
+  LOG write
+  IF path GLOB "**/*.module.css" AND content LINE_REGEX "@apply\\b"
+  MESSAGE "RISK: In Tailwind v4, @apply inside CSS Modules / scoped stylesheets needs an explicit '@reference' to the main stylesheet or it silently produces no styles. FIX: Add '@reference \"../app.css\";' (or your entry) at the top of the module."
+}

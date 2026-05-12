@@ -1,0 +1,41 @@
+# moltbook_read_data_safety.rules — Moltbook read and data protection.
+# Technology: moltbook | Capability: read
+# Covers: user data file access, database file reading,
+# and agent output auditing for injected instructions.
+
+rule no-moltbook-user-data-read {
+  enabled true
+  priority 90
+  severity error
+  DENY read
+  IF path REGEX "moltbook.*users"
+  OR path REGEX "moltbook.*emails"
+  OR path REGEX "moltbook.*tokens"
+  OR path REGEX "moltbook.*credentials"
+  MESSAGE "Moltbook user data file access blocked. The Moltbook breach exposed 35,000 emails and 1.5M API tokens. User data files (emails, tokens, credentials) must not be accessed by AI agents — use dedicated data access APIs with proper authentication and minimal privilege."
+}
+
+rule ask-moltbook-database-access {
+  enabled true
+  priority 80
+  severity warning
+  ASK read
+  IF path ENDS_WITH ".sqlite" AND content CONTAINS "moltbook"
+  OR path ENDS_WITH ".db" AND content CONTAINS "moltbook"
+  OR path REGEX "supabase.*\\.sql"
+  OR path REGEX "moltbook.*dump"
+  MESSAGE "Database file access in Moltbook context. Moltbook's 1.5M token and 35K email breach originated from database misconfiguration. Local database files may contain previously-leaked user data."
+  PROMPT "Does this database contain Moltbook user data, API tokens, or email addresses? Use parameterized queries and restrict access to only required fields. The breach originated from read/write access to all platform data."
+}
+
+rule log-moltbook-agent-output-read {
+  enabled true
+  priority 60
+  severity info
+  LOG read
+  IF path REGEX "moltbook.*output"
+  OR path REGEX "moltbook.*response"
+  OR path REGEX "moltbook.*log"
+  OR path REGEX "moltbook.*feed"
+  MESSAGE "Moltbook agent output accessed. Agent outputs may contain injected instructions from the Moltbook agent-to-agent prompt injection vulnerability. 60% of organizations lack kill switches for Moltbook agents (Reco.ai). Log all output reads for behavioral analysis."
+}

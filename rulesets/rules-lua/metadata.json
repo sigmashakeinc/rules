@@ -1,0 +1,3 @@
+{
+  "description": "Lua is a powerful, efficient, lightweight, embeddable scripting language. These rules provide safety and best-practice governance for Lua scripting, focusing on secure integration within host applications and preventing common scripting errors."
+}

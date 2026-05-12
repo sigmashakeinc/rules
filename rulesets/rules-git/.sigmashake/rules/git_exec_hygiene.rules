@@ -1,0 +1,55 @@
+# git_exec_hygiene.rules — Prevent accidental commits of bad files.
+# Technology: git | Capability: exec
+# Covers: secret files, node_modules, temp files, amend, merge logging.
+
+rule no-commit-env-files {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "git add[^#]*.env"
+  OR command REGEX "git add[^#]*credentials"
+  OR command REGEX "git add[^#]*\\.secret"
+  OR command REGEX "git add[^#]*secrets\\."
+  MESSAGE "Committing secret files is blocked. Environment files and credentials must never enter version control. Add them to .gitignore immediately."
+}
+
+rule no-commit-node-modules {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command CONTAINS "git add node_modules"
+  OR command REGEX "git add[^#]*node_modules/"
+  MESSAGE "node_modules must not be committed. Add 'node_modules/' to .gitignore and use package.json + lockfiles to reproduce the install."
+}
+
+rule no-commit-temp-files {
+  enabled true
+  priority 85
+  severity error
+  DENY execution
+  IF command REGEX "git add[^#]*\\.(log|tmp|bak|orig|swp|DS_Store)"
+  OR command REGEX "git add[^#]*_err\\.txt"
+  OR command REGEX "git add[^#]*debug\\."
+  MESSAGE "Temporary or debug file detected in git add. Remove it from staging — these files should be in .gitignore."
+}
+
+rule ask-amend-commit {
+  enabled true
+  priority 75
+  severity warning
+  LOG execution
+  IF command CONTAINS "git commit --amend"
+  MESSAGE "Amending commits rewrites history. If this commit has been pushed to a shared branch, amending requires a force push which affects others."
+}
+
+rule log-merge-commit {
+  enabled true
+  priority 50
+  severity info
+  LOG execution
+  IF command STARTS_WITH "git merge "
+  OR command REGEX "^git merge$"
+  MESSAGE "Merge commit recorded. Consider 'git merge --no-ff' for a clear merge history, or use rebase on feature branches for a linear history."
+}

@@ -1,0 +1,216 @@
+# azure_write_safety.rules
+# Technology: azure | Capability: write
+
+rule azure-overly-permissive-rbac {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "role_definition_name\\s*=\\s*[\"'](Owner|Contributor)[\"']"
+  MESSAGE "RISK: Assigning 'Owner' or 'Contributor' at broad scope violates least privilege and enables lateral movement. FIX: use a narrowly-scoped built-in role (e.g. 'Reader', 'Storage Blob Data Reader') or a custom role."
+}
+
+rule azure-open-nsg-rdp-ssh {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "destination_port_range\\s*=\\s*[\"'](22|3389|\\*)[\"']" AND content LINE_REGEX "source_address_prefix\\s*=\\s*[\"'](\\*|0\\.0\\.0\\.0/0|Internet)[\"']"
+  MESSAGE "RISK: NSGs allowing RDP (3389) or SSH (22) from the internet ('*'/'0.0.0.0/0') are brute-forced within hours. FIX: front with Azure Bastion or restrict source_address_prefix to a corporate CIDR."
+}
+
+rule azure-storage-public-access {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "allow_nested_items_to_be_public\\s*=\\s*true"
+  OR path GLOB "**/*.tf" AND content LINE_REGEX "container_access_type\\s*=\\s*[\"'](blob|container)[\"']"
+  OR path GLOB "**/*.bicep" AND content LINE_REGEX "allowBlobPublicAccess\\s*:\\s*true"
+  MESSAGE "RISK: Public blob/container access was the root cause of multiple 2024 Azure data-exfil incidents. FIX: set allow_nested_items_to_be_public=false and container_access_type='private'; front with SAS tokens or Entra RBAC."
+}
+
+rule azure-missing-https {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "enable_https_traffic_only\\s*=\\s*false"
+  MESSAGE "RISK: Disabling HTTPS-only allows cleartext HTTP to Storage accounts, exposing data and SAS tokens in transit. FIX: remove the setting (default true) or set enable_https_traffic_only=true."
+}
+
+rule azure-storage-shared-key-enabled {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "shared_access_key_enabled\\s*=\\s*true"
+  OR path GLOB "**/*.bicep" AND content LINE_REGEX "allowSharedKeyAccess\\s*:\\s*true"
+  MESSAGE "RISK: Shared Key auth bypasses Entra RBAC and conditional access; MSRC 2024 guidance sets the API default to false after it was abused in ransomware-via-blob incidents. FIX: set shared_access_key_enabled=false and use managed identity / Entra RBAC."
+}
+
+rule azure-storage-tls-old {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "min_tls_version\\s*=\\s*[\"']TLS1_(0|1)[\"']"
+  OR path GLOB "**/*.bicep" AND content LINE_REGEX "minimumTlsVersion\\s*:\\s*[\"']TLS1_(0|1)[\"']"
+  MESSAGE "RISK: TLS 1.0/1.1 was retired across Azure in Nov 2024 and is trivially downgraded. FIX: set min_tls_version='TLS1_2' (prefer 'TLS1_3' where supported)."
+}
+
+rule azure-keyvault-purge-protection-disabled {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "purge_protection_enabled\\s*=\\s*false"
+  OR path GLOB "**/*.bicep" AND content LINE_REGEX "enablePurgeProtection\\s*:\\s*false"
+  OR path GLOB "**/*.bicep" AND content LINE_REGEX "enableSoftDelete\\s*:\\s*false"
+  MESSAGE "RISK: Without purge protection, a compromised identity can irreversibly destroy secrets/keys/certs (ransom or sabotage). Microsoft mandates soft-delete on all new vaults since Feb 2025. FIX: enable purge_protection_enabled=true and soft-delete with >=90 day retention."
+}
+
+rule azure-keyvault-network-default-allow {
+  enabled true
+  priority 85
+  severity warning
+  ASK write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "default_action\\s*=\\s*[\"']Allow[\"']"
+  PROMPT "Is it required that this Key Vault / network_acls block accepts traffic from any network? A default_action='Deny' with explicit ip_rules / private endpoint is safer."
+  MESSAGE "RISK: Key Vault network_acls with default_action='Allow' exposes secrets to any network caller, amplifying Storm-0558-class token-theft blast radius. FIX: set default_action='Deny' and add a private endpoint or specific ip_rules/virtual_network_subnet_ids."
+}
+
+rule azure-resource-public-network-enabled {
+  enabled true
+  priority 85
+  severity warning
+  ASK write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "public_network_access_enabled\\s*=\\s*true"
+  OR path GLOB "**/*.bicep" AND content LINE_REGEX "publicNetworkAccess\\s*:\\s*[\"']Enabled[\"']"
+  PROMPT "Does this resource genuinely need to accept traffic from the public internet? Private endpoints or service endpoints are preferred."
+  MESSAGE "RISK: Exposing SQL/Cosmos/Key Vault/Storage to the public internet widens the attack surface and bypasses VNet controls. FIX: set public_network_access_enabled=false and use a private endpoint or service endpoint."
+}
+
+rule azure-sql-firewall-open-world {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "start_ip_address\\s*=\\s*[\"']0\\.0\\.0\\.0[\"']" AND content LINE_REGEX "end_ip_address\\s*=\\s*[\"']255\\.255\\.255\\.255[\"']"
+  MESSAGE "RISK: A SQL/Postgres/MySQL firewall rule 0.0.0.0-255.255.255.255 exposes the database to the entire internet and invites credential-stuffing. FIX: narrow to specific CIDRs or delete the rule and use a private endpoint."
+}
+
+rule azure-sql-tls-old {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "minimal_tls_version\\s*=\\s*[\"']1\\.(0|1)[\"']"
+  OR path GLOB "**/*.tf" AND content LINE_REGEX "ssl_enforcement_enabled\\s*=\\s*false"
+  MESSAGE "RISK: TLS 1.0/1.1 or disabled SSL enforcement on Azure SQL/MySQL/Postgres allows cleartext or downgraded connections leaking credentials. FIX: set minimal_tls_version='1.2' and ssl_enforcement_enabled=true."
+}
+
+rule azure-cosmos-local-auth-enabled {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "local_authentication_disabled\\s*=\\s*false"
+  OR path GLOB "**/*.bicep" AND content LINE_REGEX "disableLocalAuth\\s*:\\s*false"
+  MESSAGE "RISK: Cosmos DB key-based auth bypasses Entra RBAC and cannot be revoked per-user — a recurring theme in 2024 ChaosDB-class audits. FIX: set local_authentication_disabled=true and use aad_authentication / managed identity."
+}
+
+rule azure-appservice-tls-old {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "minimum_tls_version\\s*=\\s*[\"']1\\.(0|1)[\"']"
+  MESSAGE "RISK: App Service / Function App with TLS <1.2 allows downgrade attacks on session cookies and API keys. FIX: set minimum_tls_version='1.2'."
+}
+
+rule azure-appservice-ftp-allowed {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "ftps_state\\s*=\\s*[\"']AllAllowed[\"']"
+  MESSAGE "RISK: ftps_state='AllAllowed' permits plaintext FTP for deployment credentials, trivially sniffed. FIX: set ftps_state='FtpsOnly' or 'Disabled' and deploy via managed identity / Run-From-Package."
+}
+
+rule azure-aks-local-accounts-enabled {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "local_account_disabled\\s*=\\s*false"
+  OR path GLOB "**/*.tf" AND content LINE_REGEX "role_based_access_control_enabled\\s*=\\s*false"
+  MESSAGE "RISK: AKS local (static) kubeconfig accounts survive user offboarding and bypass Entra Conditional Access. FIX: set local_account_disabled=true, enable azure_active_directory_role_based_access_control, and restrict api_server_authorized_ip_ranges."
+}
+
+rule azure-entra-multitenant-personal-accounts {
+  enabled true
+  priority 85
+  severity warning
+  ASK write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "sign_in_audience\\s*=\\s*[\"']AzureADandPersonalMicrosoftAccount[\"']"
+  PROMPT "Is this app genuinely intended to accept consumer Microsoft accounts? If not, use 'AzureADMyOrg' or validate tenant_id before issuing tokens."
+  MESSAGE "RISK: Allowing personal Microsoft accounts on an enterprise app was the pivot vector in the Jan 2024 Midnight Blizzard intrusion. FIX: set sign_in_audience='AzureADMyOrg' or validate the tenant_id claim before issuing tokens."
+}
+
+rule azure-basic-sku-retired {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "(?:^|\\s)sku\\s*=\\s*[\"']Basic[\"']"
+  MESSAGE "RISK: Basic SKU Public IP and Basic Load Balancer were retired on 30 Sept 2025 and lack DDoS/zone-redundancy defaults. FIX: set sku='Standard' and review dependent resources."
+}
+
+rule azure-hardcoded-account-key {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content LINE_REGEX "(AccountKey|SharedAccessKey)\\s*=\\s*[A-Za-z0-9+/]{40,}"
+  OR path GLOB "**/*" AND content LINE_REGEX "DefaultEndpointsProtocol=https;AccountName=[a-z0-9]+;AccountKey="
+  MESSAGE "RISK: Hardcoded Azure Storage connection strings / account keys are the #1 Azure breach vector per the 2024 Microsoft DART report; once in git history they are assumed compromised. FIX: store in Key Vault and reference via managed identity, or use environment variables fed by a secret manager."
+}
+
+rule azure-hardcoded-client-secret {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "client_secret\\s*=\\s*[\"'][^\"'$][^\"']{8,}[\"']"
+  OR path GLOB "**/*.tfvars" AND content LINE_REGEX "client_secret\\s*=\\s*[\"'][^\"'$][^\"']{8,}[\"']"
+  MESSAGE "RISK: Hardcoded service-principal client_secret in Terraform source is recoverable from state files and VCS history. FIX: source from env (ARM_CLIENT_SECRET), a Key Vault data source, or migrate to OIDC / workload identity federation."
+}
+
+rule azure-identity-python-vulnerable {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/requirements*.txt" AND content LINE_REGEX "azure-identity\\s*==\\s*1\\.(?:[0-9]|1[0-5])\\."
+  OR path GLOB "**/pyproject.toml" AND content LINE_REGEX "azure-identity.{0,10}[\"']1\\.(?:[0-9]|1[0-5])\\."
+  MESSAGE "RISK: azure-identity Python <1.16.1 is affected by CVE-2024-35255 (elevation of privilege via managed identity token validation). FIX: pin azure-identity>=1.16.1."
+}
+
+rule azure-identity-js-vulnerable {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/package.json" AND content LINE_REGEX "\"@azure/identity\"\\s*:\\s*[\"'][~^]?(?:[0-3]\\.|4\\.[01]\\.|4\\.2\\.0)"
+  MESSAGE "RISK: @azure/identity <4.2.1 is affected by the CVE-2024-35255 cross-SDK managed-identity EoP. FIX: bump @azure/identity to >=4.2.1 and re-run npm install."
+}
+
+rule azurerm-provider-outdated {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "azurerm.{0,40}version\\s*=\\s*[\"'](?:~>\\s*2\\.|~>\\s*3\\.[0-9]\\b|=\\s*3\\.[0-9]\\.)"
+  MESSAGE "RISK: hashicorp/azurerm <3.110 / any v2.x is unsupported and missed fixes for state-file secret exposure advisories. FIX: pin azurerm to '>= 4.0' (or latest 3.x LTS) in required_providers and run 'terraform init -upgrade'."
+}

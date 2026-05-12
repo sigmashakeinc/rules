@@ -1,0 +1,46 @@
+# pnpm_exec_hygiene.rules — Guard pnpm publish and registry operations.
+# Technology: pnpm | Capability: exec
+# Covers: publish, unpublish, dlx, patch.
+
+rule no-pnpm-unpublish {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command STARTS_WITH "pnpm unpublish"
+  OR command REGEX "^pnpm unpublish\\b"
+  MESSAGE "pnpm unpublish is blocked. Removing a published package version breaks all projects depending on it and cannot be undone after 72 hours. Use 'pnpm deprecate' to discourage use without removing the version."
+}
+
+rule ask-pnpm-publish {
+  enabled true
+  priority 90
+  severity warning
+  ASK execution
+  IF command STARTS_WITH "pnpm publish"
+  OR command REGEX "^pnpm publish\\b"
+  MESSAGE "Publishing to npm via pnpm is permanent (except within 72 hours). Verify version, build output, and .npmignore before publishing."
+  PROMPT "Have you verified: (1) correct version bump in package.json, (2) clean build output, (3) .npmignore excludes source/test files, (4) correct registry target?"
+}
+
+rule ask-pnpm-dlx {
+  enabled true
+  priority 80
+  severity warning
+  ASK execution
+  IF command STARTS_WITH "pnpm dlx"
+  OR command REGEX "^pnpm dlx\\b"
+  MESSAGE "pnpm dlx downloads and executes a package without installing it. Without a version pin, it always fetches the latest release — a compromised release executes immediately in your project."
+  PROMPT "Have you pinned the version? Prefer: pnpm dlx <package>@<exact-version>"
+}
+
+rule ask-pnpm-patch {
+  enabled true
+  priority 85
+  severity warning
+  ASK execution
+  IF command STARTS_WITH "pnpm patch"
+  OR command REGEX "^pnpm patch\\b"
+  MESSAGE "'pnpm patch' modifies a dependency directly in node_modules. The patch is lost on reinstall unless committed via 'pnpm patch-commit' to the patches directory."
+  PROMPT "Will you commit this patch with 'pnpm patch-commit'? Verify the patch is minimal and does not introduce unintended changes to the dependency."
+}

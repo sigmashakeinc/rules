@@ -1,0 +1,65 @@
+# ansible_write_safety.rules
+# Technology: ansible | Capability: write
+
+rule ansible-avoid-shell-module {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.yml" AND content CONTAINS "shell:" AND NOT content CONTAINS "ansible.builtin.shell:"
+  MESSAGE "The 'shell' module is highly susceptible to command injection and should be avoided. Prefer 'ansible.builtin.command' for simple commands or specific Ansible modules for complex tasks. If 'shell' is absolutely necessary, ensure all inputs are strictly sanitized or hardcoded, and consider using 'ansible.builtin.command' with 'creates' or 'removes' for idempotency."
+}
+
+rule ansible-avoid-raw-module {
+  enabled true
+  priority 98
+  severity error
+  DENY write
+  IF path GLOB "**/*.yml" AND content CONTAINS "raw:" AND NOT content CONTAINS "ansible.builtin.raw:"
+  MESSAGE "The 'raw' module executes commands directly without Ansible's module infrastructure, bypassing safety features and making it extremely vulnerable to injection and difficult to manage securely. Use specific Ansible modules (e.g., 'ansible.builtin.command', 'ansible.builtin.script', 'ansible.builtin.package') instead."
+}
+
+rule ansible-avoid-pipe-lookup {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.yml" AND content CONTAINS "lookup('pipe',"
+  MESSAGE "The 'pipe' lookup plugin executes arbitrary commands on the control node. Using it with untrusted or dynamically generated input is a severe command injection vulnerability. Avoid 'pipe' lookup unless the command is hardcoded and strictly controlled. Consider using 'ansible.builtin.command' or 'ansible.builtin.shell' on the target host if command execution is required."
+}
+
+rule ansible-sensitive-uri-no-log {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.yml" AND content CONTAINS "ansible.builtin.uri" AND content CONTAINS "password:" AND NOT content CONTAINS "no_log: true"
+  MESSAGE "A task using 'ansible.builtin.uri' with a 'password' parameter does not have 'no_log: true' set. This can expose sensitive credentials in Ansible logs. Add 'no_log: true' to the task to prevent logging of sensitive data."
+}
+
+rule ansible-variable-in-dest-path {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.yml" AND (content CONTAINS "ansible.builtin.copy" OR content CONTAINS "ansible.builtin.template") AND content CONTAINS "dest: \"{{"
+  MESSAGE "The 'dest' parameter in 'ansible.builtin.copy' or 'ansible.builtin.template' uses a variable. If this variable originates from untrusted input, it could lead to path traversal vulnerabilities, allowing files to be written outside the intended directory. Ensure all path variables are strictly validated or hardcoded."
+}
+
+rule ansible-debug-sensitive-data {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.yml" AND (content CONTAINS "debug: var=" OR content CONTAINS "debug: msg=") AND (content CONTAINS "password" OR content CONTAINS "secret" OR content CONTAINS "api_key" OR content CONTAINS "token")
+  MESSAGE "A 'debug' task is potentially exposing sensitive information (e.g., password, secret, API key, token). Ensure 'no_log: true' is set on tasks that register sensitive output, and avoid debugging variables that contain sensitive data. Use 'ansible-vault' for managing secrets."
+}
+
+rule ansible-enforce-fqcn {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/*.yml" AND (content CONTAINS "command:" OR content CONTAINS "file:" OR content CONTAINS "copy:" OR content CONTAINS "template:" OR content CONTAINS "service:" OR content CONTAINS "package:") AND content NOT CONTAINS "ansible.builtin.command:" AND content NOT CONTAINS "ansible.builtin.file:" AND content NOT CONTAINS "ansible.builtin.copy:" AND content NOT CONTAINS "ansible.builtin.template:" AND content NOT CONTAINS "ansible.builtin.service:" AND content NOT CONTAINS "ansible.builtin.package:"
+  MESSAGE "Using Fully Qualified Collection Names (FQCN) like 'ansible.builtin.command' improves clarity, avoids ambiguity, and future-proofs playbooks. While not a direct security vulnerability, it's a strong best practice that prevents unexpected module resolution and aligns with modern Ansible style guides. Please use FQCN for all modules."
+}

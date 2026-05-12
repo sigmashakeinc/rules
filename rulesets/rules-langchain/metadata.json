@@ -1,0 +1,3 @@
+{
+  "description": "LangChain is a framework for building applications with LLMs through composable chains and agents. These rules govern LangChain configuration to prevent prompt injection, insecure tool use, and runaway inference costs."
+}

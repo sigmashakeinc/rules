@@ -1,0 +1,65 @@
+# capacitor_write_safety.rules
+# Technology: capacitor | Capability: write
+
+rule capacitor-xss-innerhtml-risk {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.{ts,js,tsx,jsx}" AND content CONTAINS "innerHTML =" AND content CONTAINS "event.detail.value"
+  MESSAGE "Potential Cross-Site Scripting (XSS) vulnerability detected. Assigning untrusted user input (e.g., from event.detail.value) directly to innerHTML can lead to arbitrary code execution in the user's browser. Use element.textContent for displaying user-controlled data, or sanitize input rigorously with a library like DOMPurify before using innerHTML."
+}
+
+rule capacitor-insecure-localstorage-sensitive-data {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.{ts,js,tsx,jsx}" AND content CONTAINS "localStorage.setItem(" AND (content CONTAINS "'token'" OR content CONTAINS "'jwt'" OR content CONTAINS "'password'" OR content CONTAINS "'secret'" OR content CONTAINS "'authToken'")
+  MESSAGE "Insecure storage of sensitive data detected. Storing authentication tokens, JWTs, passwords, or other secrets directly in localStorage is vulnerable to XSS attacks. Use the Capacitor Secure Storage plugin (e.g., @capacitor-community/secure-storage) for sensitive data that needs to persist securely on the device."
+}
+
+rule capacitor-weak-csp-unsafe-directives {
+  enabled true
+  priority 98
+  severity error
+  DENY write
+  IF path GLOB "**/capacitor.config.ts" AND content CONTAINS "content-security-policy" AND (content CONTAINS "'unsafe-inline'" OR content CONTAINS "'unsafe-eval'")
+  MESSAGE "Weak Content Security Policy (CSP) detected. The use of 'unsafe-inline' or 'unsafe-eval' in your CSP significantly reduces the security posture of your Capacitor application, making it vulnerable to XSS. Strive to remove these directives by using nonces, hashes, or refactoring code to avoid inline scripts/styles and eval()."
+}
+
+rule capacitor-filesystem-path-traversal-risk {
+  enabled true
+  priority 92
+  severity error
+  DENY write
+  IF path GLOB "**/*.{ts,js,tsx,jsx}" AND (content CONTAINS "Plugins.Filesystem.readFile(" OR content CONTAINS "Plugins.Filesystem.writeFile(" OR content CONTAINS "Plugins.Filesystem.mkdir(" OR content CONTAINS "Plugins.Filesystem.rmdir(") AND content CONTAINS "path:" AND (content CONTAINS "userInput" OR content CONTAINS "queryParam" OR content CONTAINS "event.url")
+  MESSAGE "Potential path traversal vulnerability with Capacitor Filesystem plugin. Using untrusted input (e.g., from user input, query parameters, or deep links) directly as a file path without validation can allow attackers to access or modify arbitrary files outside the intended directory. Always sanitize and validate file paths rigorously, or use a fixed, application-controlled path."
+}
+
+rule capacitor-prohibited-eval-function {
+  enabled true
+  priority 99
+  severity error
+  DENY write
+  IF path GLOB "**/*.{ts,js,tsx,jsx}" AND content CONTAINS "eval("
+  MESSAGE "Use of the 'eval()' function is strictly prohibited. 'eval()' executes arbitrary JavaScript code and is a major security risk, often leading to injection vulnerabilities. Refactor your code to use safer alternatives like JSON.parse() for data parsing, or function constructors for dynamic function creation with controlled input."
+}
+
+rule capacitor-google-style-guide-any-type {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.{ts,tsx}" AND content CONTAINS ": any" AND NOT content CONTAINS "declare var" AND NOT content CONTAINS "as any"
+  MESSAGE "Violation of type safety best practices (aligned with Google's general TypeScript style tenets). The use of the 'any' type bypasses TypeScript's type checking, reducing code reliability and making it harder to catch errors. Consider defining specific types or interfaces for variables and function parameters/return values to improve code quality and maintainability."
+}
+
+rule capacitor-insecure-window-open {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.{ts,js,tsx,jsx}" AND content CONTAINS "window.open(" AND (content CONTAINS "userInput" OR content CONTAINS "event.url")
+  MESSAGE "Potential insecure use of window.open(). Opening URLs based on untrusted user input (e.g., from event.url or form fields) can lead to phishing attacks or redirection to malicious sites. Always validate and sanitize URLs before opening them, or use a allow-list of trusted domains."
+}

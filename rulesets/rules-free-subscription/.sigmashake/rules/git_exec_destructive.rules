@@ -1,0 +1,21 @@
+# git_exec_destructive.rules
+# Technology: git | Capability: exec | Description: Prevent destructive git operations
+
+rule block-git-force-push {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command CONTAINS "git push --force"
+  OR command CONTAINS "git push -f"
+  MESSAGE "Free Protection: Force pushing is blocked to prevent accidental overwriting of remote branches."
+}
+
+rule block-git-hard-reset-root {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command CONTAINS "git reset --hard" AND command CONTAINS "HEAD~10"
+  MESSAGE "Free Protection: Deep hard resets are blocked to prevent massive local data loss."
+}

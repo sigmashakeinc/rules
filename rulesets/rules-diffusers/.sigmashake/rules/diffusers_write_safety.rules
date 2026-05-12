@@ -1,0 +1,20 @@
+# diffusers_write_safety.rules
+# Technology: diffusers | Capability: write
+
+rule diffusers-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "trust_remote_code=True"
+  MESSAGE "Blocked an unsafe pattern in diffusers. Use the recommended best practices for 2025/2026."
+}
+
+rule diffusers-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "DiffusionPipeline"
+  MESSAGE "You are using an outdated API for diffusers. Please upgrade to the newer API."
+}

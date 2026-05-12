@@ -1,0 +1,20 @@
+# couchdb_write_safety.rules
+# Technology: couchdb | Capability: write
+
+rule couchdb-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "emit("
+  MESSAGE "Blocked an unsafe pattern in couchdb. Use the recommended best practices for 2025/2026."
+}
+
+rule couchdb-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "db.view("
+  MESSAGE "You are using an outdated API for couchdb. Please upgrade to the newer API."
+}

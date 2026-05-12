@@ -1,0 +1,39 @@
+# cursor_agent_safety.rules
+
+rule audit-cursor-agent-mode {
+  MESSAGE "Cursor 'Agent Mode' activated. It has autonomous terminal and file system access."
+  IF tool EQUALS "CursorAgent"
+  OR tool EQUALS "Composer"
+  severity info
+  priority 50
+  LOG any
+}
+
+rule warn-cursor-terminal-exec {
+  MESSAGE "Cursor Agent is attempting to execute a terminal command. This is a common vector for NomShub-style escapes."
+  IF (tool EQUALS "CursorAgent" OR tool EQUALS "Composer")
+  AND input.command NOT CONTAINS "ls"
+  AND input.command NOT CONTAINS "git status"
+  severity warning
+  priority 90
+  ASK execution
+  PROMPT "Allow Cursor Agent to run: ${input.command}?"
+}
+
+rule block-cursor-settings-tampering {
+  MESSAGE "Blocked Cursor Agent from modifying VS Code/Cursor settings which could be used for persistence."
+  IF path GLOB "**/.vscode/settings.json"
+  OR path GLOB "**/.cursor/settings.json"
+  severity error
+  priority 95
+  DENY write
+}
+
+rule audit-composer-multi-file-edit {
+  MESSAGE "Cursor 'Composer' is making sweeping multi-file changes."
+  IF tool EQUALS "Composer"
+  AND input.file_count WORD "5" # generic field for multi-file tools
+  severity info
+  priority 50
+  LOG any
+}

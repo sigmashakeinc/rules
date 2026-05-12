@@ -1,0 +1,20 @@
+# weaviate_write_safety.rules
+# Technology: weaviate | Capability: write
+
+rule weaviate-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "Anonymous Access"
+  MESSAGE "Blocked an unsafe pattern in weaviate. Use the recommended best practices for 2025/2026."
+}
+
+rule weaviate-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "weaviate.Client"
+  MESSAGE "You are using an outdated API for weaviate. Please upgrade to the newer API."
+}

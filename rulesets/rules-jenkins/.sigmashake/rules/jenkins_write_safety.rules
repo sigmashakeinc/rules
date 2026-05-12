@@ -1,0 +1,67 @@
+# jenkins_write_safety.rules — Jenkins write-time security enforcement.
+# Technology: jenkins | Capability: write
+# Covers: Groovy script injection, hardcoded credentials, insecure script approval, shell injection.
+
+rule no-groovy-eval-jenkins {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/Jenkinsfile" AND content CONTAINS "evaluate("
+  OR path GLOB "**/Jenkinsfile" AND content CONTAINS "GroovyShell"
+  OR path GLOB "**/*.groovy" AND content CONTAINS "GroovyShell"
+  OR path GLOB "**/*.groovy" AND content CONTAINS "evaluate("
+  MESSAGE "evaluate() and GroovyShell execute arbitrary Groovy code at runtime — a critical RCE vector in Jenkins pipelines. Use parameterized pipeline stages with validated inputs instead."
+}
+
+rule no-hardcoded-credentials-jenkins {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/Jenkinsfile" AND content LINE_REGEX "(password|token|api_key|username)\\s*[=:]\\s*['\"][^'\"]{8,}['\"]"
+  OR path GLOB "**/Jenkinsfile" AND content LINE_REGEX "withCredentials.*hardcoded"
+  OR path GLOB "**/*.groovy" AND content LINE_REGEX "(password|token|secret)\\s*=\\s*['\"][^'\"]{8,}['\"]"
+  MESSAGE "Hardcoded credentials in Jenkinsfiles or Groovy scripts are stored in plaintext in version control. Use Jenkins Credentials Store: withCredentials([string(credentialsId: 'my-secret', variable: 'SECRET')])"
+}
+
+rule no-sh-string-interpolation-jenkins {
+  enabled true
+  priority 95
+  severity error
+  LOG write
+  IF path GLOB "**/Jenkinsfile" AND content LINE_REGEX "sh\\s+['\"].*\\$\\{params\\."
+  OR path GLOB "**/Jenkinsfile" AND content LINE_REGEX "sh\\s+['\"].*\\$\\{env\\."
+  OR path GLOB "**/Jenkinsfile" AND content LINE_REGEX "sh \"\"\".*\\$\\{params\\."
+  MESSAGE "Groovy string interpolation of params.* or env.* in sh steps enables command injection — a malicious parameter value can execute arbitrary shell commands. Use single-quoted sh steps and pass variables as environment variables."
+}
+
+rule no-script-security-bypass-jenkins {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/Jenkinsfile" AND content CONTAINS "@NonCPS"
+  OR path GLOB "**/*.groovy" AND content CONTAINS "@NonCPS"
+  MESSAGE "@NonCPS methods bypass Jenkins' Groovy sandbox security restrictions. Audit @NonCPS usage carefully — it can access the Jenkins controller with full privileges."
+}
+
+rule no-agent-any-public-jenkins {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/Jenkinsfile" AND content LINE_REGEX "agent\\s+any"
+  MESSAGE "agent: any runs the pipeline on any available agent without restriction. For sensitive pipelines, use labeled agents to control which nodes execute privileged jobs."
+}
+
+rule no-archive-sensitive-artifacts-jenkins {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/Jenkinsfile" AND content LINE_REGEX "archiveArtifacts.*\\.env"
+  OR path GLOB "**/Jenkinsfile" AND content LINE_REGEX "archiveArtifacts.*credentials"
+  OR path GLOB "**/Jenkinsfile" AND content LINE_REGEX "archiveArtifacts.*secrets"
+  MESSAGE "Archiving .env or credential files as Jenkins artifacts stores secrets in the Jenkins artifact store, accessible to anyone with artifact read access. Exclude sensitive files from archiveArtifacts."
+}

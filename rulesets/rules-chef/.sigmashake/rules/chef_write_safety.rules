@@ -1,0 +1,65 @@
+# chef_write_safety.rules
+# Technology: chef | Capability: write
+
+rule chef-command-injection-execute {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/recipes/*.rb" AND content CONTAINS "execute\\s+['\"][^'\"]+['\"]\\s+do\\s+command\\s+['\"][^'\"]*#\\{node\\['[^'\"]+'\\]\\}[^'\"]*['\"]"
+  MESSAGE "Potential command injection vulnerability detected in 'execute' resource. Using unsanitized node attributes directly in shell commands can lead to arbitrary code execution. Sanitize all external inputs using shell_escape or prefer Chef's built-in resources over raw 'execute' for common tasks."
+}
+
+rule chef-insecure-file-permissions {
+  enabled true
+  priority 90
+  severity warning
+  LOG write
+  IF path GLOB "**/recipes/*.rb" AND content CONTAINS "(file|directory|template)\\s+['\"][^'\"]+['\"]\\s+do\\s+(?!.*mode\\s+['\"]0[0-7]{3}['\"]|.*mode\\s+[0-7]{3})"
+  MESSAGE "Insecure file/directory permissions. Resources like 'file', 'directory', or 'template' should explicitly define a secure 'mode' (e.g., '0644' for files, '0755' for directories) to prevent unintended access. Omitting 'mode' can result in overly permissive defaults."
+}
+
+rule chef-hardcoded-secrets {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/recipes/*.rb" AND content CONTAINS "(password|secret|api_key|token)\\s*=\\s*['\"][^'\"]{8,128}['\"]"
+  MESSAGE "Hardcoded sensitive data (e.g., passwords, API keys) detected. This is a critical security vulnerability. Use Chef Vault or encrypted data bags for secret management. Never store secrets directly in recipes or attributes."
+}
+
+rule chef-deprecated-node-set {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/recipes/*.rb" AND content CONTAINS "node\\.set\\s*\\[['\"][^'\"]+['\"]\\]"
+  MESSAGE "Deprecated use of 'node.set' in recipes. 'node.set' overrides all other attribute precedence levels and can lead to unexpected behavior or security issues if used improperly. Prefer 'node.default' for setting defaults or 'node.override' with caution for explicit overrides."
+}
+
+rule chef-insecure-remote-file-no-checksum {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/recipes/*.rb" AND content CONTAINS "remote_file\\s+['\"][^'\"]+['\"]\\s+do\\s+(?!.*checksum\\s+['\"][0-9a-fA-F]{32,128}['\"])"
+  MESSAGE "Remote file download without checksum verification. Downloading files without a 'checksum' attribute makes your system vulnerable to Man-in-the-Middle attacks or corrupted files. Always specify a strong checksum (e.g., SHA256) for remote files."
+}
+
+rule chef-insecure-http-request-no-ssl-verify {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/recipes/*.rb" AND content CONTAINS "http_request\\s+['\"][^'\"]+['\"]\\s+do\\s+[^}]*verify_ssl\\s*:\\s*verify_none"
+  MESSAGE "Insecure HTTP request with SSL verification disabled. Using 'verify_ssl :verify_none' exposes your system to Man-in-the-Middle attacks. Always ensure SSL verification is enabled for production environments."
+}
+
+rule chef-foodcritic-style-violation {
+  enabled true
+  priority 50
+  severity warning
+  LOG write
+  IF path GLOB "**/recipes/*.rb" AND content CONTAINS "node\\.attribute"
+  MESSAGE "Chef style guide violation (Foodcritic FC019). Access node attributes using `node['attribute']` not `node.attribute` for consistency and to avoid potential method conflicts. Consider running Foodcritic for full style and best practice checks."
+}

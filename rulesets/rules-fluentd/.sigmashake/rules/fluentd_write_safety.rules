@@ -1,0 +1,20 @@
+# fluentd_write_safety.rules
+# Technology: fluentd | Capability: write
+
+rule fluentd-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "@type exec"
+  MESSAGE "Blocked an unsafe pattern in fluentd. Use the recommended best practices for 2025/2026."
+}
+
+rule fluentd-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "fluent-plugin-elasticsearch"
+  MESSAGE "You are using an outdated API for fluentd. Please upgrade to the newer API."
+}

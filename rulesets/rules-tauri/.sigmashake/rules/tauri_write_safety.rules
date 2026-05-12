@@ -1,0 +1,20 @@
+# tauri_write_safety.rules
+# Technology: tauri | Capability: write
+
+rule tauri-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "tauri::command"
+  MESSAGE "Blocked an unsafe pattern in tauri. Use the recommended best practices for 2025/2026."
+}
+
+rule tauri-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "tauri.conf.json"
+  MESSAGE "You are using an outdated API for tauri. Please upgrade to the newer API."
+}

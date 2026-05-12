@@ -1,0 +1,20 @@
+# nuxtjs_write_safety.rules
+# Technology: nuxtjs | Capability: write
+
+rule nuxtjs-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "v-html="
+  MESSAGE "Blocked an unsafe pattern in nuxtjs. Use the recommended best practices for 2025/2026."
+}
+
+rule nuxtjs-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "asyncData"
+  MESSAGE "You are using an outdated API for nuxtjs. Please upgrade to the newer API."
+}

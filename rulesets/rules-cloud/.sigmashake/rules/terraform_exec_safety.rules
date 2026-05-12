@@ -1,0 +1,41 @@
+# terraform_exec_safety.rules
+
+rule block-terraform-destroy {
+  MESSAGE "Blocked 'terraform destroy' to prevent accidental infrastructure deletion. Use targeted removal if necessary."
+  IF command CONTAINS "terraform destroy"
+  OR command CONTAINS "tofu destroy"
+  severity error
+  priority 100
+  DENY execution
+}
+
+rule warn-large-terraform-plan {
+  MESSAGE "Terraform plan contains a large number of resource changes. Please review carefully."
+  IF command CONTAINS "terraform apply"
+  OR command CONTAINS "tofu apply"
+  AND input.plan_output CONTAINS "to add, 0 to change, 0 to destroy" # Simplified logic for example
+  AND input.change_count WORD "20"
+  severity warning
+  priority 80
+  LOG execution
+}
+
+rule block-public-s3-bucket {
+  MESSAGE "Detected S3 bucket configuration with public access enabled. This is a critical security risk."
+  IF path ENDS_WITH ".tf"
+  OR path ENDS_WITH ".tfvars"
+  AND content CONTAINS "acl = \"public-read\""
+  OR content CONTAINS "public_access_block = false"
+  severity error
+  priority 100
+  DENY write
+}
+
+rule warn-force-detach-policy {
+  MESSAGE "Terraform is force-detaching an IAM policy. This could result in unexpected permission loss."
+  IF path ENDS_WITH ".tf"
+  AND content CONTAINS "force_detach_policies = true"
+  severity warning
+  priority 70
+  LOG write
+}

@@ -1,0 +1,39 @@
+# vector_db_safety.rules
+
+rule block-vector-db-delete {
+  MESSAGE "Blocked direct deletion of vector database indices or namespaces (Pinecone, Chroma, etc.)."
+  IF (path ENDS_WITH ".ts" OR path ENDS_WITH ".py")
+  AND (content CONTAINS "delete_index" OR content CONTAINS "delete_collection" OR content CONTAINS "delete_namespace")
+  severity error
+  priority 100
+  DENY write
+}
+
+rule warn-vector-db-filter-missing {
+  MESSAGE "Detected vector database query without metadata filters. This could lead to cross-tenant data bleed."
+  IF (path ENDS_WITH ".ts" OR path ENDS_WITH ".py")
+  AND (content CONTAINS "query" OR content CONTAINS "search")
+  AND (content CONTAINS "pinecone" OR content CONTAINS "weaviate" OR content CONTAINS "chroma")
+  AND content NOT CONTAINS "filter"
+  severity warning
+  priority 85
+  LOG write
+}
+
+rule audit-embedding-model-change {
+  MESSAGE "AI model for vector embeddings is being changed. This will invalidate all existing vector indices."
+  IF (path ENDS_WITH ".ts" OR path ENDS_WITH ".py")
+  AND (content CONTAINS "openai.Embedding" OR content CONTAINS "embedding_model =")
+  severity info
+  priority 50
+  LOG write
+}
+
+rule block-hardcoded-vector-api-key {
+  MESSAGE "Detected potential hardcoded vector database API key (e.g., Pinecone, Weaviate)."
+  IF content REGEX "PINECONE_API_KEY\s*[:=]\s*[\"'][a-zA-Z0-9\-_]{20,}[\"']"
+  OR content REGEX "WEAVIATE_API_KEY\s*[:=]\s*[\"'][a-zA-Z0-9\-_]{20,}[\"']"
+  severity error
+  priority 100
+  DENY write
+}

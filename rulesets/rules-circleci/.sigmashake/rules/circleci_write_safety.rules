@@ -1,0 +1,65 @@
+# circleci_write_safety.rules
+# Technology: circleci | Capability: write
+
+rule circleci-deny-eval-injection {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.yml" OR path GLOB "**/*.yaml" AND content CONTAINS "eval "
+  MESSAGE "CRITICAL: Using 'eval' in CircleCI run steps is a severe command injection vulnerability. It allows arbitrary code execution if any part of the evaluated string comes from untrusted sources (e.g., parameters, environment variables, or external inputs). AI-generated code must strictly avoid 'eval'. Instead, use explicit commands, secure scripting techniques, or dedicated CircleCI orbs for dynamic operations."
+}
+
+rule circleci-deny-unpinned-docker-images {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.yml" OR path GLOB "**/*.yaml" AND (content CONTAINS ":latest" OR content CONTAINS ":alpine")
+  MESSAGE "CRITICAL: Using ':latest' or ':alpine' as Docker image tags in CircleCI leads to non-reproducible builds and introduces security vulnerabilities if the underlying image changes unexpectedly. While some specific images might use 'alpine' as a base, relying on a floating 'alpine' tag is insecure. AI-generated code must pin Docker image versions to specific, immutable tags (e.g., 'cimg/node:16.14.2' instead of 'cimg/node:latest' or 'cimg/base:2023.08'). If 'alpine' is used as a base, ensure it's a specific version like 'alpine:3.14'."
+}
+
+rule circleci-deny-unnecessary-sudo {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.yml" OR path GLOB "**/*.yaml" AND content CONTAINS "sudo "
+  MESSAGE "HIGH: Using 'sudo' in CircleCI run steps grants elevated privileges and should be avoided unless absolutely critical and justified. Most operations within a Docker container or a CircleCI executor do not require 'sudo'. AI-generated code should avoid 'sudo' to minimize the attack surface and adhere to the principle of least privilege."
+}
+
+rule circleci-deny-sensitive-data-in-logs {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.yml" OR path GLOB "**/*.yaml" AND (content CONTAINS "echo \\$CIRCLE_TOKEN" OR content CONTAINS "echo \\$GITHUB_TOKEN" OR content CONTAINS "echo \\$NPM_TOKEN" OR content CONTAINS "echo \\$AWS_SECRET_ACCESS_KEY" OR content CONTAINS "echo \\$DOCKER_PASSWORD" OR content CONTAINS "echo \\$GCP_SERVICE_ACCOUNT_KEY")
+  MESSAGE "CRITICAL: Exposing sensitive environment variables (e.g., API tokens, secrets, private keys) in build logs via 'echo $VAR' is a severe security vulnerability. Even if CircleCI attempts to redact some known secrets, custom or less common secrets might be exposed. AI-generated code must never echo secrets to logs. Use secure contexts for secrets and avoid direct output or logging of sensitive data."
+}
+
+rule circleci-deny-insecure-shell-config {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.yml" OR path GLOB "**/*.yaml" AND (content CONTAINS "shell: /bin/sh" OR content CONTAINS "shell: sh")
+  MESSAGE "HIGH: Using '/bin/sh' or 'sh' as the default shell in CircleCI jobs can lead to unexpected behavior and security issues due to its simpler parsing rules and lack of robust error handling compared to Bash. It's strongly recommended to use a more secure and predictable shell with options like 'bash -eo pipefail'. AI-generated code should specify a secure shell configuration."
+}
+
+rule circleci-deny-add-ssh-keys-without-fingerprints {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.yml" OR path GLOB "**/*.yaml" AND content CONTAINS "add_ssh_keys" AND content NOT CONTAINS "fingerprints:"
+  MESSAGE "CRITICAL: Using 'add_ssh_keys' without specifying 'fingerprints' for host key checking is a critical security vulnerability, exposing your build to man-in-the-middle attacks. An attacker could impersonate the SSH host and intercept or manipulate data. AI-generated code must always include 'fingerprints' to verify the authenticity of the SSH host and prevent such attacks."
+}
+
+rule circleci-deny-path-traversal-in-paths {
+  enabled true
+  priority 98
+  severity error
+  DENY write
+  IF path GLOB "**/*.yml" OR path GLOB "**/*.yaml" AND content CONTAINS "path: ../"
+  MESSAGE "CRITICAL: Using 'path: ../' (path traversal) in CircleCI configuration (e.g., for 'store_artifacts', 'persist_to_workspace', 'attach_workspace', or other file operations) is a severe security vulnerability. It allows access to directories outside the intended project scope, potentially leading to data leakage, overwriting critical system files, or arbitrary file creation. AI-generated code must use strictly relative paths within the project directory and avoid path traversal sequences."
+}

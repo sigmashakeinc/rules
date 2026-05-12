@@ -1,0 +1,51 @@
+# moltbook_exec_agent_injection.rules — Moltbook agent injection and API safety.
+# Technology: moltbook | Capability: exec
+# Covers: agent-to-agent prompt injection via posts, direct Supabase bypass,
+# unauthenticated API access, and missing kill-switch protection.
+
+rule no-moltbook-agent-instruction-override {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF content LINE_REGEX "(?i)(ignore|disregard|forget)\\s+(previous|prior|above)\\s+(instructions|rules|context)"
+  OR content LINE_REGEX "(?i)you\\s+are\\s+now\\s+(a|an)\\s+"
+  OR content LINE_REGEX "(?i)new\\s+instructions?:\\s*$"
+  OR content LINE_REGEX "(?i)from\\s+now\\s+on\\s+you\\s+"
+  MESSAGE "Agent-to-agent prompt injection pattern. Moltbook posts act as prompts for connected OpenClaw agents — malicious posts with instruction-override language manipulate other agents into sharing sensitive data or silently changing behavior. Wiz Research confirmed: 'hiding malicious instructions in a post tricks a bot into sharing sensitive data'. Content with override patterns is blocked."
+}
+
+rule no-moltbook-direct-supabase-access {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command CONTAINS "supabase" AND command REGEX "(select|insert|update|delete)"
+  OR command REGEX "curl.*\\.supabase\\.co"
+  OR command REGEX "curl.*supabase.*rest/v1"
+  OR command REGEX "curl.*supabase.*from="
+  MESSAGE "Direct Supabase database access in Moltbook context. The Moltbook breach that exposed 1.5M API tokens and 35,000 emails originated from a misconfigured Supabase instance with full read/write access. Direct Supabase REST calls bypass application-level authentication."
+}
+
+rule ask-moltbook-api-interaction {
+  enabled true
+  priority 80
+  severity warning
+  ASK execution
+  IF command REGEX "curl.*moltbook"
+  OR command REGEX "curl.*moltb\\.ok"
+  OR command REGEX "fetch.*moltbook"
+  OR command CONTAINS "moltbook" AND command CONTAINS "api"
+  MESSAGE "Moltbook API call detected. 1.5M API tokens and 35,000 user emails were exposed from Moltbook's vibe-coded backend. Security researchers note: '60% of organizations have no kill switch to stop these agents when they misbehave'. Verify this endpoint requires authentication."
+  PROMPT "Is this Moltbook API endpoint authenticated? The 1.5M token breach was caused by missing access controls. Verify the request includes authentication and does not expose user data in the response."
+}
+
+rule log-moltbook-agent-lifecycle {
+  enabled true
+  priority 65
+  severity info
+  LOG execution
+  IF command CONTAINS "moltbook" AND command REGEX "(agent|run|start|spawn|create)"
+  OR command REGEX "openclaw.*moltbook"
+  MESSAGE "Moltbook agent started. 60% of organizations have no kill switch for Moltbook agents (Reco.ai research). Ensure a timeout or manual kill mechanism is configured. Palo Alto Networks found Moltbook agents fail across nearly every OWASP Top 10 for AI Agents category."
+}

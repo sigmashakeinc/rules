@@ -1,0 +1,20 @@
+# postgresql_write_safety.rules
+# Technology: postgresql | Capability: write
+
+rule postgresql-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "EXECUTE"
+  MESSAGE "Blocked an unsafe pattern in postgresql. Use the recommended best practices for 2025/2026."
+}
+
+rule postgresql-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "timestamptz"
+  MESSAGE "You are using an outdated API for postgresql. Please upgrade to the newer API."
+}

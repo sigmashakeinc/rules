@@ -1,0 +1,3 @@
+{
+  "description": "AWS DynamoDB is a fully managed NoSQL database service providing fast and predictable performance. These rules guide AI agents in schema design, partition key selection, and efficient querying for serverless applications."
+}

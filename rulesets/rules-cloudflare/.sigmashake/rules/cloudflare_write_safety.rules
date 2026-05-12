@@ -1,0 +1,40 @@
+# cloudflare_write_safety.rules
+# Technology: cloudflare | Capability: write
+
+rule cloudflare-flexible-ssl {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "ssl\\s*=\\s*[\"']flexible[\"']"
+  MESSAGE "Using 'flexible' SSL encrypts traffic between the user and Cloudflare, but sends traffic in plain text between Cloudflare and your origin server. Use 'full' or 'strict' to ensure end-to-end encryption."
+}
+
+rule cloudflare-waf-log-mode {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "action\\s*=\\s*[\"']log[\"']"
+  MESSAGE "Leaving WAF rules in 'log' mode indefinitely provides no active protection against attacks. It is recommended to use 'block' or 'managed_challenge' after testing."
+}
+
+rule cloudflare-worker-math-random {
+  enabled true
+  priority 90
+  severity warning
+  LOG write
+  IF path GLOB "**/*.js" AND content CONTAINS "Math.random("
+  OR path GLOB "**/*.ts" AND content CONTAINS "Math.random("
+  MESSAGE "Using Math.random() in a Cloudflare Worker for security-sensitive operations (like token generation) is unsafe. Use crypto.getRandomValues() instead."
+}
+
+rule cloudflare-worker-global-state {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "^\\s*let\\s+[a-zA-Z0-9_]+\\s*=" AND content NOT CONTAINS "export default"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "^\\s*let\\s+[a-zA-Z0-9_]+\\s*=" AND content NOT CONTAINS "export default"
+  MESSAGE "Declaring mutable global variables (using 'let') outside of the request handler in a Cloudflare Worker can lead to cross-request data leaks, as isolates are reused across requests."
+}

@@ -1,0 +1,28 @@
+# windsurf_cascade_safety.rules
+
+rule audit-cascade-activation {
+  MESSAGE "Windsurf 'Cascade' persistent agent activated. It will monitor terminal commands and file edits."
+  IF tool EQUALS "CascadeAgent"
+  OR input.command CONTAINS "/cascade"
+  severity info
+  priority 50
+  LOG any
+}
+
+rule block-cascade-monitoring-sensitive {
+  MESSAGE "Blocked 'Cascade' from monitoring sensitive directories like .ssh or .env."
+  IF tool EQUALS "CascadeAgent"
+  AND (input.watch_path GLOB "**/.ssh/*" OR input.watch_path GLOB "**/.env*")
+  severity error
+  priority 100
+  DENY any
+}
+
+rule audit-skill-modification {
+  MESSAGE "Agent is attempting to modify Windsurf 'Skills'. This could weaken security constraints."
+  IF path GLOB "**/.windsurf/skills/*"
+  OR path GLOB "**/.windsurf/config.json"
+  severity warning
+  priority 95
+  LOG write
+}

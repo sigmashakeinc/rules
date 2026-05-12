@@ -1,0 +1,39 @@
+# bun_crypto.rules — Guard cryptography, password, and RNG misuse in Bun code.
+# Technology: bun | Capability: write
+
+rule bun-weak-hash-algorithm {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.{js,ts,jsx,tsx,mjs,cjs}" AND content LINE_REGEX "(new\\s+Bun\\.CryptoHasher|createHash)\\s*\\(\\s*[\"'](md5|sha1)[\"']"
+  MESSAGE "RISK: MD5 and SHA-1 are cryptographically broken (collision attacks) and must not be used for signatures, integrity, or identifiers of security value. FIX: Use 'sha256' or 'sha512' via Bun.CryptoHasher or node:crypto.createHash."
+}
+
+rule bun-password-bcrypt-weak-cost {
+  enabled true
+  priority 80
+  severity warning
+  ASK write
+  IF path GLOB "**/*.{js,ts,jsx,tsx,mjs,cjs}" AND content LINE_REGEX "algorithm\\s*:\\s*[\"']bcrypt[\"'].*cost\\s*:\\s*([0-9]|1[01])\\b"
+  MESSAGE "RISK: Bun.password bcrypt cost < 12 is below the 2024 OWASP password-storage recommendation and bcrypt silently truncates inputs > 72 bytes. FIX: Raise cost to 12+ or switch to the default argon2id algorithm."
+  PROMPT "Is this hashing real user credentials? If yes, raise cost to 12+ or use algorithm: 'argon2id'."
+}
+
+rule bun-math-random-for-secrets {
+  enabled true
+  priority 88
+  severity error
+  DENY write
+  IF path GLOB "**/*.{js,ts,jsx,tsx,mjs,cjs}" AND content LINE_REGEX "(token|secret|nonce|salt|session|apiKey|password|otp)\\s*[:=][^;\\n]*Math\\.random"
+  MESSAGE "RISK: Math.random() is not cryptographically secure — the sequence is predictable, so generated tokens/secrets/salts can be guessed. FIX: Use crypto.randomUUID(), crypto.randomBytes(n), or crypto.getRandomValues()."
+}
+
+rule bun-subtle-extractable-key {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.{js,ts,jsx,tsx,mjs,cjs}" AND content CONTAINS "importKey" AND content LINE_REGEX "extractable\\s*:\\s*true"
+  MESSAGE "RISK: SubtleCrypto.importKey with extractable: true lets the key material be exported from the runtime, defeating the point of using WebCrypto. FIX: Pass extractable: false unless you genuinely need exportKey later."
+}

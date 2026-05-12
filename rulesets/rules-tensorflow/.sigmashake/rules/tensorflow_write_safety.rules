@@ -1,0 +1,20 @@
+# tensorflow_write_safety.rules
+# Technology: tensorflow | Capability: write
+
+rule tensorflow-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "tf.py_function"
+  MESSAGE "Blocked an unsafe pattern in tensorflow. Use the recommended best practices for 2025/2026."
+}
+
+rule tensorflow-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "tf.Session("
+  MESSAGE "You are using an outdated API for tensorflow. Please upgrade to the newer API."
+}

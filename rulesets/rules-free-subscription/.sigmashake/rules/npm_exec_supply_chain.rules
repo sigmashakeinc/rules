@@ -1,0 +1,23 @@
+# npm_exec_supply_chain.rules
+# Technology: npm | Capability: exec | Description: Prevent NPM supply chain footguns
+
+rule require-ignore-scripts-npm-install {
+  enabled true
+  priority 90
+  severity warning
+  ASK execution
+  IF command WORD "npm" AND command WORD "install" AND command NOT CONTAINS "--ignore-scripts"
+  OR command WORD "npm" AND command WORD "i" AND command NOT CONTAINS "--ignore-scripts"
+  MESSAGE "Free Protection: 'npm install' without '--ignore-scripts' can execute malicious postinstall hooks."
+  PROMPT "Do you want to allow this npm install to run scripts?"
+}
+
+rule require-ignore-scripts-npm-ci {
+  enabled true
+  priority 90
+  severity warning
+  ASK execution
+  IF command WORD "npm" AND command WORD "ci" AND command NOT CONTAINS "--ignore-scripts"
+  MESSAGE "Free Protection: 'npm ci' without '--ignore-scripts' can execute malicious postinstall hooks."
+  PROMPT "Do you want to allow this npm ci to run scripts?"
+}

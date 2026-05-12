@@ -1,0 +1,20 @@
+# webassembly_write_safety.rules
+# Technology: webassembly | Capability: write
+
+rule webassembly-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "WebAssembly.instantiate("
+  MESSAGE "Blocked an unsafe pattern in webassembly. Use the recommended best practices for 2025/2026."
+}
+
+rule webassembly-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "WebAssembly.Module("
+  MESSAGE "You are using an outdated API for webassembly. Please upgrade to the newer API."
+}

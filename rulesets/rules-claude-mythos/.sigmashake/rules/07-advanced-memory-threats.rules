@@ -1,0 +1,54 @@
+# 07-advanced-memory-threats.rules — Defenses against advanced memory exploitation
+# Technology: bash | Capability: exec
+
+rule deny-unsafe-ffi {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command CONTAINS "ctypes" AND command CONTAINS "memmove"
+  OR command CONTAINS "sun.misc.Unsafe"
+  OR command REGEX "\\bunsafe\\s*\\{[^}]*(ptr|transmute)"
+  MESSAGE "Blocked: Code execution using direct unsafe FFI memory primitives (e.g. sun.misc.Unsafe, python ctypes.memmove, Rust unsafe raw pointers). Used in VM Guest-to-Host escapes."
+}
+
+rule deny-kaslr-defeats {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command CONTAINS "cpu_entry_area"
+  OR command CONTAINS "__per_cpu_offset"
+  OR command CONTAINS "0xfffffe0000000000"
+  OR command REGEX "\\bMAP_FIXED\\s*\\|\\s*MAP_SHARED\\b"
+  MESSAGE "Blocked: Attempt to use KASLR subversion primitives, per_cpu variables mapping, or specific direct map addresses. Found in autonomous privilege escalation tooling."
+}
+
+rule deny-cred-smashing {
+  enabled true
+  priority 98
+  severity error
+  DENY execution
+  IF command CONTAINS "commit_creds" AND command CONTAINS "init_cred"
+  OR command REGEX "struct cred\\s*\\*.*setuid\\(0\\)"
+  MESSAGE "Blocked: The agent is referencing internal kernel credential management (commit_creds/init_cred). Extremely high indicator of local privilege escalation exploit compilation."
+}
+
+rule deny-slub-spraying {
+  enabled true
+  priority 90
+  severity error
+  DENY execution
+  IF command REGEX "\\b(msgsnd|msg_msg|kmalloc-128|kmalloc-192)\\b" AND command CONTAINS "MADV_DONTNEED"
+  MESSAGE "Blocked: Highly specific SLUB allocator heap spray behaviors using Message Queues (msgsnd) inside memory management hooks. Associated with advanced vulnerability chaining."
+}
+
+rule deny-jit-spraying {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command CONTAINS "--allow-natives-syntax" 
+  OR command CONTAINS "ArrayBuffer" AND command REGEX "0x[0-9a-fA-F]{8,}" AND command CONTAINS "Math"
+  MESSAGE "Blocked: Use of V8 debug native flags or arraybuffer-based JIT-spraying patterns to escape Javascript sandboxes."
+}

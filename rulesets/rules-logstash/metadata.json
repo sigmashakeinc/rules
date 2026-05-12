@@ -1,0 +1,3 @@
+{
+  "description": "Logstash is a server-side data processing pipeline that ingests, transforms, and sends data to various destinations. These rules govern Logstash configuration to prevent insecure input plugins, inefficient filter patterns, and sensitive data leakage."
+}

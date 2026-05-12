@@ -1,0 +1,31 @@
+# mcp_db_data_integrity.rules
+
+rule block-db-destructive-query {
+  MESSAGE "Blocked dangerous database query (DROP, TRUNCATE) through MCP."
+  IF tool CONTAINS "sql_"
+  OR tool CONTAINS "postgres_"
+  OR tool CONTAINS "mongodb_"
+  AND (input.query CONTAINS "DROP " OR input.query CONTAINS "TRUNCATE ")
+  severity error
+  priority 100
+  DENY any
+}
+
+rule warn-db-delete-query {
+  MESSAGE "Agent is attempting to DELETE records from a database."
+  IF (tool CONTAINS "sql_" OR tool CONTAINS "postgres_" OR tool CONTAINS "mongodb_")
+  AND (input.query CONTAINS "DELETE " OR input.query CONTAINS "remove")
+  severity warning
+  priority 90
+  ASK any
+  PROMPT "Allow the agent to delete records from the database?"
+}
+
+rule block-db-schema-change {
+  MESSAGE "Blocked modification of database schema (ALTER TABLE) via MCP."
+  IF (tool CONTAINS "sql_" OR tool CONTAINS "postgres_" OR tool CONTAINS "mongodb_")
+  AND (input.query CONTAINS "ALTER TABLE" OR input.query CONTAINS "CREATE INDEX")
+  severity error
+  priority 95
+  DENY any
+}

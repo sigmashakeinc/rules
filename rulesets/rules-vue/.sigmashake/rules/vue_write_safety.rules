@@ -1,0 +1,193 @@
+# vue_write_safety.rules
+# Technology: vue | Capability: write
+
+rule vue-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "v-html=""
+  MESSAGE "RISK: v-html renders raw HTML and is a direct XSS sink when bound to any non-static value. FIX: render as text with {{ }}, or sanitize with DOMPurify before passing to a computed property."
+}
+
+rule vue-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "$scopedSlots"
+  MESSAGE "RISK: $scopedSlots was removed in Vue 3; code using it will break on upgrade. FIX: replace with this.$slots (all slots are now scoped)."
+}
+
+rule vue-block-vue2-dependency {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/package.json" AND content LINE_REGEX "\"vue\"\\s*:\\s*\"[~^]?2\\."
+  MESSAGE "RISK: Vue 2 reached end-of-life on 2023-12-31 and receives no free security patches (vue-template-compiler CVE-2024-6783 unfixed upstream). FIX: upgrade to vue@^3.4, or purchase HeroDevs Never-Ending Support if migration is infeasible."
+}
+
+rule vue-block-vulnerable-vite {
+  enabled true
+  priority 92
+  severity error
+  DENY write
+  IF path GLOB "**/package.json" AND content LINE_REGEX "\"vite\"\\s*:\\s*\"[~^]?(?:[0-4]\\.|5\\.[0-3]\\.|5\\.4\\.[0-9]\\b|5\\.4\\.1[0-4]\\b|6\\.0\\.|6\\.1\\.[01]\\b|6\\.2\\.[0-4]\\b)"
+  MESSAGE "RISK: Vite versions prior to 6.2.5 / 5.4.15 are vulnerable to server.fs.deny bypass chain CVE-2025-30208, CVE-2025-31125, CVE-2025-31486, CVE-2025-32395 (arbitrary file read from dev server). FIX: upgrade to vite@^6.2.5 or ^5.4.15."
+}
+
+rule vue-block-vulnerable-vue-i18n {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/package.json" AND content LINE_REGEX "\"vue-i18n\"\\s*:\\s*\"[~^]?(?:[0-8]\\.|9\\.(?:[0-9]|1[0-3])\\.|10\\.0\\.[0-4]\\b)"
+  MESSAGE "RISK: vue-i18n < 9.14.2 / < 10.0.5 has template-compilation XSS (CVE-2024-52809) when translation strings contain untrusted interpolation. FIX: upgrade to vue-i18n@^9.14.2 or ^10.0.5 and prefer precompiled message bundles."
+}
+
+rule vue-block-vulnerable-nuxt {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/package.json" AND content LINE_REGEX "\"nuxt\"\\s*:\\s*\"[~^]?(?:[0-2]\\.|3\\.(?:[0-9]|1[0-5])\\.)"
+  MESSAGE "RISK: Nuxt < 3.16 is affected by SSR payload cache poisoning CVE-2025-27415 and devtools file-read CVE-2024-34343. FIX: upgrade to nuxt@^3.16.0."
+}
+
+rule vue-block-vulnerable-vue-router {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/package.json" AND content LINE_REGEX "\"vue-router\"\\s*:\\s*\"[~^]?(?:[0-3]\\.|4\\.0\\.|4\\.1\\.[0-3]\\b)"
+  MESSAGE "RISK: vue-router < 4.1.4 open-redirect (GHSA-m69q-h4x2-7vxp) when router.push receives a user-controlled string starting with //. FIX: upgrade to vue-router@^4.1.4 and validate target paths against an allow-list."
+}
+
+rule vue-deny-runtime-template-compile {
+  enabled true
+  priority 88
+  severity error
+  DENY write
+  IF path GLOB "**/*.{js,ts,vue,mjs}" AND content LINE_REGEX "compile\\s*\\(\\s*[^\"'`)]*(?:req|input|user|param|body|query|props\\.)"
+  MESSAGE "RISK: Compiling templates from untrusted input (@vue/compiler-dom compile(userInput)) is arbitrary script execution — the root cause of CVE-2024-6783 class bugs. FIX: never pass user data to compile(); use the runtime-only Vue build and render with text interpolation."
+}
+
+rule vue-deny-javascript-href {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.vue" AND content LINE_REGEX ":href\\s*=\\s*\"\\s*['`]javascript:"
+  MESSAGE "RISK: javascript: URLs in :href execute script when the link is clicked, bypassing Vue's text-escaping. FIX: restrict hrefs to http/https/mailto and validate the protocol before binding."
+}
+
+rule vue-deny-vite-fs-strict-false {
+  enabled true
+  priority 92
+  severity error
+  DENY write
+  IF path GLOB "**/vite.config.{js,ts,mjs,cjs}" AND content LINE_REGEX "fs\\s*:\\s*\\{[^}]*strict\\s*:\\s*false"
+  MESSAGE "RISK: server.fs.strict: false lets the dev server read files outside the project root, amplifying every server.fs.deny bypass CVE. FIX: remove the flag (default true) and list required directories in server.fs.allow."
+}
+
+rule vue-deny-vite-fs-allow-root {
+  enabled true
+  priority 92
+  severity error
+  DENY write
+  IF path GLOB "**/vite.config.{js,ts,mjs,cjs}" AND content LINE_REGEX "fs\\s*:\\s*\\{[^}]*allow\\s*:\\s*\\[[^\\]]*['\"]/['\"]"
+  MESSAGE "RISK: server.fs.allow containing '/' gives the dev server read access to the entire filesystem. FIX: list only the specific project subdirectories that must be served."
+}
+
+rule vue-ask-vite-host-exposed {
+  enabled true
+  priority 70
+  severity warning
+  ASK write
+  IF path GLOB "**/vite.config.{js,ts,mjs,cjs}" AND content LINE_REGEX "host\\s*:\\s*(?:true|['\"]0\\.0\\.0\\.0['\"])"
+  MESSAGE "RISK: Binding the Vite dev server to 0.0.0.0 exposes it to the LAN; combined with DNS-rebind (CVE-2025-32395) this leaks source. FIX: keep host on localhost, or set an explicit server.allowedHosts array (never true or wildcard)."
+  PROMPT "Confirm this Vite server intentionally binds to all interfaces and has an explicit server.allowedHosts allow-list."
+}
+
+rule vue-deny-nuxt-public-secret {
+  enabled true
+  priority 93
+  severity error
+  DENY write
+  IF path GLOB "**/nuxt.config.{js,ts,mjs}" AND content LINE_REGEX "public\\s*:\\s*\\{[^}]*(?:secret|token|apiKey|privateKey|password)"
+  MESSAGE "RISK: Keys under runtimeConfig.public are shipped in the client bundle — placing a secret there leaks it to every visitor. FIX: move secrets to runtimeConfig (server-only); public keys must be non-sensitive identifiers."
+}
+
+rule vue-deny-nuxt-public-env-secret {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/.env*" AND content LINE_REGEX "^NUXT_PUBLIC_[A-Z_]*(?:SECRET|TOKEN|PRIVATE|PASSWORD|API_KEY)\\b"
+  MESSAGE "RISK: NUXT_PUBLIC_* env vars auto-populate runtimeConfig.public and ship to the browser. FIX: rename without the PUBLIC_ prefix so the value stays server-only."
+}
+
+rule vue-log-deprecated-vue-extend {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/*.{js,ts,vue}" AND content LINE_REGEX "\\bVue\\.extend\\s*\\("
+  MESSAGE "RISK: Vue.extend was removed in Vue 3 and is a migration blocker. FIX: use defineComponent({...}) from 'vue'."
+}
+
+rule vue-log-deprecated-new-vue {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/*.{js,ts}" AND content LINE_REGEX "new\\s+Vue\\s*\\("
+  MESSAGE "RISK: new Vue() was removed in Vue 3; it silently becomes dead code after upgrade. FIX: use createApp(App).mount('#app') from 'vue'."
+}
+
+rule vue-log-deprecated-vue-set {
+  enabled true
+  priority 55
+  severity warning
+  LOG write
+  IF path GLOB "**/*.{js,ts,vue}" AND content LINE_REGEX "\\b(?:Vue\\.(?:set|delete)|this\\.\\$(?:set|delete))\\s*\\("
+  MESSAGE "RISK: Vue.set/Vue.delete/$set/$delete were removed in Vue 3 — reactivity is Proxy-based and direct assignment works. FIX: replace with plain assignment (obj.key = val) or delete obj.key."
+}
+
+rule vue-log-deprecated-listeners-children {
+  enabled true
+  priority 55
+  severity warning
+  LOG write
+  IF path GLOB "**/*.{js,ts,vue}" AND content LINE_REGEX "this\\.\\$(?:listeners|children)\\b"
+  MESSAGE "RISK: $listeners and $children were removed in Vue 3. FIX: $listeners is merged into $attrs; traverse children via template refs or provide/inject instead of $children."
+}
+
+rule vue-log-deprecated-sync-modifier {
+  enabled true
+  priority 55
+  severity warning
+  LOG write
+  IF path GLOB "**/*.vue" AND content LINE_REGEX ":[A-Za-z][\\w-]*\\.sync\\s*="
+  MESSAGE "RISK: The .sync modifier was removed in Vue 3. FIX: use v-model:propName on the parent and defineEmits(['update:propName']) on the child."
+}
+
+rule vue-ask-dynamic-component-is {
+  enabled true
+  priority 70
+  severity warning
+  ASK write
+  IF path GLOB "**/*.vue" AND content LINE_REGEX "<component\\s+[^>]*:is\\s*=\\s*\"(?!['`]?[A-Z])"
+  MESSAGE "RISK: <component :is> resolving to a user-controlled value lets an attacker mount arbitrary registered components, including ones with dangerous side effects. FIX: restrict :is to an allow-listed map of known components."
+  PROMPT "Confirm the :is binding resolves only to values from a fixed allow-list, never user input."
+}
+
+rule vue-deny-pinia-persist-sensitive {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.{js,ts}" AND content LINE_REGEX "persist\\s*:\\s*(?:true|\\{[^}]*)[\\s\\S]{0,400}(?:token|accessToken|refreshToken|password|apiKey)"
+  MESSAGE "RISK: pinia-plugin-persistedstate writes state to localStorage by default, which is readable by any injected script and persists indefinitely. FIX: exclude auth tokens from persisted paths, or use httpOnly cookies for session material."
+}

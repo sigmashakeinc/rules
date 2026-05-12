@@ -1,0 +1,146 @@
+# zig_write_safety.rules
+# Technology: zig | Capability: write
+
+rule zig-deprecated-mem-copy {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.zig" AND content CONTAINS "std.mem.copy("
+  MESSAGE "Blocked deprecated 'std.mem.copy'. Use '@memcpy' for guaranteed non-overlapping memory or '@memmove' for potentially overlapping memory."
+}
+
+rule zig-deprecated-mem-set {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.zig" AND content CONTAINS "std.mem.set("
+  MESSAGE "Blocked deprecated 'std.mem.set'. Use the built-in '@memset' instead."
+}
+
+rule zig-warn-page-allocator {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.zig" AND content CONTAINS "std.heap.page_allocator"
+  MESSAGE "Using page_allocator directly is discouraged for general use. Prefer GeneralPurposeAllocator for development (catches leaks/UAF) or ArenaAllocator."
+}
+
+rule zig-warn-http-server-production {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.zig" AND content CONTAINS "std.http.Server"
+  MESSAGE "std.http.Server is intended for testing and can be vulnerable to DoS attacks. Ensure it is behind a robust reverse proxy in production."
+}
+
+rule zig-warn-undefined-memory {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/*.zig" AND content CONTAINS "= undefined;"
+  MESSAGE "Using 'undefined' can lead to non-deterministic behavior and information leaks if used improperly. Ensure memory is initialized before read or use secureZero for crypto."
+}
+
+rule zig-crypto-default-prng-risk {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.zig" AND content CONTAINS "std.rand.DefaultPrng" AND content CONTAINS "crypto"
+  MESSAGE "Never use DefaultPrng for cryptographic purposes. Use std.crypto.random for an OS-backed CSPRNG."
+}
+
+rule zig-path-traversal-cwd-open-file {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.zig" AND content CONTAINS "std.fs.cwd().openFile("
+  MESSAGE "Directly opening files from cwd() with untrusted input can lead to path traversal. Prefer opening a Dir handle to a sandbox folder and using dir.openFile() to restrict access."
+}
+
+rule zig-concurrency-thread-safe-allocator {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.zig" AND content CONTAINS "std.Thread.spawn" AND content NOT CONTAINS "ThreadSafeAllocator"
+  MESSAGE "When spawning threads, ensure that any shared allocators are wrapped in std.heap.ThreadSafeAllocator to prevent data races and heap corruption."
+}
+
+rule zig-build-zig-command-execution {
+  enabled true
+  priority 95
+  severity warning
+  LOG write
+  IF path GLOB "**/build.zig" AND content CONTAINS "std.process.Child.run"
+  MESSAGE "RISK: Running subprocesses inside build.zig enables arbitrary code execution during compilation (supply-chain vector). FIX: Verify the command is strictly necessary, pin its path, and never pass attacker-controlled data."
+}
+
+rule zig-deprecated-childprocess {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.zig" AND content CONTAINS "std.ChildProcess"
+  MESSAGE "RISK: 'std.ChildProcess' was renamed; continued use hides real API and will break on 0.14+. FIX: Migrate to 'std.process.Child' and replace '.exec()' with '.run()'."
+}
+
+rule zig-deprecated-io-writergate {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/*.zig" AND content CONTAINS "std.io.getStdOut().writer()"
+  MESSAGE "RISK: Zig 0.15 'Writergate' deprecated generic std.io readers/writers; old pattern silently drops output when buffers are not flushed. FIX: Use 'std.Io.Writer' with an explicit buffer and call '.flush()' before exit."
+}
+
+rule zig-deprecated-arrayhashmap-managed {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.zig" AND content CONTAINS "std.ArrayHashMap("
+  MESSAGE "RISK: Managed 'std.ArrayHashMap' is deprecated in 0.14+ and will be removed; carries a hidden allocator field that complicates auditing. FIX: Use 'std.ArrayHashMapUnmanaged' (renamed to 'std.ArrayHashMap' in 0.15) and pass the allocator explicitly."
+}
+
+rule zig-catch-unreachable {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.zig" AND content LINE_REGEX "catch\\s+unreachable\\b"
+  MESSAGE "RISK: 'catch unreachable' turns any real error into undefined behavior in ReleaseFast/Small and an easy DoS crash elsewhere. FIX: Handle the error explicitly, use 'catch |err| { ... }', or 'try' and propagate."
+}
+
+rule zig-mem-eql-timing-attack {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.zig" AND content CONTAINS "std.mem.eql" AND content CONTAINS "std.crypto"
+  MESSAGE "RISK: 'std.mem.eql' short-circuits on first mismatch and leaks byte-level timing info when comparing MACs, tokens, or password hashes. FIX: Use 'std.crypto.timing_safe.eql' for any secret comparison."
+}
+
+rule zig-weak-hash-md5-sha1 {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.zig" AND content LINE_REGEX "std\\.crypto\\.hash\\.(Md5|Sha1)\\b"
+  MESSAGE "RISK: MD5 and SHA-1 are collision-broken and unsuitable for signatures, certificates, or integrity checks. FIX: Use 'std.crypto.hash.sha2.Sha256' or 'std.crypto.hash.Blake3'; keep MD5/SHA-1 only for legacy interop tests."
+}
+
+rule zig-fs-open-absolute {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.zig" AND content LINE_REGEX "std\\.fs\\.(openFileAbsolute|openDirAbsolute|cwd\\(\\)\\.openFileZ)"
+  MESSAGE "RISK: Absolute-path open APIs bypass the Dir sandbox and let '..' or symlink inputs escape to arbitrary filesystem locations. FIX: Open a base Dir once and use 'dir.openFile' with relative paths plus '.no_follow = true' when handling untrusted input."
+}

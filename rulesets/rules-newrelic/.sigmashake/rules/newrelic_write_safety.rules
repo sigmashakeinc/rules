@@ -1,0 +1,20 @@
+# newrelic_write_safety.rules
+# Technology: newrelic | Capability: write
+
+rule newrelic-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "NEW_RELIC_LICENSE_KEY"
+  MESSAGE "Blocked an unsafe pattern in newrelic. Use the recommended best practices for 2025/2026."
+}
+
+rule newrelic-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "newrelic.noticeError"
+  MESSAGE "You are using an outdated API for newrelic. Please upgrade to the newer API."
+}

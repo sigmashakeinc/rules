@@ -1,0 +1,56 @@
+# catboost_write_safety.rules
+# Technology: catboost | Capability: write
+
+rule catboost-untrusted-model-load {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "model.load_model("
+  MESSAGE "Potential deserialization vulnerability or integrity risk: Loading CatBoost models from untrusted sources can lead to execution of malicious code, resource exhaustion, or unexpected behavior if the model file is tampered with or malformed. Always load models from trusted, integrity-checked sources. Consider cryptographic hashes (e.g., SHA256) to verify model integrity before loading."
+}
+
+rule catboost-insecure-save-path {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS ".save_model("
+  MESSAGE "Insecure file path handling: Saving CatBoost models to paths derived from untrusted user input can lead to path traversal vulnerabilities, allowing an attacker to write files to arbitrary locations on the file system. Ensure all file paths for model saving are absolute, canonicalized, and constructed using secure methods like os.path.abspath and os.path.join with strictly validated components, never direct concatenation of user input."
+}
+
+rule catboost-excessive-logging {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND (content CONTAINS "verbose=True" OR content CONTAINS "logging_level='Debug'")
+  MESSAGE "Excessive logging in production: Using 'verbose=True' or 'logging_level='Debug'' in production environments can lead to information leakage, exposing sensitive training data snippets, internal model states, or performance details. This can aid attackers in model inversion or reconstruction attacks. For production, use 'logging_level='Silent'' or 'logging_level='Info'' to minimize exposed information."
+}
+
+rule catboost-deprecated-loss-function {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "loss_function="
+  MESSAGE "Usage of deprecated 'loss_function' parameter: The 'loss_function' parameter is less common or potentially deprecated in favor of 'objective' in modern CatBoost API usage. While it might still work, using 'objective' ensures consistency and compatibility with the latest best practices. Consider replacing 'loss_function=' with 'objective='."
+}
+
+rule catboost-high-iterations-risk {
+  enabled true
+  priority 80
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "iterations=10000"
+  MESSAGE "Potential resource exhaustion: Setting an excessively high number of 'iterations' (e.g., 10000 or more) without proper early stopping or resource limits can lead to prolonged training times, high CPU/memory consumption, and potential Denial of Service (DoS) in shared environments. Review the chosen iteration count; ensure it's justified and consider implementing 'early_stopping_rounds' with a robust validation set."
+}
+
+rule catboost-fixed-random-seed-warning {
+  enabled true
+  priority 50
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "random_seed="
+  MESSAGE "Fixed 'random_seed' usage: While 'random_seed' is crucial for reproducibility in development and testing, relying on a single fixed seed for hyperparameter tuning or final model training can lead to models that are overfit to that specific seed's data split or initialization. This can reduce model robustness and generalization. For robust models, consider varying the seed during hyperparameter search or using cross-validation without a fixed seed across folds."
+}

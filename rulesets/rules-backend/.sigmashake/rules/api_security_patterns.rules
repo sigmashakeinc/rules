@@ -1,0 +1,38 @@
+# api_security_patterns.rules
+
+rule block-raw-sql-injection {
+  MESSAGE "Detected potential SQL injection via raw SQL string concatenation. Use parameterized queries instead."
+  IF (path ENDS_WITH ".ts" OR path ENDS_WITH ".js" OR path ENDS_WITH ".go" OR path ENDS_WITH ".rs")
+  AND (content REGEX "query\(.* \+ .*\)" OR content REGEX "db\.Execute\(.*%.*\)")
+  AND content NOT CONTAINS "prisma"
+  AND content NOT CONTAINS "typeorm"
+  severity error
+  priority 100
+  DENY write
+}
+
+rule warn-unsafe-deserialization {
+  MESSAGE "Detected use of unsafe deserialization (e.g., eval or YAML.load). This could result in RCE."
+  IF (path ENDS_WITH ".ts" OR path ENDS_WITH ".js" OR path ENDS_WITH ".py")
+  AND (content CONTAINS "eval(" OR content CONTAINS "YAML.load(" OR content CONTAINS "pickle.load(")
+  severity error
+  priority 100
+  DENY write
+}
+
+rule audit-cors-wildcard {
+  MESSAGE "Detected CORS wildcard configuration. This allows any origin to access the API."
+  IF (path ENDS_WITH ".ts" OR path ENDS_WITH ".js" OR path ENDS_WITH ".go")
+  AND (content CONTAINS "Access-Control-Allow-Origin: *" OR content CONTAINS "origins: ['*']")
+  severity warning
+  priority 80
+  LOG write
+}
+
+rule block-hardcoded-api-key {
+  MESSAGE "Detected potential hardcoded API key or secret in code."
+  IF content REGEX "(API_KEY|SECRET|PASSWORD|TOKEN)\s*[:=]\s*[\"'][a-zA-Z0-9\-_]{20,}[\"']"
+  severity error
+  priority 100
+  DENY write
+}

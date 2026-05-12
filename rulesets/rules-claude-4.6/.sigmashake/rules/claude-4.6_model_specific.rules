@@ -1,0 +1,23 @@
+# claude-4.6_model_specific.rules
+# Technology: claude-4.6 | Capability: exec | Description: Claude 4.6 model-specific protections
+
+rule ask-claude46-sonnet-confused-deputy {
+  enabled true
+  priority 100
+  severity error
+  ASK execution
+  IF input.agent_model CONTAINS "claude-4.6-sonnet" AND command CONTAINS "npm publish"
+  OR input.agent_model CONTAINS "claude-4.6-sonnet" AND command CONTAINS "git push --force"
+  MESSAGE "Claude 4.6 Sonnet: High-speed coding agents must obtain HITL approval for destructive codebase actions to prevent Confused Deputy exploits."
+  PROMPT "The Claude 4.6 Sonnet agent is attempting a destructive codebase action. Approve?"
+}
+
+rule block-claude46-opus-excessive-costs {
+  enabled true
+  priority 95
+  severity warning
+  LOG execution
+  IF input.agent_model CONTAINS "claude-4.6-opus" AND command CONTAINS "ls -la"
+  OR input.agent_model CONTAINS "claude-4.6-opus" AND command CONTAINS "pwd"
+  MESSAGE "Claude 4.6 Opus: Using Opus for simple discovery commands (ls, pwd) incurs massive API costs ('Opus Tax'). Use Sonnet or Haiku instead."
+}

@@ -1,0 +1,20 @@
+# cloudformation_write_safety.rules
+# Technology: cloudformation | Capability: write
+
+rule cloudformation-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "AWS::IAM::AccessKey"
+  MESSAGE "Blocked an unsafe pattern in cloudformation. Use the recommended best practices for 2025/2026."
+}
+
+rule cloudformation-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "AWSTemplateFormatVersion"
+  MESSAGE "You are using an outdated API for cloudformation. Please upgrade to the newer API."
+}

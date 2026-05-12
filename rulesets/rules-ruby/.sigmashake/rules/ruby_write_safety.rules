@@ -1,0 +1,57 @@
+# ruby_write_safety.rules — Ruby and Rails security rules.
+# Technology: ruby | Capability: write
+# Covers: eval, system(), SQL injection, mass assignment, CSRF, raw HTML.
+
+rule no-eval-ruby {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.rb" AND content LINE_REGEX "\\beval\\s*\\("
+  OR path GLOB "**/*.rb" AND content LINE_REGEX "\\binstance_eval\\s*\\("
+  OR path GLOB "**/*.rb" AND content LINE_REGEX "\\bclass_eval\\s*\\("
+  MESSAGE "eval() and instance_eval() allow arbitrary code execution. Remove dynamic evaluation and use a whitelist of safe operations instead."
+}
+
+rule no-system-backtick {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.rb" AND content LINE_REGEX "\\bsystem\\s*\\("
+  OR path GLOB "**/*.rb" AND content LINE_REGEX "`[^`]+#\\{"
+  OR path GLOB "**/*.rb" AND content LINE_REGEX "%x\\{.*#\\{"
+  MESSAGE "Shell command with interpolated user data is a command injection risk. Use an array form: system('ls', user_input) — never interpolate user data into shell strings."
+}
+
+rule no-sql-string-interpolation-rails {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.rb" AND content LINE_REGEX "where\\s*\\(['\"].*#\\{[^}]+\\}"
+  OR path GLOB "**/*.rb" AND content LINE_REGEX "where\\s*\\(\\s*\".*\\.\\s*#\\{[^}]+\\}"
+  OR path GLOB "**/*.rb" AND content LINE_REGEX "find_by_sql.*#\\{"
+  MESSAGE "SQL query built with Ruby string interpolation (#{}) enables SQL injection in ActiveRecord. Use parameterized queries: where('name = ?', user_input) or where(name: user_input)"
+}
+
+rule no-raw-html-rails {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.erb" AND content LINE_REGEX "<%==\\s*[^%]"
+  OR path GLOB "**/*.erb" AND content LINE_REGEX "=\\s*raw\\s*\\("
+  OR path GLOB "**/*.erb" AND content LINE_REGEX "html_safe(?!.*sanitize)"
+  MESSAGE "Raw HTML output bypasses Rails' auto-escaping (XSS protection). Use <%= h(user_data) %> or sanitize(). html_safe should only be called on known-safe content."
+}
+
+rule no-mass-assignment-permit-all {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.rb" AND content CONTAINS "permit!"
+  OR path GLOB "**/*.rb" AND content LINE_REGEX "params\\.require.*\\.permit\\s*\\(\\s*\\*params"
+  MESSAGE "permit! allows mass assignment of any parameter, bypassing strong parameters protection. Explicitly list permitted attributes: params.require(:user).permit(:name, :email)"
+}

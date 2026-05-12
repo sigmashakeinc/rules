@@ -1,0 +1,34 @@
+# llama-4_model_specific.rules
+# Technology: llama-4 | Capability: exec | Description: Llama 4 model-specific protections
+
+rule block-llama4-scout-context-poisoning {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF input.agent_model CONTAINS "llama-4-scout" AND command CONTAINS "curl" AND command CONTAINS "mail"
+  OR input.agent_model CONTAINS "llama-4-scout" AND command CONTAINS "wget" AND command CONTAINS "cookie"
+  MESSAGE "Llama 4 Scout (10M Context): Webmail access and cookie extraction are blocked to prevent long-context data-as-instructions poisoning."
+}
+
+rule ask-llama4-maverick-action-chain {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF input.agent_model CONTAINS "llama-4-maverick" AND command CONTAINS "cat " AND command CONTAINS "/dev/tcp"
+  OR input.agent_model CONTAINS "llama-4-maverick" AND command CONTAINS "cat " AND command CONTAINS "nc "
+  MESSAGE "Llama 4 Maverick (400B): Action chaining (file reads piped to raw sockets) requires explicit approval."
+  PROMPT "The Llama 4 Maverick agent is attempting to pipe file contents to a raw network socket. Approve?"
+}
+
+rule ask-llama4-behemoth-unauthorized-commit {
+  enabled true
+  priority 90
+  severity error
+  ASK execution
+  IF input.agent_model CONTAINS "llama-4-behemoth" AND command CONTAINS "aws s3 rm"
+  OR input.agent_model CONTAINS "llama-4-behemoth" AND command CONTAINS "terraform destroy"
+  MESSAGE "Llama 4 Behemoth (2T): High-stakes destructive operations require HITL to prevent excessive agency drift during execution."
+  PROMPT "The Behemoth teacher model is attempting a destructive cloud operation. Approve?"
+}

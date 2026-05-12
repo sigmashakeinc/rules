@@ -1,0 +1,48 @@
+# go_write_style.rules — Go code style and naming conventions.
+# Technology: go | Capability: write
+# Covers: naming, exported comments, package naming, long functions.
+
+rule no-unexported-type-in-public-api {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/*.go" AND content LINE_REGEX "^func [A-Z][a-zA-Z0-9]+\\([^)]*\\b[a-z][a-zA-Z0-9]*\\b"
+  MESSAGE "Public function exposes unexported type in its signature — callers outside the package cannot reference it. Export the type or refactor the API."
+}
+
+rule no-stuttering-package-names {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.go" AND content LINE_REGEX "package\\s+[a-z]+" AND content LINE_REGEX "type\\s+[A-Z][a-zA-Z0-9]*[A-Z][a-zA-Z0-9]*\\s"
+  MESSAGE "Avoid stuttering names like 'http.HTTPServer' — prefer 'http.Server'. Package name provides context; the type name should not repeat it."
+}
+
+rule no-exported-func-without-comment {
+  enabled true
+  priority 60
+  severity info
+  LOG write
+  IF path GLOB "**/*.go" AND content LINE_REGEX "^func [A-Z][a-zA-Z0-9]+" AND content NOT LINE_REGEX "^// [A-Z]"
+  MESSAGE "Exported function missing doc comment. Go convention: every exported symbol should have a comment starting with its name. Godoc will surface this."
+}
+
+rule no-naked-return {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.go" AND content LINE_REGEX "^\\s+return\\s*$"
+  MESSAGE "Naked return detected. Named return values with bare 'return' reduce readability in longer functions. Prefer explicit return values."
+}
+
+rule no-single-letter-var-outside-loop {
+  enabled true
+  priority 50
+  severity info
+  LOG write
+  IF path GLOB "**/*.go" AND content LINE_REGEX "\\b[a-z]\\s*:?=\\s*[^=]" AND content NOT LINE_REGEX "for\\s" AND content NOT LINE_REGEX "\\brange\\b"
+  MESSAGE "Single-letter variable outside a loop — consider a descriptive name. Single letters (except i/j/k in loops) make code harder to search and understand."
+}

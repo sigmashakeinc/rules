@@ -1,0 +1,3 @@
+{
+  "description": "MongoDB is a source-available, cross-platform, document-oriented database program. These rules govern MongoDB operations to prevent insecure queries, misconfigured authentication, and accidental data exposure in NoSQL environments."
+}

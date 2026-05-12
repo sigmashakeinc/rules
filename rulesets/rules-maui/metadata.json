@@ -1,0 +1,3 @@
+{
+  "description": ".NET MAUI is a framework for building native cross-platform apps with C# and XAML. These rules govern MAUI development to ensure secure cross-platform data storage, proper platform-specific API usage, and consistent UI/UX patterns."
+}

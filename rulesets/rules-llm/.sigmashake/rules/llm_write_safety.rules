@@ -1,0 +1,71 @@
+# llm_write_safety.rules — LLM and AI API safety rules.
+# Technology: llm | Capability: write
+# Covers: prompt injection, hardcoded model versions, token limits, API key exposure,
+# system prompt leakage, and compatibility with multiple AI agent clients.
+
+rule no-hardcoded-api-key {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF content LINE_REGEX "(OPENAI_API_KEY|ANTHROPIC_API_KEY|GEMINI_API_KEY|COHERE_API_KEY|sk-[a-zA-Z0-9]{20,})"
+  OR content LINE_REGEX "api_key\\s*=\\s*['\"]sk-"
+  OR content LINE_REGEX "api_key\\s*=\\s*['\"]ant-"
+  OR content LINE_REGEX "Authorization.*Bearer sk-"
+  MESSAGE "AI API key hardcoded in source. Keys expose your account to abuse and billing fraud. Use environment variables: process.env.OPENAI_API_KEY or os.environ['ANTHROPIC_API_KEY']"
+}
+
+rule no-unpinned-model-version {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF content LINE_REGEX "model\\s*[:=]\\s*['\"]gpt-4['\"]"
+  OR content LINE_REGEX "model\\s*[:=]\\s*['\"]gpt-3\\.5-turbo['\"]"
+  OR content LINE_REGEX "model\\s*[:=]\\s*['\"]claude-[0-9]+-(?:opus|sonnet|haiku)['\"]"
+  OR content LINE_REGEX "model\\s*[:=]\\s*['\"]gemini-pro['\"]"
+  MESSAGE "Unpinned model alias (e.g., 'gpt-4') may resolve to a different model after a provider update, silently changing behavior and costs. Pin to a dated model ID where possible."
+}
+
+rule ask-max-tokens-missing {
+  enabled true
+  priority 65
+  severity warning
+  LOG write
+  IF content CONTAINS "openai.chat.completions.create"
+  OR content CONTAINS "anthropic.messages.create"
+  OR content CONTAINS "generativeai.GenerativeModel"
+  MESSAGE "AI API call detected. Ensure max_tokens/max_output_tokens is set to prevent runaway costs from unexpectedly long responses."
+}
+
+rule no-user-input-in-system-prompt {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF content LINE_REGEX "role:\\s*['\"]system['\"]" AND content LINE_REGEX "content:\\s*`[^`]*\\$\\{"
+  OR content LINE_REGEX "system_prompt.*\\+.*user"
+  OR content LINE_REGEX "system.*f['\"].*\\{user"
+  MESSAGE "User-controlled content in system prompt enables prompt injection. The system prompt should be static — interpolate user data into user messages only."
+}
+
+rule no-logging-llm-responses {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF content LINE_REGEX "console\\.log.*(?:response|completion|message|content)"
+  OR content LINE_REGEX "logger\\.info.*(?:response|completion|message|content)"
+  OR content LINE_REGEX "print.*(?:response|completion|message|content)"
+  MESSAGE "Logging full LLM responses may capture PII, confidential business data, or sensitive content. Log metadata (tokens, latency, model) but not the response body."
+}
+
+rule ask-temperature-above-one {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF content LINE_REGEX "temperature\\s*[:=]\\s*[1-9]\\."
+  OR content LINE_REGEX "temperature\\s*[:=]\\s*[2-9]"
+  MESSAGE "Temperature above 1.0 makes model outputs highly random and unpredictable. Values above 1.0 are rarely appropriate for production use cases."
+}

@@ -1,0 +1,73 @@
+# agent_any_no_inline_writes.rules — Block file writes via inline interpreters.
+#
+# WHY THIS EXISTS:
+# Governance rules and write-blocking hooks operate on the Write/Edit tool's
+# `path` parameter. Routing the same write through an inline interpreter
+# (`bun -e`, `node -e`, `python -c`) hides the path from the rule engine —
+# the hook only sees `bun -e`, not the target file path.
+#
+# Example bypasses this rule blocks:
+#   bun -e 'await Bun.write("path/blocked-by-rule", "...")'
+#   node -e 'require("fs").writeFileSync("path/blocked-by-rule", "...")'
+#   python3 -c 'open("path/blocked-by-rule","w").write("...")'
+#
+# If you genuinely need to script a file write (build steps, test fixtures,
+# generated artifacts), put it in a tracked .ts/.js/.py file under the
+# project — that lives in source control and goes through review like any
+# other code. Inline `-e`/`-c` writes do not.
+
+rule no-bun-inline-writes {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command REGEX "\\bbun\\b\\s+(?:run\\s+)?-e\\b.*\\bBun\\.write\\b"
+  OR command REGEX "\\bbun\\b\\s+(?:run\\s+)?-e\\b.*\\bwriteFileSync\\b"
+  OR command REGEX "\\bbun\\b\\s+(?:run\\s+)?-e\\b.*\\bcreateWriteStream\\b"
+  OR command REGEX "\\bbun\\b\\s+(?:run\\s+)?-e\\b.*\\bfs\\.appendFileSync\\b"
+  MESSAGE "File writes via `bun -e` route around governance hooks — they hide the target path from the rule engine. Use the Write or Edit tool, or commit a tracked .ts script and run it via `bun run`."
+}
+
+rule no-node-inline-writes {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command REGEX "\\bnode\\b\\s+-e\\b.*\\bwriteFileSync\\b"
+  OR command REGEX "\\bnode\\b\\s+-e\\b.*\\bcreateWriteStream\\b"
+  OR command REGEX "\\bnode\\b\\s+-e\\b.*\\bappendFileSync\\b"
+  OR command REGEX "\\bnode\\b\\s+--eval\\b.*\\bwriteFileSync\\b"
+  MESSAGE "File writes via `node -e`/`node --eval` route around governance hooks — they hide the target path from the rule engine. Use the Write or Edit tool, or commit a tracked .js script and run it via `node script.js`."
+}
+
+rule no-python-inline-writes {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command REGEX "\\bpython\\d?\\b\\s+-c\\b.*open\\([^)]*['\"]w[+b]?['\"]"
+  OR command REGEX "\\bpython\\d?\\b\\s+-c\\b.*\\bwrite_text\\b"
+  OR command REGEX "\\bpython\\d?\\b\\s+-c\\b.*\\bwrite_bytes\\b"
+  OR command REGEX "\\bpython\\d?\\b\\s+-c\\b.*Path\\([^)]*\\)\\.write"
+  MESSAGE "File writes via `python -c` route around governance hooks — they hide the target path from the rule engine. Use the Write or Edit tool, or commit a tracked .py script and run it via `python3 script.py`."
+}
+
+rule no-perl-inline-writes {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command REGEX "\\bperl\\b\\s+-[Mn]?e\\b.*\\bopen\\b.*['\"]>"
+  OR command REGEX "\\bperl\\b\\s+-i\\b"
+  MESSAGE "File writes via `perl -e` or in-place edits via `perl -i` route around governance hooks. Use the Write or Edit tool."
+}
+
+rule no-ruby-inline-writes {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command REGEX "\\bruby\\b\\s+-e\\b.*\\bFile\\.(?:write|open)\\b"
+  OR command REGEX "\\bruby\\b\\s+-i\\b"
+  MESSAGE "File writes via `ruby -e` or in-place edits via `ruby -i` route around governance hooks. Use the Write or Edit tool."
+}

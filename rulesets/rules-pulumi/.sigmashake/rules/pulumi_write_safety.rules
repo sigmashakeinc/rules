@@ -1,0 +1,20 @@
+# pulumi_write_safety.rules
+# Technology: pulumi | Capability: write
+
+rule pulumi-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "pulumi.log.warn"
+  MESSAGE "Blocked an unsafe pattern in pulumi. Use the recommended best practices for 2025/2026."
+}
+
+rule pulumi-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "pulumi.Config"
+  MESSAGE "You are using an outdated API for pulumi. Please upgrade to the newer API."
+}

@@ -1,0 +1,20 @@
+# redis_write_safety.rules
+# Technology: redis | Capability: write
+
+rule redis-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "EVAL"
+  MESSAGE "Blocked an unsafe pattern in redis. Use the recommended best practices for 2025/2026."
+}
+
+rule redis-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "KEYS *"
+  MESSAGE "You are using an outdated API for redis. Please upgrade to the newer API."
+}

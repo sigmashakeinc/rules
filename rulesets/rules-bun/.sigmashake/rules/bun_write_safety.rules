@@ -1,0 +1,56 @@
+# bun_write_safety.rules
+# Technology: bun | Capability: write
+
+rule bun-path-traversal-write-concat {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.{js,ts,jsx,tsx,mjs,cjs}" AND content CONTAINS "Bun.write(" AND content CONTAINS "+"
+  MESSAGE "Potential path traversal vulnerability: Bun.write() path argument uses string concatenation. This is risky if user input is involved. Always use 'path.join()' or 'path.resolve()' with a base directory for safe path construction to prevent directory traversal attacks."
+}
+
+rule bun-command-injection-spawn-shell {
+  enabled true
+  priority 98
+  severity error
+  DENY write
+  IF path GLOB "**/*.{js,ts,jsx,tsx,mjs,cjs}" AND (content CONTAINS "Bun.spawn({ cmd: ['sh', '-c'" OR content CONTAINS "Bun.spawn({ shell: true")
+  MESSAGE "Command injection risk: Bun.spawn() is used with 'shell: true' or 'sh -c'. This makes it highly vulnerable to command injection if user-controlled input is part of the command string. Always pass commands and arguments as an array to the 'cmd' property and avoid 'shell: true' to ensure arguments are properly escaped."
+}
+
+rule bun-insecure-dynamic-code-eval {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.{js,ts,jsx,tsx,mjs,cjs}" AND (content CONTAINS "eval(" OR content CONTAINS "new Function(")
+  MESSAGE "Insecure dynamic code execution: Usage of 'eval()' or 'new Function()' is detected. These functions are dangerous when used with untrusted input as they can execute arbitrary code, leading to severe security vulnerabilities like RCE. Refactor to avoid dynamic code execution from external sources."
+}
+
+rule bun-unsafe-file-read-sync {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.{js,ts,jsx,tsx,mjs,cjs}" AND (content CONTAINS ".textSync()" OR content CONTAINS ".arrayBufferSync()")
+  MESSAGE "Synchronous file read detected: Using '.textSync()' or '.arrayBufferSync()' can block the event loop, leading to performance issues and potential Denial-of-Service (DoS) if reading large or untrusted files. Prefer asynchronous methods like '.text()' or '.arrayBuffer()' with 'await' for non-blocking I/O."
+}
+
+rule bun-no-deprecated-buffer-constructor {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.{js,ts,jsx,tsx,mjs,cjs}" AND content CONTAINS "new Buffer("
+  MESSAGE "Deprecated Buffer constructor: 'new Buffer()' is deprecated in Node.js and should be avoided in Bun for compatibility and security reasons (e.g., uninitialized memory in older Node.js versions). Use 'Buffer.from()', 'Buffer.alloc()', or 'Buffer.allocUnsafe()' for explicit and safer memory allocation."
+}
+
+rule bun-google-js-style-no-var {
+  enabled true
+  priority 50
+  severity warning
+  LOG write
+  IF path GLOB "**/*.{js,ts,jsx,tsx,mjs,cjs}" AND content CONTAINS "var "
+  MESSAGE "Style Guide Violation: Usage of 'var' keyword detected. Modern JavaScript and Google's JavaScript Style Guide recommend using 'const' or 'let' for variable declarations to improve scope management, prevent common hoisting-related bugs, and enhance code readability. Please refactor to use 'const' or 'let'."
+}

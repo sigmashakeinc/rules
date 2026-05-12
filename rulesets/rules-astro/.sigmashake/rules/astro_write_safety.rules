@@ -1,0 +1,56 @@
+# astro_write_safety.rules
+# Technology: astro | Capability: write
+
+rule astro-xss-set-html-unsanitized {
+  enabled true
+  priority 95
+  severity error
+  LOG write
+  IF path GLOB "**/*.astro" AND content CONTAINS "set:html={"
+  MESSAGE "Potential Cross-Site Scripting (XSS) vulnerability detected. Using 'set:html' with untrusted or unsanitized input can lead to arbitrary code execution in the user's browser. Always sanitize user-generated or external content using a library like 'dompurify' or 'sanitize-html' before injecting it via 'set:html'. Example: <div set:html={DOMPurify.sanitize(userContent)} />"
+}
+
+rule astro-deprecated-fetch-content {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.astro" AND content CONTAINS "Astro.fetchContent("
+  MESSAGE "Deprecated API usage: 'Astro.fetchContent()' is no longer recommended. Use 'Astro.glob()' for querying local content files (e.g., Markdown, MDX). 'Astro.glob()' offers better performance and a more consistent API. Example: const posts = await Astro.glob('../pages/**/*.md');"
+}
+
+rule astro-insecure-target-blank {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.{astro,html,md,mdx}" AND content CONTAINS "target=\"_blank\"" AND NOT content CONTAINS "rel=\"noopener noreferrer\""
+  MESSAGE "Insecure link detected: Links with 'target=\"_blank\"' should always include 'rel=\"noopener noreferrer\"' to prevent tabnabbing (reverse tabnabbing) attacks. This prevents the opened page from gaining partial control over the opener page. Add 'rel=\"noopener noreferrer\"' to all such links."
+}
+
+rule astro-path-traversal-fs-params {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "src/pages/api/**/*.ts" AND content CONTAINS "fs." AND content CONTAINS "Astro.params"
+  MESSAGE "Potential Path Traversal vulnerability detected. Using 'fs' module functions (e.g., readFile, writeFile) with paths derived directly from 'Astro.params' without strict sanitization and validation can allow attackers to access or modify arbitrary files on the server. Always sanitize and validate user-supplied path segments to ensure they stay within intended directories."
+}
+
+rule astro-hardcoded-api-key {
+  enabled true
+  priority 98
+  severity error
+  DENY write
+  IF path GLOB "**/*.{astro,ts,js,mjs}" AND content CONTAINS "const [A-Z_]+_KEY = \"sk-"
+  MESSAGE "Hardcoded sensitive API key detected. Storing API keys directly in source code is a severe security risk, especially in client-side bundles. Use environment variables (e.g., 'import.meta.env.PUBLIC_API_KEY' for client-side, 'process.env.API_KEY' for server-side) and never commit them to version control. Ensure server-side keys are never exposed to the client."
+}
+
+rule astro-client-env-variable-misuse {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.astro" AND content CONTAINS "process.env." AND NOT content CONTAINS "import.meta.env."
+  MESSAGE "Misuse of environment variables in Astro component. 'process.env' is a Node.js global and generally not available or correctly processed in client-side Astro components or islands. For environment variables, use 'import.meta.env' (e.g., 'import.meta.env.PUBLIC_MY_VAR'). Ensure client-side variables are prefixed with 'PUBLIC_' in your '.env' file."
+}

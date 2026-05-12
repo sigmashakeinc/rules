@@ -1,0 +1,3 @@
+{
+  "description": "Mongoose is a JavaScript object modeling tool designed to work in an asynchronous environment for MongoDB. These rules ensure proper schema validation, secure middleware usage, and efficient query patterns in Node.js applications using Mongoose."
+}

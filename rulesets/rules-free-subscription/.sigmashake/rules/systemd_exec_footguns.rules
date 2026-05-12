@@ -1,0 +1,23 @@
+# systemd_exec_footguns.rules
+# Technology: systemd | Capability: exec | Description: systemd specific footguns
+
+rule block-systemctl-kexec-emergency {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command WORD "systemctl" AND command WORD "kexec"
+  OR command WORD "systemctl" AND command WORD "emergency"
+  OR command WORD "systemctl" AND command WORD "rescue"
+  MESSAGE "Free Protection: systemctl kexec, emergency, and rescue modes are blocked to prevent system lockouts."
+}
+
+rule block-systemctl-mask {
+  enabled true
+  priority 90
+  severity warning
+  ASK execution
+  IF command WORD "systemctl" AND command WORD "mask"
+  MESSAGE "Free Protection: Masking systemd services can lead to hard-to-diagnose boot issues."
+  PROMPT "Do you want to allow the agent to permanently mask this service?"
+}

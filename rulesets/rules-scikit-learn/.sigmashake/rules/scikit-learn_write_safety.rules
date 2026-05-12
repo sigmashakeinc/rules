@@ -1,0 +1,20 @@
+# scikit-learn_write_safety.rules
+# Technology: scikit-learn | Capability: write
+
+rule scikit-learn-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "pickle.load"
+  MESSAGE "Blocked an unsafe pattern in scikit-learn. Use the recommended best practices for 2025/2026."
+}
+
+rule scikit-learn-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "sklearn.externals.joblib"
+  MESSAGE "You are using an outdated API for scikit-learn. Please upgrade to the newer API."
+}

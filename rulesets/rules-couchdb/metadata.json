@@ -1,0 +1,3 @@
+{
+  "description": "Apache CouchDB is a document-oriented NoSQL database that uses JSON for storage and HTTP for its API. These rules guide AI agents in database replication, view creation, and conflict resolution using MVCC."
+}

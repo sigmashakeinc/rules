@@ -1,0 +1,182 @@
+# windows_exec_safety.rules — Windows execution safety enforcement.
+# Technology: windows | Capability: exec
+# Covers: PowerShell bypass, registry persistence, UAC bypass, Defender disable, SYSTEM tasks, SAM.
+
+rule no-powershell-execution-bypass {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "powershell.*-ExecutionPolicy\\s+Bypass"
+  OR command REGEX "powershell.*-ep\\s+bypass"
+  OR command REGEX "powershell.*-ExecutionPolicy\\s+Unrestricted"
+  OR command REGEX "Set-ExecutionPolicy\\s+Bypass"
+  OR command REGEX "Set-ExecutionPolicy\\s+Unrestricted"
+  MESSAGE "Bypassing the PowerShell execution policy removes the control that prevents unsigned scripts from running. Use 'RemoteSigned' policy and sign scripts with a code signing certificate."
+}
+
+rule no-powershell-encoded-command {
+  enabled true
+  priority 100
+  severity error
+  ASK execution
+  IF command REGEX "powershell.*-EncodedCommand"
+  OR command REGEX "powershell.*-enc\\s+[A-Za-z0-9+/]"
+  OR command REGEX "powershell.*-e\\s+[A-Za-z0-9+/]{20}"
+  MESSAGE "Base64-encoded PowerShell commands (-EncodedCommand) obfuscate intent and are the #1 indicator of malicious PowerShell activity. Use plain-text scripts stored in version control."
+  PROMPT "Is this encoded PowerShell intentional? Decode and review the command first. Consider storing it as a .ps1 script file instead."
+}
+
+rule no-reg-add-run-keys {
+  enabled true
+  priority 100
+  severity error
+  ASK execution
+  IF command REGEX "reg\\s+add.*Run\\b"
+  OR command REGEX "reg\\s+add.*RunOnce\\b"
+  OR command REGEX "New-ItemProperty.*CurrentVersion.Run"
+  OR command REGEX "Set-ItemProperty.*CurrentVersion.Run"
+  MESSAGE "Writing to HKLM/HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run establishes persistence — programs registered here auto-execute on user login or system boot."
+  PROMPT "Is registry-based persistence intentional? Document why Run key persistence is preferred over a Windows service or Scheduled Task with explicit user authorization."
+}
+
+rule no-disable-windows-defender {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "Set-MpPreference.*DisableRealtimeMonitoring.*\\$true"
+  OR command REGEX "Set-MpPreference.*DisableRealtimeMonitoring.*1"
+  OR command CONTAINS "DisableAntiSpyware"
+  OR command REGEX "reg.*Defender.*DisableRealtimeMonitoring"
+  MESSAGE "Disabling Windows Defender real-time monitoring removes the primary malware defense on Windows. Never disable Defender in production — add specific exclusions if needed."
+}
+
+rule no-schtasks-system-account {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF command REGEX "schtasks.*\\/RU\\s+SYSTEM"
+  OR command REGEX "schtasks.*\\/RU\\s+\"NT AUTHORITY\\\\SYSTEM\""
+  OR command REGEX "Register-ScheduledTask.*RunLevel.*Highest"
+  MESSAGE "Scheduled tasks running as SYSTEM execute with the highest privilege level and persist across reboots — a primary technique for persistence and privilege escalation."
+  PROMPT "Is this SYSTEM-level scheduled task required? Use a dedicated service account with minimum required privileges instead of SYSTEM."
+}
+
+rule no-net-user-add {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF command REGEX "net\\s+user\\s+\\S+\\s+\\S+\\s+\\/add"
+  OR command REGEX "New-LocalUser\\s+"
+  OR command REGEX "net\\s+localgroup\\s+administrators.*\\/add"
+  MESSAGE "Creating new local user accounts or adding users to the Administrators group is a high-impact action. Document new accounts and ensure they follow the principle of least privilege."
+  PROMPT "Is creating this user account intentional? Verify the account purpose, set a strong password, and add only to required groups — not Administrators unless strictly necessary."
+}
+
+rule no-wmic-process-execution {
+  enabled true
+  priority 90
+  severity error
+  ASK execution
+  IF command REGEX "wmic.*process.*call.*create"
+  OR command REGEX "Invoke-WmiMethod.*Win32_Process.*Create"
+  MESSAGE "WMI process creation (wmic process call create) is frequently used for lateral movement and remote code execution in attacks. Use direct process invocation or Windows services instead."
+  PROMPT "Is WMI process creation required here? Consider using Start-Process or CreateProcess directly, which are easier to audit and monitor."
+}
+
+rule no-icacls-everyone-full {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command REGEX "icacls.*Everyone.*:F"
+  OR command REGEX "icacls.*Everyone.*\\/grant.*Full"
+  OR command REGEX "cacls.*Everyone.*\\/g.*:f"
+  MESSAGE "Granting Everyone:F (Full Control) on files or directories allows any user on the system to read, write, delete, and execute. Use specific user/group permissions instead."
+}
+
+rule no-lolbin-proxy-execution {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "\\b(mshta|regsvr32|rundll32)\\.exe?\\s+.*(https?:\\/\\/|\\\\\\\\|javascript:)"
+  OR command REGEX "regsvr32.*\\/i:.*scrobj\\.dll"
+  OR command REGEX "mshta.*vbscript:"
+  MESSAGE "RISK: mshta/regsvr32/rundll32 invoked with a URL or scrobj.dll is the Squiblydoo/Koadic LOLBIN proxy-execution pattern (MITRE T1218) used to bypass application allowlisting. FIX: install signed MSIs via msiexec or run a signed PowerShell script under WDAC enforcement."
+}
+
+rule no-download-cradle {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "certutil(\\.exe)?\\s+-(urlcache|decode|decodehex)"
+  OR command REGEX "bitsadmin\\s+\\/(transfer|addfile|setnotifycmdline)"
+  OR command REGEX "(IEX|Invoke-Expression)\\s*\\(?\\s*\\(?\\s*(New-Object\\s+Net\\.WebClient|Invoke-RestMethod|Invoke-WebRequest|iwr)"
+  MESSAGE "RISK: certutil/bitsadmin/IEX download cradles fetch and execute remote code in-memory (MITRE T1105/T1059.001), the core technique behind ClickFix and 2024-2025 fake-captcha campaigns. FIX: download to disk with Invoke-WebRequest, verify the Authenticode signature with Get-AuthenticodeSignature, then execute."
+}
+
+rule no-amsi-or-etw-bypass {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command CONTAINS "System.Management.Automation.AmsiUtils"
+  OR command CONTAINS "amsiInitFailed"
+  OR command REGEX "AmsiScanBuffer.*VirtualProtect"
+  OR command REGEX "EtwEventWrite.*VirtualProtect"
+  OR command REGEX "NtTraceEvent.*WriteProcessMemory"
+  MESSAGE "RISK: Patching AmsiScanBuffer or EtwEventWrite disables in-process script scanning and EDR telemetry (MITRE T1562.001/006) — there is no legitimate use. FIX: remove the bypass; if a script is being blocked by AMSI, fix the script rather than the scanner."
+}
+
+rule no-credential-dumping {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "comsvcs\\.dll.*MiniDump"
+  OR command REGEX "rundll32.*comsvcs.*#?24"
+  OR command REGEX "procdump.*-ma\\s+lsass"
+  OR command REGEX "ntdsutil.*ifm"
+  OR command REGEX "reg\\s+save\\s+HKLM\\\\SAM"
+  OR command REGEX "vssadmin\\s+create\\s+shadow"
+  MESSAGE "RISK: comsvcs MiniDump, procdump lsass, ntdsutil IFM, reg save SAM, and VSS shadow copies extract NTLM/Kerberos secrets and DPAPI keys for offline cracking (MITRE T1003). FIX: enable LSA Protection (RunAsPPL) and Credential Guard, and use LAPS for local-admin credentials."
+}
+
+rule no-powershell-v2-downgrade {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command REGEX "powershell(\\.exe)?\\s+(-v|-version)\\s+2"
+  OR command REGEX "Enable-WindowsOptionalFeature.*MicrosoftWindowsPowerShellV2"
+  MESSAGE "RISK: PowerShell v2 lacks AMSI integration and ScriptBlock logging, so attackers force a downgrade to evade defenses (MITRE T1562.010). FIX: remove the PowerShellV2 optional feature and require PowerShell 5.1+ with ScriptBlock and Module logging enabled."
+}
+
+rule no-smb1-or-unencrypted-winrm {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command REGEX "Set-SmbServerConfiguration.*-EnableSMB1Protocol\\s+\\$true"
+  OR command REGEX "Enable-WindowsOptionalFeature.*SMB1Protocol"
+  OR command REGEX "RequireSecuritySignature\\s*=?\\s*\\$false"
+  OR command REGEX "Set-Item\\s+WSMan:.*AllowUnencrypted.*\\$?true"
+  MESSAGE "RISK: SMB1, disabled SMB signing, and unencrypted WinRM expose hosts to NTLM relay and coerced-auth attacks (CVE-2024-43451, CVE-2025-33073). FIX: keep SMB1 disabled, require SMB signing, and run WinRM over HTTPS with Kerberos."
+}
+
+rule no-bitlocker-disable {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF command REGEX "manage-bde(\\.exe)?\\s+-off"
+  OR command CONTAINS "Disable-BitLocker"
+  OR command CONTAINS "Clear-BitLockerAutoUnlock"
+  MESSAGE "RISK: Disabling BitLocker exposes the volume key to offline DMA, WinRE, and CVE-2024-20666 / CVE-2025-21210 class attacks. FIX: leave BitLocker enabled with TPM+PIN and escrow recovery keys to AD/Entra."
+  PROMPT "Confirm BitLocker must be disabled (e.g., for hardware retirement) and that recovery keys are already escrowed."
+}

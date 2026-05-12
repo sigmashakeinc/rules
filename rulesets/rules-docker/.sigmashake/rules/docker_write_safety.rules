@@ -1,0 +1,41 @@
+# docker_write_safety.rules
+# Technology: docker | Capability: write
+# Covers host-isolation boundaries: root user, privileged, docker socket, image pinning.
+
+rule docker-run-as-root {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/Dockerfile*" AND content NOT LINE_REGEX "(?i)USER\\s+[a-zA-Z0-9_]+"
+  MESSAGE "RISK: Containers default to UID 0; combined with a runtime flaw (e.g. runc CVE-2025-31133/52565/52881) this yields host root. FIX: Add 'USER nonroot' (or a dedicated uid) before the final CMD/ENTRYPOINT."
+}
+
+rule docker-privileged-mode {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/docker-compose*.y*ml" AND content LINE_REGEX "privileged\\s*:\\s*true"
+  OR path GLOB "**/*.sh" AND content LINE_REGEX "docker\\s+run[^\\n]*--privileged"
+  MESSAGE "RISK: --privileged disables seccomp/AppArmor/capability dropping, giving the container full kernel access (equivalent to host root). FIX: Remove and grant only the specific capabilities needed via cap_add."
+}
+
+rule docker-expose-socket {
+  enabled true
+  priority 98
+  severity error
+  DENY write
+  IF path GLOB "**/docker-compose*.y*ml" AND content LINE_REGEX "/var/run/docker\\.sock\\s*:\\s*/var/run/docker\\.sock"
+  OR path GLOB "**/*.sh" AND content LINE_REGEX "-v\\s+[\"']?/var/run/docker\\.sock:/var/run/docker\\.sock"
+  MESSAGE "RISK: Mounting /var/run/docker.sock grants the container control of the host Docker daemon (spawn privileged containers = host root). FIX: Use a scoped socket proxy (e.g. tecnativa/docker-socket-proxy) or the rootless API."
+}
+
+rule docker-latest-tag {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/Dockerfile*" AND content LINE_REGEX "(?i)FROM\\s+[a-zA-Z0-9._/-]+:latest"
+  MESSAGE "RISK: ':latest' (or untagged) base images break reproducibility and silently pull in new CVEs or malicious tag re-pushes. FIX: Pin to an immutable digest, e.g. 'FROM node:20.11.1-alpine@sha256:<digest>'."
+}

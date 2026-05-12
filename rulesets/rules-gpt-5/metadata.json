@@ -1,0 +1,3 @@
+{
+  "description": "GPT-5 is a highly capable large language model designed for advanced reasoning and autonomous tool usage. These rules govern governance and guardrails against indirect prompt injection and unsandboxed execution for GPT-5 agents."
+}

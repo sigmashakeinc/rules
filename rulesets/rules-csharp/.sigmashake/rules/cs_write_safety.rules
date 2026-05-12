@@ -1,0 +1,92 @@
+# cs_write_safety.rules — C# write-time security enforcement.
+# Technology: cs | Capability: write
+# Covers: SQL injection, XML deserialization, command injection, path traversal, hardcoded secrets, LDAP injection, insecure crypto.
+
+rule no-sql-string-concat-cs {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.cs" AND content LINE_REGEX "(ExecuteNonQuery|ExecuteReader|ExecuteScalar|ExecuteQuery).*\\+"
+  OR path GLOB "**/*.cs" AND content LINE_REGEX "new SqlCommand\\s*\\([^,)]*\\+"
+  OR path GLOB "**/*.cs" AND content LINE_REGEX "CommandText\\s*=\\s*[\"'].*\\+"
+  OR path GLOB "**/*.cs" AND content LINE_REGEX "CommandText\\s*\\+=\\s*"
+  MESSAGE "String concatenation in SQL commands enables SQL injection. Use parameterized queries with SqlParameter or an ORM like Entity Framework."
+}
+
+rule no-binary-formatter {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.cs" AND content CONTAINS "BinaryFormatter"
+  OR path GLOB "**/*.cs" AND content CONTAINS "NetDataContractSerializer"
+  OR path GLOB "**/*.cs" AND content CONTAINS "SoapFormatter"
+  OR path GLOB "**/*.cs" AND content CONTAINS "ObjectStateFormatter"
+  MESSAGE "BinaryFormatter and related formatters deserialize arbitrary types and are a well-known RCE vector. Microsoft has deprecated them. Use System.Text.Json or protobuf instead."
+}
+
+rule no-xml-external-entity-cs {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.cs" AND content CONTAINS "XmlReaderSettings" AND content NOT CONTAINS "ProhibitDtd"
+  OR path GLOB "**/*.cs" AND content LINE_REGEX "new XmlDocument\\s*\\(\\s*\\)" AND content NOT CONTAINS "XmlResolver = null"
+  OR path GLOB "**/*.cs" AND content CONTAINS "DtdProcessing.Parse"
+  MESSAGE "XML parsers with DTD processing enabled are vulnerable to XXE attacks. Set XmlReaderSettings.DtdProcessing = DtdProcessing.Prohibit or XmlResolver = null."
+}
+
+rule no-process-start-shell-cs {
+  enabled true
+  priority 95
+  severity error
+  LOG write
+  IF path GLOB "**/*.cs" AND content LINE_REGEX "Process\\.Start\\s*\\(\\s*[\"']cmd"
+  OR path GLOB "**/*.cs" AND content LINE_REGEX "Process\\.Start\\s*\\(\\s*[\"']/bin/bash"
+  OR path GLOB "**/*.cs" AND content LINE_REGEX "UseShellExecute\\s*=\\s*true"
+  MESSAGE "Process.Start with shell execution or cmd.exe/bash passes commands through the shell, enabling injection. Use ProcessStartInfo with UseShellExecute = false and explicit arguments."
+}
+
+rule no-hardcoded-connection-string {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.cs" AND content LINE_REGEX "(connectionString|ConnectionString|connStr)\\s*=\\s*[\"'][^\"']{10,}[\"']"
+  OR path GLOB "**/*.cs" AND content LINE_REGEX "Server\\s*=.*;.*Password\\s*="
+  MESSAGE "Hardcoded connection strings expose database credentials in source control. Store connection strings in environment variables or a secrets manager and retrieve via IConfiguration."
+}
+
+rule no-ldap-injection-cs {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.cs" AND content LINE_REGEX "DirectorySearcher.*Filter.*\\+"
+  OR path GLOB "**/*.cs" AND content LINE_REGEX "\\.Filter\\s*=.*\\+"
+  OR path GLOB "**/*.cs" AND content LINE_REGEX "\\.Filter\\s*=.*\\$\""
+  MESSAGE "String interpolation/concatenation in LDAP filters enables LDAP injection. Escape user input with Encoder.LdapFilterEncode() before including it in a filter string."
+}
+
+rule no-md5-sha1-cs {
+  enabled true
+  priority 80
+  severity error
+  LOG write
+  IF path GLOB "**/*.cs" AND content CONTAINS "MD5.Create("
+  OR path GLOB "**/*.cs" AND content CONTAINS "SHA1.Create("
+  OR path GLOB "**/*.cs" AND content CONTAINS "new MD5CryptoServiceProvider"
+  OR path GLOB "**/*.cs" AND content CONTAINS "new SHA1CryptoServiceProvider"
+  MESSAGE "MD5 and SHA-1 are cryptographically broken and must not be used for password hashing or data integrity. Use SHA-256 or higher, and for passwords use BCrypt, PBKDF2, or Argon2."
+}
+
+rule no-path-traversal-cs {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.cs" AND content LINE_REGEX "(File\\.ReadAll|File\\.WriteAll|File\\.Open|File\\.Delete).*Request\\."
+  OR path GLOB "**/*.cs" AND content LINE_REGEX "Path\\.Combine\\s*\\([^)]*Request\\."
+  MESSAGE "File operations with user-controlled paths enable path traversal. Validate that Path.GetFullPath(userInput) starts with the expected base directory before performing file operations."
+}

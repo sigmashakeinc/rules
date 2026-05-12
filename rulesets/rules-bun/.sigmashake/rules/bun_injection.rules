@@ -1,0 +1,39 @@
+# bun_injection.rules — Guard Bun shell and SQL injection surfaces.
+# Technology: bun | Capability: write
+# Covers: Bun.$ raw escape bypass, Bun.sql unsafe(), bun:sqlite template queries.
+
+rule bun-shell-raw-bypass {
+  enabled true
+  priority 98
+  severity error
+  DENY write
+  IF path GLOB "**/*.{js,ts,jsx,tsx,mjs,cjs}" AND content CONTAINS "$.raw("
+  MESSAGE "RISK: Bun.$.raw() bypasses the tagged-template auto-escaping, re-introducing shell injection when any untrusted value reaches it. FIX: Remove .raw() and interpolate values directly with Bun.$`cmd ${value}` so Bun escapes them."
+}
+
+rule bun-sql-unsafe {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.{js,ts,jsx,tsx,mjs,cjs}" AND content CONTAINS ".unsafe("
+  MESSAGE "RISK: Bun.sql.unsafe() / postgres.unsafe() executes a raw SQL string with no parameterization, enabling SQL injection (see CVE-2024-52531 class). FIX: Use the tagged template sql`SELECT ... WHERE id=${id}` so values are bound as parameters."
+}
+
+rule bun-sqlite-template-query {
+  enabled true
+  priority 92
+  severity error
+  DENY write
+  IF path GLOB "**/*.{js,ts,jsx,tsx,mjs,cjs}" AND content LINE_REGEX "db\\.(query|run|exec|prepare)\\s*\\(\\s*`[^`]*\\$\\{"
+  MESSAGE "RISK: bun:sqlite db.query/run/exec/prepare with a template literal does NOT parameterize ${...} — the value is concatenated into SQL and is injectable. FIX: Use placeholders — db.query('SELECT ... WHERE id=?').all(id) or named params {$id: id}."
+}
+
+rule bun-fetch-reject-unauthorized-false {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.{js,ts,jsx,tsx,mjs,cjs}" AND content LINE_REGEX "rejectUnauthorized\\s*:\\s*false"
+  MESSAGE "RISK: Disabling TLS certificate validation (rejectUnauthorized: false) exposes fetch/HTTPS traffic to man-in-the-middle attacks. FIX: Remove the option; if a self-signed cert is required, add its CA via the 'ca' option instead."
+}

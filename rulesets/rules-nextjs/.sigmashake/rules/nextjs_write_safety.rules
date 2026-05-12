@@ -1,0 +1,181 @@
+# nextjs_write_safety.rules
+# Technology: nextjs | Capability: write
+# Covers: middleware auth bypass, Server Actions SSRF, RSC RCE, open redirects,
+# async request APIs, env-var secret leaks, hardcoded auth secrets.
+
+rule nextjs-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "dangerouslySetInnerHTML"
+  MESSAGE "RISK: dangerouslySetInnerHTML bypasses React's XSS escaping and is the #1 XSS vector in Next.js apps. FIX: render text as children, or sanitize with DOMPurify.sanitize(html) before injecting."
+}
+
+rule nextjs-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "getInitialProps"
+  MESSAGE "RISK: getInitialProps is a legacy Pages Router API that disables Automatic Static Optimization and is discouraged in current Next.js. FIX: migrate to getServerSideProps/getStaticProps (Pages Router) or App Router server components with fetch()."
+}
+
+rule nextjs-middleware-subrequest-header {
+  enabled true
+  priority 98
+  severity error
+  DENY write
+  IF path GLOB "**/*.{ts,tsx,js,jsx,mjs,cjs}" AND content CONTAINS "x-middleware-subrequest"
+  MESSAGE "RISK: the x-middleware-subrequest header is the attack vector for CVE-2025-29927 (Next.js middleware authorization bypass). FIX: upgrade Next.js to >=14.2.25 / >=15.2.3, strip this header at the edge/proxy, and never read or forward it in application code."
+}
+
+rule nextjs-server-action-auth {
+  enabled true
+  priority 90
+  severity warning
+  LOG write
+  IF path GLOB "**/*.{ts,tsx,js,jsx}" AND content LINE_REGEX "^\\s*['\"]use server['\"]\\s*;?\\s*$"
+  MESSAGE "RISK: a 'use server' module exposes every exported function as an unauthenticated POST endpoint (see CVE-2025-55182/55183/55184). FIX: authenticate the session and authorize the action at the top of every server action, validate all arguments with zod/valibot, and keep react >=19.0.1/19.1.2/19.2.1 and next >=14.2.26/15.2.4."
+}
+
+rule nextjs-server-action-redirect-relative {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/app/**/*.{ts,tsx}" AND content LINE_REGEX "redirect\\(\\s*[`'\"]\\/"
+  MESSAGE "RISK: a Server Action redirect() to a relative path combined with a spoofed Host header is the root cause of CVE-2024-34351 (SSRF). FIX: upgrade Next.js to >=14.1.1 (or >=14.2.26/15.2.4), or redirect to an absolute, allow-listed URL; never trust req.headers.host for URL construction."
+}
+
+rule nextjs-open-redirect {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.{ts,tsx,js,jsx}" AND content LINE_REGEX "redirect\\(\\s*(?:req|request|searchParams|params|query)\\b"
+  OR path GLOB "**/*.{ts,tsx,js,jsx}" AND content LINE_REGEX "NextResponse\\.redirect\\(\\s*(?:req|request|searchParams|params|query)\\b"
+  MESSAGE "RISK: passing user-controlled input directly to redirect()/NextResponse.redirect() creates an open-redirect that phishing kits abuse (OWASP A01). FIX: validate the target against an allow-list of internal paths, or require it to start with '/' and reject '//', 'http:', 'https:', 'javascript:' prefixes."
+}
+
+rule nextjs-next-public-secret {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/.env*" AND content LINE_REGEX "^NEXT_PUBLIC_[A-Z0-9_]*(SECRET|PRIVATE|API_KEY|TOKEN|PASSWORD|SERVICE_ROLE)"
+  OR path GLOB "**/*.{ts,tsx,js,jsx,mjs}" AND content LINE_REGEX "process\\.env\\.NEXT_PUBLIC_[A-Z0-9_]*(SECRET|PRIVATE|API_KEY|TOKEN|PASSWORD|SERVICE_ROLE)"
+  MESSAGE "RISK: any NEXT_PUBLIC_* variable is inlined into the client JS bundle and visible to every visitor — putting a secret there leaks it permanently. FIX: drop the NEXT_PUBLIC_ prefix so it stays server-only, and rotate the exposed value if it has already been deployed."
+}
+
+rule nextjs-hardcoded-auth-secret {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.{ts,tsx,js,jsx,mjs,cjs}" AND content LINE_REGEX "(NEXTAUTH_SECRET|AUTH_SECRET|JWT_SECRET)\\s*[:=]\\s*['\"][^'\"$]{6,}['\"]"
+  MESSAGE "RISK: hardcoding NEXTAUTH_SECRET/AUTH_SECRET/JWT_SECRET lets anyone with repo access forge sessions and JWTs. FIX: read it from process.env at runtime and generate a fresh value with `openssl rand -base64 32` for each environment."
+}
+
+rule nextjs-sync-cookies-headers {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/app/**/*.{ts,tsx}" AND content LINE_REGEX "(?<!await\\s)(?<!async\\s)\\b(cookies|headers|draftMode)\\(\\)\\.(get|set|delete|has|getAll|entries|keys|values|toString)\\b"
+  MESSAGE "RISK: cookies(), headers(), and draftMode() are async in Next.js 15+ — calling them synchronously works today only via a deprecation shim and will throw in the next major. FIX: `const cookieStore = await cookies();` then call cookieStore.get(...)."
+}
+
+rule nextjs-sync-params-searchparams {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/app/**/{page,layout,route}.{ts,tsx}" AND content LINE_REGEX "(params|searchParams)\\s*:\\s*\\{[^}]*\\}\\s*[,)]"
+  MESSAGE "RISK: in Next.js 15+, the params and searchParams props are Promises; destructuring them as plain objects silently returns undefined and breaks rendering. FIX: type them as `Promise<{...}>` and `const { id } = await params;` inside the component."
+}
+
+rule nextjs-image-wildcard-remote-pattern {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/next.config.{js,mjs,ts,cjs}" AND content LINE_REGEX "hostname\\s*:\\s*['\"][*][\"']"
+  OR path GLOB "**/next.config.{js,mjs,ts,cjs}" AND content LINE_REGEX "domains\\s*:\\s*\\[[^\\]]*['\"][*][\"']"
+  MESSAGE "RISK: `hostname: '*'` in images.remotePatterns/domains turns /_next/image into an open image proxy — attackers can cache-poison and exfiltrate internal URLs. FIX: enumerate each allowed CDN host explicitly (e.g. 'cdn.example.com', 'images.unsplash.com')."
+}
+
+rule nextjs-image-unoptimized {
+  enabled true
+  priority 60
+  severity info
+  LOG write
+  IF path GLOB "**/next.config.{js,mjs,ts,cjs}" AND content LINE_REGEX "unoptimized\\s*:\\s*true"
+  MESSAGE "RISK: images.unoptimized=true disables the built-in CSRF/SSRF protections of the /_next/image loader and ships unoptimized bytes. FIX: leave it false and configure remotePatterns for each trusted host, or use a dedicated loader."
+}
+
+rule nextjs-eval-in-server {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/app/**/*.{ts,tsx}" AND content LINE_REGEX "\\b(eval|Function)\\s*\\("
+  OR path GLOB "**/pages/api/**/*.{ts,js}" AND content LINE_REGEX "\\b(eval|Function)\\s*\\("
+  MESSAGE "RISK: eval() or new Function() in a server component / API route turns any string injection into RCE on the Node.js runtime. FIX: parse data with JSON.parse, template with a real templating library, and never evaluate untrusted input."
+}
+
+rule nextjs-raw-sql-template {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/app/**/route.{ts,js}" AND content LINE_REGEX "(query|execute|raw|unsafe)\\s*\\(\\s*`[^`]*\\$\\{"
+  OR path GLOB "**/pages/api/**/*.{ts,js}" AND content LINE_REGEX "(query|execute|raw|unsafe)\\s*\\(\\s*`[^`]*\\$\\{"
+  MESSAGE "RISK: string-interpolating user input into a SQL template literal is a textbook SQL-injection in a Next.js route handler. FIX: use parameterized queries — `db.query('SELECT * FROM u WHERE id = $1', [id])` or an ORM like Prisma/Drizzle."
+}
+
+rule nextjs-middleware-matcher-missing {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/middleware.{ts,js}" AND content NOT CONTAINS "matcher"
+  MESSAGE "RISK: middleware without a config.matcher runs on every request including static assets, amplifying any auth bug and adding latency. FIX: export `export const config = { matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'] };` and scope it to protected paths."
+}
+
+rule nextjs-csrf-bypass-skip-middleware {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.{ts,tsx,js,jsx}" AND content CONTAINS "__nextjs_original-stack-frame"
+  OR path GLOB "**/*.{ts,tsx,js,jsx}" AND content LINE_REGEX "x-middleware-prefetch|x-middleware-rewrite|x-middleware-override-headers"
+  MESSAGE "RISK: reading or setting Next.js internal middleware headers (x-middleware-prefetch/rewrite/override-headers) is how CVE-2025-29927-style bypasses are built. FIX: never trust these headers from the client; rely on the framework to set them and strip them at your reverse proxy."
+}
+
+rule nextjs-react-server-flight-version {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/package.json" AND content LINE_REGEX "\"(react|react-dom|react-server)\"\\s*:\\s*\"\\^?(?:0|1[0-8])\\."
+  MESSAGE "RISK: react/react-dom <19.0.1 (or 19.1.x <19.1.2, 19.2.x <19.2.1) contains the React Server Components 'Flight' deserialization RCE (CVE-2025-55182 / CVE-2025-66478). FIX: pin react and react-dom to >=19.0.1 / >=19.1.2 / >=19.2.1 and redeploy."
+}
+
+rule nextjs-cache-revalidate-user-input {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/*.{ts,tsx,js,jsx}" AND content LINE_REGEX "revalidate(Path|Tag)\\(\\s*(?:req|request|searchParams|params|query|body)\\b"
+  MESSAGE "RISK: passing user input to revalidatePath/revalidateTag lets an attacker blow away or target arbitrary cache entries (cache-poisoning / DoS). FIX: map the request to a fixed, server-side allow-list of paths/tags before calling revalidate*."
+}
+
+rule nextjs-middleware-return-next-response-next {
+  enabled true
+  priority 70
+  severity info
+  LOG write
+  IF path GLOB "**/middleware.{ts,js}" AND content LINE_REGEX "return\\s+NextResponse\\.next\\(\\s*\\{\\s*request\\s*:\\s*\\{\\s*headers"
+  MESSAGE "RISK: rewriting request headers via NextResponse.next({ request: { headers } }) is the technique used in CVE-2025-29927 to bypass middleware. FIX: treat header rewrites as a privileged operation, never copy x-middleware-* headers, and ensure Next.js is on a patched release."
+}

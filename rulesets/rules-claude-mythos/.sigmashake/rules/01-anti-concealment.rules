@@ -1,0 +1,42 @@
+# 01-anti-concealment.rules — Prevent AI agents from hiding tracks.
+# Priority 99: highest-priority governance rules.
+# Blocks git history rewriting and direct access to governance internals.
+
+# Block git history rewriting (rebase, reset --hard, push --force)
+rule block-git-history-rewrite {
+  enabled true
+  priority 99
+  severity error
+  DENY execution
+  IF command REGEX "\\bgit\\s+rebase\\b"
+  OR command REGEX "\\bgit\\s+reset\\s+--hard\\b"
+  MESSAGE "Blocked: git history rewriting is forbidden — it can conceal malicious changes."
+}
+
+# Block direct access to governance database, socket, and key files
+rule block-governance-tampering {
+  enabled true
+  priority 99
+  severity error
+  DENY execution
+  IF command CONTAINS ".sigmashake/audit_log.db"
+  OR command CONTAINS ".sigmashake/evald.sock"
+  OR command CONTAINS ".sigmashake/rules.db"
+  OR command CONTAINS ".sigmashake/global.db"
+  OR command CONTAINS ".sigmashake/dashboard.token"
+  MESSAGE "Blocked: direct access to governance internals is forbidden."
+}
+
+# Block writing to governance files
+rule block-governance-write {
+  enabled true
+  priority 99
+  severity error
+  DENY write
+  IF path GLOB "**/.sigmashake/audit_log.db"
+  OR path GLOB "**/.sigmashake/evald.sock"
+  OR path GLOB "**/.sigmashake/rules.db"
+  OR path GLOB "**/.sigmashake/keys/*"
+  OR path GLOB "**/.sigmashake/plan.json"
+  MESSAGE "Blocked: writing to governance files is forbidden — only ssg itself may modify these."
+}

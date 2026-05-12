@@ -1,0 +1,20 @@
+# vite_write_safety.rules
+# Technology: vite | Capability: write
+
+rule vite-warn-server-host {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/vite.config.*" AND content CONTAINS "host: true"
+  MESSAGE "Setting server.host to true exposes the Vite dev server on the local network. Ensure you are not working on a public or untrusted network, as this allows others to access your development environment."
+}
+
+rule vite-warn-fs-strict-false {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/vite.config.*" AND content LINE_REGEX "server\\s*:\\s*\\{.*fs\\s*:\\s*\\{.*strict\\s*:\\s*false"
+  MESSAGE "Disabling server.fs.strict allows the Vite dev server to serve files outside of the workspace root. This is a potential directory traversal risk if not tightly controlled."
+}

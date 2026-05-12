@@ -1,0 +1,73 @@
+# kotlin_write_safety.rules — Kotlin write-time security enforcement.
+# Technology: kotlin | Capability: write
+# Covers: force non-null, SQL injection, deserialization, command injection, hardcoded secrets, insecure HTTP.
+
+rule no-force-non-null-kotlin {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.kt" AND content LINE_REGEX "[^!]!![^!=]"
+  OR path GLOB "**/*.kts" AND content LINE_REGEX "[^!]!![^!=]"
+  MESSAGE "The !! operator throws NullPointerException on null — the exact problem Kotlin's type system prevents. Use safe calls (?.), let{}, or provide a default with ?:"
+}
+
+rule no-sql-concat-kotlin {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.kt" AND content LINE_REGEX "(executeQuery|executeUpdate|prepareStatement).*\\+"
+  OR path GLOB "**/*.kt" AND content LINE_REGEX "(executeQuery|executeUpdate|prepareStatement).*\\$\\{"
+  OR path GLOB "**/*.kt" AND content LINE_REGEX "createNativeQuery\\s*\\(.*\\$\\{"
+  MESSAGE "String interpolation/concatenation in SQL queries enables SQL injection. Use PreparedStatement with ? placeholders or a Kotlin-aware ORM like Exposed."
+}
+
+rule no-java-deserialization-kotlin {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.kt" AND content CONTAINS "ObjectInputStream"
+  OR path GLOB "**/*.kt" AND content CONTAINS "readObject("
+  MESSAGE "Java deserialization via ObjectInputStream is a known RCE vector. Use kotlinx.serialization, Gson, or Moshi for safe data serialization."
+}
+
+rule no-runtime-exec-kotlin {
+  enabled true
+  priority 95
+  severity error
+  LOG write
+  IF path GLOB "**/*.kt" AND content LINE_REGEX "Runtime\\.getRuntime\\s*\\(\\s*\\)\\.exec\\s*\\("
+  OR path GLOB "**/*.kt" AND content LINE_REGEX "ProcessBuilder\\s*\\(.*\\$\\{"
+  MESSAGE "Runtime.exec() or ProcessBuilder with string interpolation enables command injection. Build command arguments as a list — never concatenate user input into a command string."
+}
+
+rule no-hardcoded-secrets-kotlin {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.kt" AND content LINE_REGEX "val\\s+(password|apiKey|api_key|secret|token|clientSecret)\\s*=\\s*\"[^\"]{8,}\""
+  OR path GLOB "**/*.kts" AND content LINE_REGEX "(password|apiKey|secret|token)\\s*=\\s*\"[^\"]{8,}\""
+  MESSAGE "Hardcoded credentials in Kotlin source are embedded in the APK/JAR. Store secrets in environment variables, BuildConfig fields from a gitignored local.properties, or a secrets manager."
+}
+
+rule no-unchecked-cast-kotlin {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/*.kt" AND content LINE_REGEX "as\\s+[A-Z][a-zA-Z<>]+" AND content NOT CONTAINS "as?"
+  MESSAGE "Unchecked casts (as) throw ClassCastException if the type doesn't match. Use safe casts (as?) which return null on mismatch, then handle the null case explicitly."
+}
+
+rule no-cleartext-http-kotlin {
+  enabled true
+  priority 85
+  severity error
+  LOG write
+  IF path GLOB "**/*.kt" AND content CONTAINS "\"http:" AND content NOT CONTAINS "localhost" AND content NOT CONTAINS "127.0.0.1"
+  OR path GLOB "**/AndroidManifest.xml" AND content CONTAINS "cleartextTrafficPermitted=\"true\""
+  MESSAGE "Cleartext HTTP transmits data without encryption — vulnerable to interception. Use HTTPS for all network communication. For Android, do not set cleartextTrafficPermitted."
+}

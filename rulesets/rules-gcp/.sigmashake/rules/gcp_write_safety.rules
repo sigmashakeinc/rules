@@ -1,0 +1,137 @@
+# gcp_write_safety.rules
+# Technology: gcp | Capability: write
+
+rule gcp-iam-primitive-roles {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "role\\s*=\\s*[\"']roles/(owner|editor|viewer)[\"']"
+  MESSAGE "RISK: Primitive roles (owner/editor/viewer) grant sweeping permissions across a project, violating least-privilege. FIX: Assign a predefined or custom role scoped to the specific resource and actions required."
+}
+
+rule gcp-public-storage-bucket {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "members\\s*=\\s*\\[\\s*[\"']allUsers[\"']\\s*\\]" AND content LINE_REGEX "role\\s*=\\s*[\"']roles/storage\\.objectViewer[\"']"
+  MESSAGE "RISK: Granting allUsers the Storage Object Viewer role exposes the bucket to the public internet, a leading cause of GCP data leaks. FIX: Remove the allUsers binding and use signed URLs or named principals instead."
+}
+
+rule gcp-open-firewall-ssh {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "source_ranges\\s*=\\s*\\[\\s*[\"']0\\.0\\.0\\.0/0[\"']\\s*\\]" AND content LINE_REGEX "ports\\s*=\\s*\\[\\s*[\"']22[\"']\\s*\\]"
+  MESSAGE "RISK: Exposing SSH (22) to 0.0.0.0/0 invites brute-force and CVE scanning against VMs. FIX: Restrict source_ranges to a bastion/VPN CIDR or front SSH with Identity-Aware Proxy (IAP)."
+}
+
+rule gcp-open-firewall-rdp {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "source_ranges\\s*=\\s*\\[\\s*[\"']0\\.0\\.0\\.0/0[\"']\\s*\\]" AND content LINE_REGEX "ports\\s*=\\s*\\[\\s*[\"']3389[\"']\\s*\\]"
+  MESSAGE "RISK: Exposing RDP (3389) to 0.0.0.0/0 is regularly weaponised by ransomware crews against Windows VMs. FIX: Restrict source_ranges to a trusted CIDR or tunnel through IAP TCP forwarding."
+}
+
+rule gcp-ssrf-metadata-server {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "requests\\.get\\([\"']http://metadata\\.google\\.internal.*[\"']\\)" AND content NOT CONTAINS "Metadata-Flavor: Google"
+  MESSAGE "RISK: Metadata requests without the 'Metadata-Flavor: Google' header are vulnerable to SSRF-driven token theft, matching the class of attack used in the Capital One-style breaches. FIX: Always send the Metadata-Flavor: Google header (and prefer the official google-auth client libraries)."
+}
+
+rule gcp-service-account-key-resource {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content CONTAINS "\"google_service_account_key\""
+  MESSAGE "RISK: google_service_account_key provisions a long-lived JSON key; leaked keys are a top GCP compromise vector (Mandiant M-Trends 2025). FIX: Use Workload Identity Federation or service-account impersonation with short-lived tokens instead."
+}
+
+rule gcp-committed-private-key-json {
+  enabled true
+  priority 99
+  severity error
+  DENY write
+  IF path GLOB "**/*.json" AND content CONTAINS "-----BEGIN PRIVATE KEY-----" AND content CONTAINS "\"type\": \"service_account\""
+  MESSAGE "RISK: Committing a service-account JSON key to the repository hands attackers a persistent backdoor into the project. FIX: Delete the file, rotate the key in IAM immediately, and switch to Workload Identity Federation or ADC impersonation."
+}
+
+rule gcp-iam-all-authenticated-users {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "[\"']allAuthenticatedUsers[\"']"
+  MESSAGE "RISK: allAuthenticatedUsers grants access to every Google account on the internet, not just your org — effectively public per Google's IAM guidance. FIX: Bind the role to a specific group, serviceAccount, or domain: principal instead."
+}
+
+rule gcp-gke-basic-auth {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "master_auth\\s*\\{" AND content LINE_REGEX "(username|password)\\s*="
+  MESSAGE "RISK: GKE basic auth (username/password on master_auth) is removed in cluster versions >=1.19 and is a static credential that cannot be rotated safely. FIX: Remove username/password fields and rely on OAuth/OIDC authentication to the API server."
+}
+
+rule gcp-gke-client-cert-issued {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "issue_client_certificate\\s*=\\s*true"
+  MESSAGE "RISK: Issuing a static client certificate for GKE masters creates a long-lived credential that cannot be revoked without rebuilding the cluster. FIX: Set issue_client_certificate = false and authenticate with IAM/OIDC."
+}
+
+rule gcp-gke-legacy-abac {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "enable_legacy_abac\\s*=\\s*true"
+  MESSAGE "RISK: Legacy ABAC grants overly permissive authorization and bypasses Kubernetes RBAC, which GKE hardening guides flag as critical. FIX: Set enable_legacy_abac = false and define RBAC Role/RoleBinding resources."
+}
+
+rule gcp-storage-uniform-access-disabled {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "uniform_bucket_level_access\\s*=\\s*false"
+  MESSAGE "RISK: Disabling uniform_bucket_level_access re-enables object ACLs, which have historically leaked data by bypassing bucket IAM policies. FIX: Set uniform_bucket_level_access = true unless you have a documented ACL use case."
+}
+
+rule gcp-cloudsql-public-ip {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "ipv4_enabled\\s*=\\s*true" AND content CONTAINS "google_sql_database_instance"
+  MESSAGE "RISK: Cloud SQL instances with a public IPv4 address are routinely found by internet scanners and are a common exfiltration target. FIX: Set ipv4_enabled = false and access the instance via Private Service Connect, private IP, or the Cloud SQL Auth Proxy."
+}
+
+rule gcp-cloudrun-allusers-invoker {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "role\\s*=\\s*[\"']roles/run\\.invoker[\"']" AND content LINE_REGEX "[\"']allUsers[\"']"
+  MESSAGE "RISK: Binding roles/run.invoker to allUsers publishes the Cloud Run service to the anonymous internet. FIX: Confirm this is an intentionally public endpoint; otherwise restrict to specific service accounts or groups and front with IAP/API Gateway."
+}
+
+rule gcp-gcloud-key-create-script {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.sh" AND content LINE_REGEX "gcloud\\s+iam\\s+service-accounts\\s+keys\\s+create"
+  MESSAGE "RISK: Scripts that mint service-account JSON keys create persistent, hard-to-rotate credentials that often end up in CI logs. FIX: Replace with 'gcloud auth application-default login --impersonate-service-account' or Workload Identity Federation."
+}

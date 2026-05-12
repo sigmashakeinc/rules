@@ -1,0 +1,83 @@
+# cassandra_write_safety.rules
+# Technology: cassandra | Capability: write
+
+rule cassandra-cql-injection-simple-statement {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.java" AND content CONTAINS "new SimpleStatement(\"" AND content CONTAINS "\" + "
+  MESSAGE "Potential CQL Injection: Direct string concatenation detected in SimpleStatement constructor. This allows untrusted input to modify query logic. Use prepared statements with parameter binding (e.g., session.prepare(...).bind(...)) to safely handle dynamic query parts."
+}
+
+rule cassandra-cql-injection-session-execute-concat {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.java" AND content CONTAINS "session.execute(\"" AND content CONTAINS "\" + " AND NOT content CONTAINS "session.prepare("
+  MESSAGE "Potential CQL Injection: Direct string concatenation detected when calling session.execute(). This allows untrusted input to modify query logic. Always use prepared statements with parameter binding (e.g., session.prepare(...).bind(...)) to safely handle dynamic query parts."
+}
+
+rule cassandra-insecure-authenticator {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/cassandra.yaml" AND content CONTAINS "authenticator: AllowAllAuthenticator"
+  MESSAGE "Insecure Configuration: 'AllowAllAuthenticator' is enabled. This allows any user with any password to access the database, posing a severe security risk. Configure a strong authenticator like 'PasswordAuthenticator' or a custom one, and manage user credentials securely."
+}
+
+rule cassandra-insecure-authorizer {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/cassandra.yaml" AND content CONTAINS "authorizer: AllowAllAuthorizer"
+  MESSAGE "Insecure Configuration: 'AllowAllAuthorizer' is enabled. This grants all authenticated users full access to all data and operations, bypassing all authorization checks. Configure 'CassandraAuthorizer' or a custom authorizer with proper role-based access control (RBAC)."
+}
+
+rule cassandra-dangerous-truncate {
+  enabled true
+  priority 98
+  severity error
+  DENY write
+  IF path GLOB "**/*.cql" AND (content CONTAINS "TRUNCATE TABLE" OR content CONTAINS "TRUNCATE KEYSPACE")
+  MESSAGE "Dangerous Operation: 'TRUNCATE' statement detected. This command permanently deletes all data from a table or keyspace without a WHERE clause, and cannot be undone. AI should not generate TRUNCATE without explicit, highly controlled context. Consider DELETE with a WHERE clause for targeted data removal."
+}
+
+rule cassandra-insecure-client-encryption-disabled {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/cassandra.yaml" AND content CONTAINS "client_encryption_options.enabled: false"
+  MESSAGE "Insecure Default: Client-to-node encryption (SSL/TLS) is disabled in cassandra.yaml. Data in transit between clients and Cassandra nodes will not be encrypted, making it vulnerable to eavesdropping. Enable client encryption for sensitive data by setting 'client_encryption_options.enabled: true' and configuring SSL/TLS certificates."
+}
+
+rule cassandra-deprecated-compact-storage {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.cql" AND content CONTAINS "CREATE TABLE" AND content CONTAINS "WITH COMPACT STORAGE"
+  MESSAGE "Deprecated Feature: 'COMPACT STORAGE' is used in a CREATE TABLE statement. This option is deprecated and can lead to compatibility issues with newer Cassandra features and drivers. Avoid using COMPACT STORAGE for new tables; it is primarily for backward compatibility with very old Cassandra versions."
+}
+
+rule cassandra-cql-style-uppercase-keywords {
+  enabled true
+  priority 50
+  severity warning
+  LOG write
+  IF path GLOB "**/*.cql" AND (content CONTAINS " select " OR content CONTAINS " from " OR content CONTAINS " where " OR content CONTAINS " insert " OR content CONTAINS " update " OR content CONTAINS " delete " OR content CONTAINS " create " OR content CONTAINS " table " OR content CONTAINS " keyspace ")
+  MESSAGE "Style Violation: Common CQL keywords (e.g., SELECT, FROM, WHERE) are found in lowercase. While syntactically valid, it is a widely accepted best practice in the Cassandra community to use uppercase for CQL keywords for readability and consistency. Please adhere to this convention."
+}
+
+rule cassandra-unrestricted-rpc-address {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/cassandra.yaml" AND content CONTAINS "rpc_address: 0.0.0.0" AND NOT content CONTAINS "# rpc_address: 0.0.0.0"
+  MESSAGE "Insecure Configuration: 'rpc_address' is set to 0.0.0.0, binding to all network interfaces. This exposes Cassandra's client RPC port to the entire network. Restrict 'rpc_address' to a specific IP or use a robust firewall to limit access to trusted clients only."
+}

@@ -1,0 +1,128 @@
+# macos_exec_safety.rules — macOS execution safety enforcement.
+# Technology: macos | Capability: exec
+# Covers: SIP disable, Gatekeeper bypass, TCC reset, osascript privesc, Keychain, launchd.
+
+rule no-csrutil-disable {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command CONTAINS "csrutil disable"
+  OR command CONTAINS "csrutil clear"
+  MESSAGE "csrutil disable turns off System Integrity Protection (SIP), which prevents modification of protected system files and kernel extensions. Never disable SIP in production — it is the primary macOS rootkit defense."
+}
+
+rule no-gatekeeper-disable {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command CONTAINS "spctl --master-disable"
+  OR command REGEX "spctl\\s+--disable"
+  OR command CONTAINS "defaults write com.apple.LaunchServices LSQuarantine -bool false"
+  MESSAGE "Disabling Gatekeeper allows execution of unsigned and unnotarized apps from anywhere, removing Apple's code signing verification. Keep Gatekeeper enabled and use Developer ID signing for trusted apps."
+}
+
+rule no-tccutil-reset {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF command CONTAINS "tccutil reset"
+  MESSAGE "tccutil reset clears all Transparency, Consent, and Control (TCC) privacy permissions — camera, microphone, location, contacts, etc. This affects all apps and requires users to re-grant permissions."
+  PROMPT "Is resetting TCC permissions intentional? This will revoke all camera/mic/location access for all apps. Use 'tccutil reset <service> <bundleID>' to target a specific app instead."
+}
+
+rule no-osascript-admin-privileges {
+  enabled true
+  priority 100
+  severity error
+  ASK execution
+  IF command CONTAINS "osascript" AND command CONTAINS "administrator privileges"
+  OR command CONTAINS "osascript" AND command CONTAINS "with administrator"
+  OR command REGEX "osascript.*do shell script.*password"
+  MESSAGE "osascript 'do shell script ... with administrator privileges' prompts for credentials and runs commands as root — a common macOS privilege escalation technique. Use sudo with proper authorization instead."
+  PROMPT "Is this osascript admin escalation intentional? Consider using sudo in Terminal or a privileged helper tool (SMJobBless) for proper privilege escalation with authorization."
+}
+
+rule no-nvram-security-clear {
+  enabled true
+  priority 90
+  severity error
+  ASK execution
+  IF command CONTAINS "nvram -c"
+  OR command CONTAINS "nvram --delete-all"
+  OR command REGEX "nvram.*boot-args.*-s"
+  OR command REGEX "nvram.*boot-args.*-x"
+  MESSAGE "Clearing NVRAM or setting insecure boot-args (-s single user, -x safe mode) can bypass security policies set at firmware level. This requires a reboot and affects startup security."
+  PROMPT "Is NVRAM modification intentional? Boot-args changes persist across reboots and can weaken security. Verify the specific NVRAM variable needed."
+}
+
+rule no-launchctl-unload-security-daemon {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF command REGEX "launchctl unload.*com\\.apple\\.(security|syspolicy|trustd|MobileSoftwareUpdate|Quarantine)"
+  OR command REGEX "launchctl bootout.*system.*com\\.apple\\.(security|syspolicy)"
+  MESSAGE "Unloading macOS security LaunchDaemons (trustd, syspolicyd, Quarantine) disables critical security services. These should never be unloaded in production environments."
+  PROMPT "Is unloading this security daemon intentional? Stopping trustd or syspolicyd disables certificate validation and code signing enforcement."
+}
+
+rule no-keychain-export-all {
+  enabled true
+  priority 100
+  severity error
+  ASK execution
+  IF command REGEX "security\\s+export.*-f\\s+pkcs12"
+  OR command REGEX "security\\s+dump-keychain"
+  OR command CONTAINS "security find-generic-password -w"
+  OR command CONTAINS "security find-internet-password -w"
+  MESSAGE "Exporting the full keychain or extracting passwords via security CLI dumps sensitive credentials including certificates, private keys, and passwords."
+  PROMPT "Is keychain export needed? Consider exporting only the specific key/certificate required rather than the entire keychain or all passwords."
+}
+
+rule no-disable-firewall-macos {
+  enabled true
+  priority 90
+  severity error
+  ASK execution
+  IF command REGEX "defaults write /Library/Preferences/com\\.apple\\.alf globalstate -int 0"
+  OR command CONTAINS "/usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate off"
+  OR command CONTAINS "pfctl -d"
+  MESSAGE "Disabling the macOS application firewall or packet filter exposes all ports to network access. Keep the firewall enabled, especially on untrusted networks."
+  PROMPT "Is disabling the firewall intentional? Use 'pfctl -f /etc/pf.conf' to reload rules rather than disabling entirely."
+}
+
+rule no-remote-login-enable {
+  enabled true
+  priority 85
+  severity warning
+  ASK execution
+  IF command CONTAINS "systemsetup -setremotelogin on"
+  OR command REGEX "launchctl\\s+(load|enable).*com\\.openssh\\.sshd"
+  MESSAGE "Enabling Remote Login (SSH) exposes the Mac to network-based credential attacks and is a common post-exploitation foothold. Leave SSH disabled unless required and restrict via pf/firewall if enabled."
+  PROMPT "Is enabling SSH/Remote Login intentional? Consider restricting to specific users via /etc/ssh/sshd_config AllowUsers and key-only auth."
+}
+
+rule no-curl-pipe-shell-macos {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF command REGEX "curl\\s+[^|]*https?://[^|]+\\|\\s*(sudo\\s+)?(sh|bash|zsh)"
+  OR command REGEX "wget\\s+[^|]*-O-[^|]*\\|\\s*(sudo\\s+)?(sh|bash|zsh)"
+  MESSAGE "Piping curl/wget output directly to a shell executes unverified remote code — a prevalent macOS infostealer (AMOS, Odyssey) infection vector in 2025. Download to a file, inspect/verify checksum, then execute."
+  PROMPT "Is this curl|sh installer from a trusted source? Prefer Homebrew or download + checksum verification before execution."
+}
+
+rule no-quarantine-removal {
+  enabled true
+  priority 90
+  severity error
+  ASK execution
+  IF command REGEX "xattr\\s+(-r\\s+)?-d(r)?\\s+com\\.apple\\.quarantine"
+  OR command CONTAINS "xattr -cr"
+  MESSAGE "Stripping com.apple.quarantine bypasses Gatekeeper's notarization and malware scan on downloaded binaries — Apple flags this as a standard malware install step. Only remove quarantine after verifying the binary's signature with 'codesign --verify'."
+  PROMPT "Is removing the quarantine attribute intentional? Use 'spctl --assess' and 'codesign -dv' to verify the binary first."
+}

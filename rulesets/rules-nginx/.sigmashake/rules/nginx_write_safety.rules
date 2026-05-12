@@ -1,0 +1,39 @@
+# nginx_write_safety.rules
+# Technology: nginx | Capability: write
+
+rule nginx-server-tokens {
+  enabled true
+  priority 90
+  severity warning
+  LOG write
+  IF path GLOB "**/*.conf" AND content NOT LINE_REGEX "server_tokens\\s+off"
+  MESSAGE "Nginx reveals its version number by default, which attackers use to find specific exploits. Add 'server_tokens off;' to your configuration."
+}
+
+rule nginx-alias-path-traversal {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.conf" AND content LINE_REGEX "location\\s+/[^/\\s]+\\s*\\{" AND content LINE_REGEX "\\s+alias\\s+[^\\s]+/;"
+  OR path GLOB "**/*.conf" AND content LINE_REGEX "location\\s+/[^/\\s]+/\\s*\\{" AND content LINE_REGEX "\\s+alias\\s+[^\\s]+(?<!/);"
+  MESSAGE "Mismatched trailing slashes between 'location' and 'alias' can cause path traversal vulnerabilities (e.g. allowing access to '../config.php'). Both must either have a trailing slash or not."
+}
+
+rule nginx-unsafe-variable-redirect {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.conf" AND content LINE_REGEX "return\\s+[0-9]{3}\\s+.*\\$(uri|document_uri)"
+  MESSAGE "Using $uri or $document_uri in redirects can lead to HTTP Request Smuggling or CRLF injection. Use $request_uri instead, which contains the original, un-decoded request."
+}
+
+rule nginx-root-inside-location {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.conf" AND content LINE_REGEX "\\s+root\\s+[^\\s]+;" AND content NOT LINE_REGEX "(?m)^\\s*root\\s+[^\\s]+;"
+  MESSAGE "It's best practice to define the 'root' directive at the 'server' block level rather than exclusively inside 'location' blocks, to prevent requests that don't match any block from falling back to a default, insecure system path."
+}

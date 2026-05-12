@@ -1,0 +1,101 @@
+# macos_read_privacy.rules — macOS privacy protection for AI coding agents.
+# Technology: macos | Capability: exec + read
+# Covers: Contacts, Messages, Photos, Safari history, screen capture, location, health data.
+
+rule no-read-contacts-db {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "sqlite3.*AddressBook\\.sqlitedb"
+  OR command REGEX "sqlite3.*contacts\\.db"
+  OR command REGEX "cat.*AddressBook.*\\.db"
+  OR command REGEX "open.*\\.abbu"
+  MESSAGE "Reading the macOS AddressBook database directly bypasses TCC privacy controls and exposes all contact information without user consent. Access contacts through the Contacts framework with user authorization."
+}
+
+rule no-read-messages-db {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "sqlite3.*Messages.*chat\\.db"
+  OR command REGEX "cat.*Library/Messages/chat\\.db"
+  OR command REGEX "strings.*chat\\.db"
+  MESSAGE "The Messages chat.db contains all iMessage and SMS conversations. Accessing it directly bypasses TCC and exposes private communications. This requires Full Disk Access permission and explicit user consent."
+}
+
+rule no-read-photos-library {
+  enabled true
+  priority 100
+  severity error
+  ASK execution
+  IF command REGEX "sqlite3.*Photos\\.photoslibrary"
+  OR command REGEX "cat.*Photos\\.photoslibrary"
+  OR command REGEX "find.*\\.photoslibrary"
+  OR command REGEX "open.*\\.photoslibrary"
+  MESSAGE "Accessing the Photos library database directly exposes all photos, videos, albums, and metadata without user consent. Use the Photos framework with explicit user authorization via TCC."
+  PROMPT "Is Photos library access required for this task? Users must explicitly grant Photos access in System Preferences > Privacy & Security. Use PHPhotoLibrary API instead of direct file access."
+}
+
+rule no-read-safari-history {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF command REGEX "sqlite3.*Safari.*History\\.db"
+  OR command REGEX "cat.*Safari.*History\\.db"
+  OR command REGEX "sqlite3.*SafariTabs\\.db"
+  OR command REGEX "sqlite3.*Bookmarks\\.db"
+  MESSAGE "Reading Safari's History.db and Bookmarks.db accesses private browsing history, search queries, and saved links. This data is personal and protected by Full Disk Access restrictions."
+  PROMPT "Is Safari history access required? Consider asking the user to export bookmarks manually via Safari > File > Export Bookmarks instead of direct database access."
+}
+
+rule no-screencapture-automated {
+  enabled true
+  priority 90
+  severity error
+  ASK execution
+  IF command CONTAINS "screencapture" AND command CONTAINS "-x"
+  OR command REGEX "screencapture\\s+-T\\s+0"
+  OR command REGEX "CGWindowListCreateImage"
+  OR command REGEX "screencapture.*-R"
+  MESSAGE "Automated screen capture (screencapture -x without UI sound, -T 0 immediate) can silently capture screen contents including sensitive data, passwords, and private information."
+  PROMPT "Is silent automated screen capture intentional? Ensure this is for a legitimate use case (e.g., accessibility testing) and not capturing sensitive user activity."
+}
+
+rule no-read-location-data {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF command REGEX "sqlite3.*Caches.*com\\.apple\\.locationd"
+  OR command REGEX "cat.*Library.*CoreLocation"
+  OR command REGEX "defaults read.*MapsLastOrigin"
+  OR command REGEX "sqlite3.*routined\\.db"
+  MESSAGE "Accessing CoreLocation cache databases or routined.db exposes the user's location history, frequent locations, and travel patterns — sensitive personal data protected by TCC."
+  PROMPT "Is location data access required? Use CLLocationManager with explicit user authorization rather than reading location cache databases directly."
+}
+
+rule no-read-health-data {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "sqlite3.*healthdb\\.sqlite"
+  OR command REGEX "sqlite3.*healthdb_secure\\.sqlite"
+  OR command REGEX "cat.*Health.*Export\\.xml"
+  MESSAGE "Accessing HealthKit databases (healthdb.sqlite, healthdb_secure.sqlite) exposes extremely sensitive health data including heart rate, sleep, medication, and medical records. This data has strict legal protections under HIPAA and GDPR."
+}
+
+rule no-read-keychain-db-macos {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "sqlite3.*login\\.keychain-db"
+  OR command REGEX "cat.*login\\.keychain"
+  OR command REGEX "cp.*\\.keychain-db"
+  OR command REGEX "strings.*\\.keychain"
+  MESSAGE "The macOS Keychain database stores passwords, certificates, and private keys encrypted at rest. Attempting to read the raw keychain file directly bypasses all authorization controls — use the Security framework APIs."
+}

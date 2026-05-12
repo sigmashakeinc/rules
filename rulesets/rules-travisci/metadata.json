@@ -1,0 +1,3 @@
+{
+  "description": "Travis CI is a continuous integration service used to build and test software projects hosted on GitHub and Bitbucket. These rules govern build configuration security and secret handling for AI agents."
+}

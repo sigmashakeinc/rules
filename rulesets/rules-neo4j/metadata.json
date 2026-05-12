@@ -1,0 +1,3 @@
+{
+  "description": "Neo4j is a graph database management system. These rules govern Cypher query generation and graph operations to prevent insecure traversals, unauthorized data access, and performance-heavy graph queries."
+}

@@ -1,0 +1,3 @@
+{
+  "description": "Rspack is a high-performance JavaScript bundler written in Rust, compatible with the webpack ecosystem. These rules govern build optimizations and migration patterns for AI-assisted RSPack configuration."
+}

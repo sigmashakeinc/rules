@@ -1,0 +1,71 @@
+# solidity_write_safety.rules — Solidity write-time security enforcement.
+# Technology: solidity | Capability: write
+# Covers: tx.origin auth, selfdestruct, reentrancy, delegatecall, unchecked transfer, hardcoded addresses.
+
+rule no-tx-origin-auth {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.sol" AND content LINE_REGEX "tx\\.origin\\s*[=!]"
+  OR path GLOB "**/*.sol" AND content LINE_REGEX "require\\s*\\(\\s*tx\\.origin"
+  MESSAGE "tx.origin is the original transaction sender and can be spoofed in phishing attacks — use msg.sender for authorization checks instead."
+}
+
+rule no-selfdestruct {
+  enabled true
+  priority 95
+  severity error
+  LOG write
+  IF path GLOB "**/*.sol" AND content CONTAINS "selfdestruct("
+  OR path GLOB "**/*.sol" AND content CONTAINS "suicide("
+  MESSAGE "selfdestruct() permanently destroys the contract and forcibly sends all ETH — including to contracts not prepared to receive it. Remove selfdestruct, or gate it behind a multi-sig time-lock."
+}
+
+rule no-delegatecall-user-input {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.sol" AND content LINE_REGEX "delegatecall\\s*\\(.*msg\\."
+  OR path GLOB "**/*.sol" AND content LINE_REGEX "\\.delegatecall\\s*\\([^)]*address.*msg"
+  MESSAGE "delegatecall to a user-supplied address executes arbitrary code in your contract's storage context — a critical takeover vulnerability. Only delegatecall to trusted, audited contract addresses."
+}
+
+rule no-unchecked-send-transfer {
+  enabled true
+  priority 95
+  severity error
+  LOG write
+  IF path GLOB "**/*.sol" AND content LINE_REGEX "\\.send\\s*\\(" AND content NOT CONTAINS "require("
+  OR path GLOB "**/*.sol" AND content LINE_REGEX "\\.call\\s*\\{value" AND content NOT CONTAINS "require("
+  MESSAGE "Unchecked .send() and .call{value:} return false on failure without reverting. Always check the return value: (bool success,) = addr.call{value: v}(''); require(success, 'Transfer failed');"
+}
+
+rule no-reentrancy-pattern {
+  enabled true
+  priority 100
+  severity error
+  LOG write
+  IF path GLOB "**/*.sol" AND content LINE_REGEX "\\.call\\s*\\{value" AND content NOT CONTAINS "nonReentrant"
+  OR path GLOB "**/*.sol" AND content LINE_REGEX "(transfer|send).*\\("  AND content NOT CONTAINS "nonReentrant"
+  MESSAGE "External calls before state updates enable reentrancy attacks (DAO hack pattern). Follow the Checks-Effects-Interactions pattern: update all state before calling external contracts. Add OpenZeppelin's nonReentrant modifier."
+}
+
+rule no-hardcoded-eth-address {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.sol" AND content LINE_REGEX "address\\s+(constant|immutable)?\\s*[a-zA-Z_]\\w*\\s*=\\s*0x[0-9a-fA-F]{40}"
+  MESSAGE "Hardcoded Ethereum addresses make contract upgrades and multi-environment deployments error-prone. Store addresses as constructor parameters or in an upgradeable registry."
+}
+
+rule no-integer-overflow-unchecked {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.sol" AND content LINE_REGEX "^pragma solidity [\\^~]?0\\.[0-7]\\." AND content NOT CONTAINS "SafeMath"
+  MESSAGE "Solidity < 0.8.0 does not check for integer overflow/underflow by default. Use SafeMath library for arithmetic, or upgrade to Solidity ^0.8.0 which includes built-in overflow checks."
+}

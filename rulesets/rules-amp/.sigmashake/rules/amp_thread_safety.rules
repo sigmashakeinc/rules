@@ -1,0 +1,29 @@
+# amp_thread_safety.rules
+
+rule audit-thread-sharing {
+  MESSAGE "Amp 'Thread' sharing initiated. This could expose internal session data."
+  IF tool EQUALS "AmpThread"
+  AND input.action EQUALS "share"
+  severity warning
+  priority 80
+  LOG any
+}
+
+rule warn-model-routing {
+  MESSAGE "Amp is dynamically switching between different AI models. This may cause data bleed across different model providers."
+  IF tool EQUALS "AmpRouter"
+  AND input.model_provider_change EQUALS "true"
+  severity info
+  priority 50
+  LOG any
+}
+
+rule block-sensitive-thread-upload {
+  MESSAGE "Blocked upload of thread content to Amp cloud for session sharing."
+  IF tool EQUALS "AmpThread"
+  AND input.action EQUALS "upload"
+  AND (content CONTAINS "password" OR content CONTAINS "API_KEY")
+  severity error
+  priority 100
+  DENY any
+}

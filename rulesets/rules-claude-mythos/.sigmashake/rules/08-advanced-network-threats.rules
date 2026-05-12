@@ -1,0 +1,31 @@
+# 08-advanced-network-threats.rules — Defenses against advanced network protocol abuse
+# Technology: bash | Capability: exec
+
+rule deny-oob-socket-abuse {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command CONTAINS "AF_UNIX" AND command CONTAINS "MSG_OOB"
+  OR command CONTAINS "AF_PACKET" AND command CONTAINS "sk_buff"
+  MESSAGE "Blocked: Attempt to create Out-Of-Band (MSG_OOB) domain sockets or raw AF_PACKET rings combined with internal sk_buff manipulation. Often utilized for kernel UAF network exploits."
+}
+
+rule ask-ipset-overflows {
+  enabled true
+  priority 90
+  severity warning
+  ASK execution
+  IF command REGEX "\\bipset.*bitmap:ip.*NLM_F_EXCL\\b"
+  MESSAGE "The agent is executing specific low-level ipset creations utilizing bitmap:ip combined with exclusive flags. This has been used to exploit integer underflows in netfilter."
+  PROMPT "Are you intending to allow fine-grained or malformed bitmap:ip configurations?"
+}
+
+rule deny-rpc-chunking {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command CONTAINS "RPCSEC_GSS" AND command REGEX "kern_openat|kern_writev|authorized_keys|MAX_AUTH_BYTES"
+  MESSAGE "Blocked: Attempting to abuse FreeBSD RPCSEC_GSS stack buffers or chunking kernel ROP chains over packets."
+}

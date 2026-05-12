@@ -1,0 +1,56 @@
+# chakra-ui_write_safety.rules
+# Technology: chakra-ui | Capability: write
+
+rule chakra-ui-no-dangerously-set-inner-html {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.{ts,tsx,js,jsx}" AND content CONTAINS "dangerouslySetInnerHTML"
+  MESSAGE "Potential Cross-Site Scripting (XSS) vulnerability detected. Using 'dangerouslySetInnerHTML' without proper sanitization of user-provided content can lead to arbitrary code execution in the user's browser. Always sanitize untrusted HTML using a library like DOMPurify before injecting it. Consider if a Chakra UI component can achieve the desired effect safely without direct HTML injection."
+}
+
+rule chakra-ui-avoid-deprecated-toast-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.{ts,tsx,js,jsx}" AND content CONTAINS "createStandaloneToast"
+  MESSAGE "Deprecated Chakra UI toast API detected. 'createStandaloneToast' is deprecated in Chakra UI v2+. Please use the 'useToast' hook for managing toasts within React components for better integration with the component lifecycle, theme, and improved accessibility."
+}
+
+rule chakra-ui-external-link-noopener-noreferrer {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.{ts,tsx,js,jsx}" AND content CONTAINS "<Link " AND content CONTAINS "target=\"_blank\"" AND NOT content CONTAINS "rel=\"noopener noreferrer\""
+  MESSAGE "External link in Chakra UI 'Link' component found with 'target=\"_blank\"' but without 'rel=\"noopener noreferrer\"'. This can expose users to 'tabnabbing' phishing attacks where the newly opened page can manipulate the original page. Always include 'rel=\"noopener noreferrer\"' for external links opened in a new tab to prevent this security risk."
+}
+
+rule chakra-ui-image-missing-alt-attribute {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.{ts,tsx,js,jsx}" AND content CONTAINS "<Image " AND NOT content CONTAINS " alt=\""
+  MESSAGE "Chakra UI 'Image' component detected without an 'alt' attribute. This is a critical accessibility violation, making images inaccessible to screen readers and impacting SEO. Always provide a descriptive 'alt' text for images, or an empty string (alt=\"\") for purely decorative images."
+}
+
+rule chakra-ui-iconbutton-missing-aria-label {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.{ts,tsx,js,jsx}" AND content CONTAINS "<IconButton " AND NOT content CONTAINS "aria-label=\""
+  MESSAGE "Chakra UI 'IconButton' component detected without an 'aria-label' attribute. Interactive components like IconButton must have an accessible name for screen readers to understand their purpose. Provide a descriptive 'aria-label' to ensure accessibility and compliance."
+}
+
+rule chakra-ui-avoid-direct-dom-manipulation {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.{ts,tsx,js,jsx}" AND (content CONTAINS "document.body.style" OR content CONTAINS "document.documentElement.style" OR content CONTAINS "element.style.setProperty")
+  MESSAGE "Direct DOM manipulation (e.g., 'document.body.style', 'element.style.setProperty') detected. In Chakra UI, prefer using the 'sx' prop, theme tokens, or dedicated Chakra components for styling and layout. Direct DOM manipulation can bypass Chakra's styling system, lead to inconsistent UI, break responsiveness, and potentially introduce security vulnerabilities if not carefully managed."
+}

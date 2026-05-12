@@ -1,0 +1,56 @@
+# angular_write_safety.rules
+# Technology: angular | Capability: write
+
+rule angular-xss-bypass-security-trust {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND (content CONTAINS "bypassSecurityTrustHtml(" OR content CONTAINS "bypassSecurityTrustUrl(" OR content CONTAINS "bypassSecurityTrustScript(" OR content CONTAINS "bypassSecurityTrustStyle(" OR content CONTAINS "bypassSecurityTrustResourceUrl(")
+  MESSAGE "The use of `DomSanitizer.bypassSecurityTrust*` functions (e.g., `bypassSecurityTrustHtml`, `bypassSecurityTrustUrl`) directly exposes the application to Cross-Site Scripting (XSS) vulnerabilities if the input is not thoroughly sanitized beforehand. Angular's built-in sanitization is bypassed, allowing malicious scripts or content to be injected. Ensure all inputs passed to these functions originate from trusted sources or are rigorously sanitized using a robust, context-aware sanitizer before use. Prefer Angular's safe templating and data binding whenever possible."
+}
+
+rule angular-tabnabbing-vulnerability {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.html" AND content CONTAINS "target=\"_blank\""
+  MESSAGE "Links with `target=\"_blank\"` can expose the user to a 'tabnabbing' vulnerability, where the newly opened page can manipulate the `window.opener` object of the original page. To prevent this, always include `rel=\"noopener noreferrer\"` (or at least `rel=\"noopener\"`) in the anchor tag. This prevents the new page from accessing the `window.opener` property."
+}
+
+rule angular-open-redirect-risk {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND (content CONTAINS "window.location.href =" OR content CONTAINS "this.router.navigateByUrl(")
+  MESSAGE "Direct assignment to `window.location.href` or navigation via `router.navigateByUrl()` using untrusted or unvalidated input (e.g., from URL query parameters, user input) can lead to an Open Redirect vulnerability. This allows attackers to redirect users to malicious sites for phishing. Always validate and sanitize redirect URLs against a whitelist of allowed domains or paths before performing navigation."
+}
+
+rule angular-unsafe-code-execution-eval-function {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND (content CONTAINS "eval(" OR content CONTAINS "new Function(")
+  MESSAGE "The use of `eval()` or `new Function()` constructs allows arbitrary code execution and is a severe security risk. These functions bypass Angular's security mechanisms and Content Security Policy (CSP) protections, making the application highly vulnerable to injection attacks. There are almost no legitimate use cases for `eval()` or `new Function()` in modern Angular applications. Refactor the code to use Angular's template engine, data binding, or other safe alternatives."
+}
+
+rule angular-direct-dom-manipulation-innerhtml {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND content CONTAINS ".innerHTML ="
+  MESSAGE "Direct assignment to `element.innerHTML` bypasses Angular's built-in sanitization and templating mechanisms, creating a high risk of Cross-Site Scripting (XSS) vulnerabilities if the assigned content is not thoroughly sanitized. Angular provides secure data binding (`[innerHTML]`) and `DomSanitizer` for handling trusted HTML. If dynamic HTML is absolutely necessary, ensure it comes from a trusted source or is explicitly sanitized using `DomSanitizer`'s `bypassSecurityTrustHtml` *only after rigorous validation*."
+}
+
+rule angular-style-guide-avoid-var-keyword {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/*.ts" AND content CONTAINS "var "
+  MESSAGE "The `var` keyword has function-level scope and can lead to unexpected behavior, variable hoisting issues, and make code harder to reason about. The Angular Style Guide and modern JavaScript best practices recommend using `let` for block-scoped mutable variables and `const` for block-scoped immutable variables instead. Replace `var` with `let` or `const` for improved code clarity and reduced potential for bugs."
+}

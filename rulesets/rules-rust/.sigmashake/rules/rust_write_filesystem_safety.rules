@@ -1,0 +1,110 @@
+# rust_write_filesystem_safety.rules — Filesystem & path-safety enforcement.
+# Technology: rust | Capability: write
+# Covers TOCTOU, --preserve-root, lossy UTF-8, suppressed Result, mode races,
+# tempfile placement, NSS-after-chroot, and supply-chain audit suppression.
+# Source: Canonical/Zellic audit of rust-coreutils (CVE-2026-35338..35381).
+
+rule rust-warn-preserve-root-string-compare {
+  enabled true
+  priority 90
+  severity warning
+  LOG write
+  IF path GLOB "**/*.rs" AND content CONTAINS "preserve_root" AND content LINE_REGEX "==\\s*[\"']/[\"']"
+  OR path GLOB "**/*.rs" AND content CONTAINS "preserve-root" AND content LINE_REGEX "==\\s*[\"']/[\"']"
+  MESSAGE "RISK: comparing path == \"/\" to enforce --preserve-root is bypassed by trivial inputs like \"//\", \"/.\", \"/foo/..\", or a symlink whose target is / (CVE-2026-35338 chmod, CVE-2026-35349 rm, CVE-2026-35363 rm trailing-slash, CVSS 7.5). FIX: stat the path with fs::metadata, compare (st_dev, st_ino) against fs::metadata(\"/\")?.dev/ino; reject the operation when they match."
+}
+
+rule rust-warn-chroot-then-nss-lookup {
+  enabled true
+  priority 90
+  severity warning
+  LOG write
+  IF path GLOB "**/*.rs" AND content CONTAINS "chroot" AND content CONTAINS "getpwnam"
+  OR path GLOB "**/*.rs" AND content CONTAINS "chroot" AND content CONTAINS "User::from_name"
+  OR path GLOB "**/*.rs" AND content CONTAINS "chroot" AND content CONTAINS "getgrnam"
+  MESSAGE "RISK: NSS lookups (getpwnam/getgrnam/User::from_name) after chroot read /etc/passwd from the new root, letting an attacker who controls the chroot tree inject arbitrary uid/gid mappings into your privilege-drop logic (CVE-2026-35368, CVSS 7.8). FIX: resolve the user/group identity BEFORE calling chroot, then pass the numeric uid/gid into the chrooted region."
+}
+
+rule rust-warn-fs-set-permissions {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "src/**/*.rs" AND content LINE_CONTAINS "fs::set_permissions(" AND path NOT GLOB "**/tests/**" AND path NOT GLOB "**/*_test.rs"
+  MESSAGE "RISK: path-based fs::set_permissions races a malicious symlink swap between create and chmod, letting an attacker apply your mode to /etc/shadow (CVE-2026-35341/CVE-2026-35356/CVE-2026-35357, CVSS 7.0). FIX: open the file once with OpenOptions::new().mode(0o600).custom_flags(libc::O_NOFOLLOW).create_new(true).open(p), then call File::set_permissions on the resulting fd — never re-resolve the path."
+}
+
+rule rust-warn-osstr-to-str-unwrap {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "src/**/*.rs" AND content LINE_REGEX "to_str\\(\\)\\.(expect|unwrap)\\(" AND path NOT GLOB "**/tests/**" AND path NOT GLOB "**/*_test.rs"
+  MESSAGE "RISK: Path/OsStr::to_str().expect() or .unwrap() panics on any non-UTF-8 path — an attacker who can place such a filename (trivial on Unix) crashes the process (CVE-2026-35348 sort, CVSS 5.3). FIX: handle non-UTF-8 paths via OsStr (Unix: OsStrExt::as_bytes()); reserve to_str().unwrap_or() for display only."
+}
+
+rule rust-warn-file-create-default-mode {
+  enabled true
+  priority 78
+  severity warning
+  LOG write
+  IF path GLOB "src/**/*.rs" AND content LINE_CONTAINS "File::create(" AND path NOT GLOB "**/tests/**" AND path NOT GLOB "**/*_test.rs" AND path NOT GLOB "**/build.rs" AND path NOT GLOB "**/examples/**"
+  MESSAGE "RISK: File::create opens with O_CREAT|O_TRUNC|O_WRONLY without O_EXCL or an explicit mode; a pre-placed symlink at the target is followed and a TOCTOU window lets an attacker redirect the write (CVE-2026-35360 touch, CVE-2026-35367 nohup default 0644, CVSS 5.5-6.8). FIX: use OpenOptions::new().mode(0o600).custom_flags(libc::O_NOFOLLOW | libc::O_EXCL).create_new(true).open(p)."
+}
+
+rule rust-warn-fs-copy-symlinks {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "src/**/*.rs" AND content LINE_CONTAINS "fs::copy(" AND path NOT GLOB "**/tests/**" AND path NOT GLOB "**/*_test.rs" AND path NOT GLOB "**/build.rs" AND path NOT GLOB "**/examples/**"
+  MESSAGE "RISK: std::fs::copy dereferences symlinks at both ends, so a target-side symlink swap silently writes through to an attacker-chosen file, and cross-device recursive copies expand symlinks into real data (CVE-2026-35365 mv, CVE-2026-35372 ln, CVSS 6.5). FIX: use fs::symlink_metadata first; on symlinks call fs::read_link + fs::symlink; for regular files use OpenOptions with O_NOFOLLOW on both sides and io::copy on the fds."
+}
+
+rule rust-warn-fs-remove-dir-cleanup {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "src/**/*.rs" AND content LINE_CONTAINS "fs::remove_dir(" AND path NOT GLOB "**/tests/**" AND path NOT GLOB "**/*_test.rs"
+  MESSAGE "RISK: fs::remove_dir on an arbitrary cleanup path silently fails on FIFOs, device nodes, and symlinks, leaving mislabeled or partially-created nodes behind (CVE-2026-35361 mknod cleanup, CVSS 5.3). FIX: stat with fs::symlink_metadata first; use fs::remove_file for non-directory entries; only call fs::remove_dir when file_type().is_dir() is confirmed."
+}
+
+rule rust-warn-result-ok-suppressed {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "src/**/*.rs" AND content LINE_CONTAINS ".ok();" AND path NOT GLOB "**/tests/**" AND path NOT GLOB "**/*_test.rs"
+  MESSAGE "RISK: .ok(); at statement position discards the Err arm of a Result, hiding write/chmod/chown failures and producing a successful exit code on partial failure (CVE-2026-35339 chmod -R, CVE-2026-35340 chown -R, CVE-2026-35344 dd, CVSS 4.3-5.3). FIX: accumulate errors with a Vec<Error> or boolean flag; exit non-zero if any operation failed."
+}
+
+rule rust-warn-tmpdir-empty-fallback {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "src/**/*.rs" AND content LINE_REGEX "env::var\\([\"']TMPDIR[\"']\\)" AND path NOT GLOB "**/tests/**" AND path NOT GLOB "**/*_test.rs"
+  MESSAGE "RISK: env::var(\"TMPDIR\") returns Ok(\"\") for an empty (but set) TMPDIR; .unwrap_or(\"/tmp\") only fires for the Err arm, so an attacker who exports TMPDIR= causes temp files to land in CWD instead (CVE-2026-35342 mktemp, CVSS 5.5). FIX: prefer std::env::temp_dir() which handles the empty case, or match Ok(s) if !s.is_empty() with an explicit /tmp fallback."
+}
+
+rule rust-warn-lossy-utf8-on-paths {
+  enabled true
+  priority 65
+  severity info
+  LOG write
+  IF path GLOB "src/**/*.rs" AND content LINE_CONTAINS "from_utf8_lossy(" AND path NOT GLOB "**/tests/**" AND path NOT GLOB "**/*_test.rs"
+  OR path GLOB "src/**/*.rs" AND content LINE_CONTAINS ".to_string_lossy(" AND path NOT GLOB "**/tests/**" AND path NOT GLOB "**/*_test.rs"
+  MESSAGE "RISK: lossy UTF-8 conversion replaces non-UTF-8 bytes with U+FFFD, mangling filenames and corrupting output when handling real Unix paths (CVE-2026-35346 comm, CVE-2026-35366 printenv, CVE-2026-35373 ln, CVE-2026-35375 split, CVSS 4.3-6.5). FIX: keep OsStr/OsString through the pipeline; only convert at display boundaries; on Unix use OsStrExt::as_bytes() for byte-accurate path handling."
+}
+
+rule rust-warn-cargo-audit-ignore {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/audit.toml" AND content LINE_CONTAINS "ignore = ["
+  OR path GLOB "**/cargo-audit.toml" AND content LINE_CONTAINS "ignore = ["
+  OR path GLOB "**/deny.toml" AND content LINE_CONTAINS "ignore = ["
+  MESSAGE "RISK: silencing cargo-audit / cargo-deny advisories without written justification masks unpatched vulnerabilities; the rust-coreutils audit (44 CVEs, CVE-2026-35338..35381) shows how a single unreviewed ignore entry can become a production CVSS 7+ vulnerability. FIX: each entry in ignore = [...] needs an inline comment with: advisory ID, impact analysis, and a planned remediation date — remove the entry once a patched version ships."
+}

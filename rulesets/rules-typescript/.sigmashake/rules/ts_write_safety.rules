@@ -1,0 +1,237 @@
+# ts_write_safety.rules — TypeScript write-time safety enforcement.
+# Technology: ts | Capability: write
+# Covers: type suppression, any bans, eval, SQL injection, XSS, catch hygiene,
+# prototype pollution, JSON parsing, shell injection, timing attacks, regex DoS,
+# deprecated Buffer ctor, postMessage origin hygiene.
+
+rule ban-ts-ignore {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND content CONTAINS "@ts-ignore"
+  OR path GLOB "**/*.tsx" AND content CONTAINS "@ts-ignore"
+  OR path GLOB "**/*.ts" AND content CONTAINS "@ts-nocheck"
+  OR path GLOB "**/*.tsx" AND content CONTAINS "@ts-nocheck"
+  MESSAGE "Type suppression is banned. Fix the underlying type error instead of suppressing it with @ts-ignore or @ts-nocheck."
+}
+
+rule no-any-type {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX ": *any\\b"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "as any\\b"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "<any>"
+  OR path GLOB "**/*.tsx" AND content LINE_REGEX ": *any\\b"
+  OR path GLOB "**/*.tsx" AND content LINE_REGEX "as any\\b"
+  MESSAGE "Do not use 'any'. Define a concrete type, interface, or generic. 'any' defeats TypeScript's type system entirely."
+}
+
+rule no-eval {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND content CONTAINS "eval("
+  OR path GLOB "**/*.ts" AND content CONTAINS "new Function("
+  OR path GLOB "**/*.js" AND content CONTAINS "eval("
+  OR path GLOB "**/*.js" AND content CONTAINS "new Function("
+  MESSAGE "eval() and new Function() are banned. They enable code injection attacks and defeat static analysis."
+}
+
+rule no-sql-interpolation {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "\\.(prepare|run|query|all|get|execute)\\(\\s*`"
+  OR path GLOB "**/*.js" AND content LINE_REGEX "\\.(prepare|run|query|all|get|execute)\\(\\s*`"
+  MESSAGE "Do not use template literals in SQL queries. Use parameterized statements with ? placeholders to prevent SQL injection."
+}
+
+rule ask-inner-html {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.ts" AND content CONTAINS "innerHTML"
+  OR path GLOB "**/*.tsx" AND content CONTAINS "dangerouslySetInnerHTML"
+  OR path GLOB "**/*.ts" AND content CONTAINS "document.write("
+  OR path GLOB "**/*.js" AND content CONTAINS "innerHTML"
+  MESSAGE "Direct HTML injection detected. Verify the value is sanitized — never pass user-supplied data to innerHTML or dangerouslySetInnerHTML."
+}
+
+rule catch-unknown-not-any {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "catch\\s*\\(\\s*\\w+\\s*:\\s*any\\s*\\)"
+  OR path GLOB "**/*.tsx" AND content LINE_REGEX "catch\\s*\\(\\s*\\w+\\s*:\\s*any\\s*\\)"
+  MESSAGE "Do not type catch variables as 'any'. Use 'unknown' and narrow the type: if (err instanceof Error) { ... }"
+}
+
+rule no-non-null-assertion {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "[)\\]\\w]!\\."
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "[)\\]\\w]!\\["
+  OR path GLOB "**/*.tsx" AND content LINE_REGEX "[)\\]\\w]!\\."
+  MESSAGE "Non-null assertion (!) detected. Handle the null/undefined case explicitly rather than asserting it away — crashes at runtime if the value is actually null."
+}
+
+rule no-prototype-mutation {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND content CONTAINS "Object.prototype."
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "__proto__\\s*="
+  OR path GLOB "**/*.js" AND content CONTAINS "Object.prototype."
+  OR path GLOB "**/*.js" AND content LINE_REGEX "__proto__\\s*="
+  MESSAGE "Mutating Object.prototype or assigning to __proto__ enables prototype pollution, a common gadget for RCE in Node.js. Use Object.create(null) for dictionaries and never merge untrusted input with a recursive assign."
+}
+
+rule no-child-process-shell {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "child_process.*\\.exec\\("
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "\\bexec\\(\\s*[`\"'].*\\$\\{"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "execSync\\(\\s*[`\"'].*\\$\\{"
+  OR path GLOB "**/*.js" AND content LINE_REGEX "child_process.*\\.exec\\("
+  MESSAGE "child_process.exec/execSync invokes a shell — string concatenation or template interpolation opens command injection. Use execFile/spawn with an argv array and { shell: false } (the default)."
+}
+
+rule no-insecure-tls {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "rejectUnauthorized\\s*:\\s*false"
+  OR path GLOB "**/*.ts" AND content CONTAINS "NODE_TLS_REJECT_UNAUTHORIZED"
+  OR path GLOB "**/*.js" AND content LINE_REGEX "rejectUnauthorized\\s*:\\s*false"
+  MESSAGE "Disabling TLS certificate verification defeats HTTPS. Never set rejectUnauthorized: false or NODE_TLS_REJECT_UNAUTHORIZED=0 in production code — configure a trust store instead."
+}
+
+rule timing-safe-compare-secrets {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "(token|secret|hmac|signature|apiKey|api_key|password)\\s*(===|!==|==|!=)"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "(===|!==|==|!=)\\s*(token|secret|hmac|signature|apiKey|api_key|password)"
+  OR path GLOB "**/*.js" AND content LINE_REGEX "(token|secret|hmac|signature|apiKey|api_key|password)\\s*(===|!==|==|!=)"
+  MESSAGE "Comparing secrets with === leaks timing information (byte-by-byte early exit). Use crypto.timingSafeEqual() for tokens, HMACs, signatures, and API keys."
+}
+
+rule json-parse-in-try {
+  enabled true
+  priority 65
+  severity warning
+  LOG write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "JSON\\.parse\\("
+  OR path GLOB "**/*.tsx" AND content LINE_REGEX "JSON\\.parse\\("
+  MESSAGE "JSON.parse throws on invalid input. Wrap in try/catch when parsing untrusted data (request bodies, env vars, file contents) or validate with a schema library (zod, valibot) after parsing."
+}
+
+rule warn-regex-dos {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "\\(\\.[*+]\\)[*+]"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "\\([^)]*[*+]\\)[*+]"
+  MESSAGE "Nested quantifiers (e.g. (.*)+ or (a+)*) can cause catastrophic backtracking (ReDoS) on adversarial input. Refactor to a linear pattern, add a length cap, or use a linear-time engine (re2)."
+}
+
+rule no-new-buffer-ctor {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "new\\s+Buffer\\s*\\("
+  OR path GLOB "**/*.tsx" AND content LINE_REGEX "new\\s+Buffer\\s*\\("
+  OR path GLOB "**/*.js" AND content LINE_REGEX "new\\s+Buffer\\s*\\("
+  MESSAGE "The Buffer() constructor is deprecated since Node 10 and can disclose uninitialized memory or trigger DoS when called with a number. Use Buffer.alloc(n) for zero-filled buffers, Buffer.from(data) for copies, and Buffer.allocUnsafe(n) only when you immediately overwrite."
+}
+
+rule warn-postmessage-wildcard-origin {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "postMessage\\s*\\([^,]+,\\s*['\"]\\*['\"]"
+  OR path GLOB "**/*.tsx" AND content LINE_REGEX "postMessage\\s*\\([^,]+,\\s*['\"]\\*['\"]"
+  OR path GLOB "**/*.js" AND content LINE_REGEX "postMessage\\s*\\([^,]+,\\s*['\"]\\*['\"]"
+  MESSAGE "window.postMessage(..., '*') broadcasts the payload to any cross-origin listener, leaking tokens, user data, or auth state. Pass the concrete target origin (e.g., 'https://app.example.com') and verify event.origin on the receiver."
+}
+
+rule no-node-vm-module {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "from\\s*['\"]node:vm['\"]"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "require\\(['\"]vm['\"]\\)"
+  OR path GLOB "**/*.js" AND content LINE_REGEX "require\\(['\"]vm['\"]\\)"
+  MESSAGE "The Node vm module does not provide a security sandbox — vm.runInNewContext can escape via Object.constructor. Use a real isolate (isolated-vm, worker_threads with MessageChannel, or a subprocess) to run untrusted code."
+}
+
+rule warn-ssrf-user-url {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "fetch\\(\\s*req\\."
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "axios\\.(get|post|put|patch|delete)\\(\\s*req\\."
+  OR path GLOB "**/*.js" AND content LINE_REGEX "fetch\\(\\s*req\\."
+  OR path GLOB "**/*.js" AND content LINE_REGEX "axios\\.(get|post|put|patch|delete)\\(\\s*req\\."
+  MESSAGE "Passing request-derived URLs directly to fetch() or axios enables SSRF (OWASP A10:2021). Attackers can reach internal services or cloud metadata endpoints (e.g. 169.254.169.254). Validate the URL against a strict allowlist of permitted hosts before making any outbound request."
+}
+
+rule no-path-traversal-user-input {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "path\\.(join|resolve)\\(.*req\\.(params|query|body)"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "(readFile|createReadStream)\\(.*req\\.(params|query|body)"
+  OR path GLOB "**/*.js" AND content LINE_REGEX "path\\.(join|resolve)\\(.*req\\.(params|query|body)"
+  MESSAGE "Joining request-supplied values into file paths enables path traversal (OWASP A01:2021). An attacker can supply '../../../etc/passwd' to escape the intended root. Always resolve the final path and assert it starts with the expected base directory before opening any file."
+}
+
+rule warn-lodash-merge-prototype-pollution {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "_\\.(merge|defaultsDeep|mergeWith)\\("
+  OR path GLOB "**/*.js" AND content LINE_REGEX "_\\.(merge|defaultsDeep|mergeWith)\\("
+  MESSAGE "lodash _.merge() and _.defaultsDeep() are vulnerable to prototype pollution when passed untrusted input containing a '__proto__' key (CVE-2019-10744, CVE-2020-8203). Upgrade to lodash >=4.17.21 and sanitize untrusted objects before merging — prefer structuredClone() or Object.assign({}) with validated, allowlisted keys."
+}
+
+rule no-express-redirect-unsanitized {
+  enabled true
+  priority 90
+  severity warning
+  LOG write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "res\\.(redirect|location)\\s*\\([^)]*req\\.(query|params|body)"
+  OR path GLOB "**/*.tsx" AND content LINE_REGEX "res\\.(redirect|location)\\s*\\([^)]*req\\.(query|params|body)"
+  MESSAGE "res.redirect() or res.location() with user-controlled input enables open redirect (CVE-2024-29041). Attackers can bypass allow lists using malformed URLs. Validate the URL with 'new URL()' and check the origin against a whitelist of permitted hosts."
+}
+
+rule warn-multer-without-limits {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "multer\\s*\\(\\s*\\)"
+  OR path GLOB "**/*.tsx" AND content LINE_REGEX "multer\\s*\\(\\s*\\)"
+  MESSAGE "multer() called with no size limits. This risks memory exhaustion and DoS attacks (CVE-2025-47935, CVE-2025-47944). Upgrade to multer 2.0.0+ and always configure limits: multer({ limits: { fileSize: 5*1024*1024, files: 10 } })"
+}

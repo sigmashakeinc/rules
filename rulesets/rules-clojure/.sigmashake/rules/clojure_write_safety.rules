@@ -1,0 +1,56 @@
+# clojure_write_safety.rules
+# Technology: clojure | Capability: write
+
+rule clojure-sql-injection-string-concat {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.clj" AND (content CONTAINS "clojure.java.jdbc/query (str" OR content CONTAINS "next.jdbc/execute! (str")
+  MESSAGE "Potential SQL Injection: Detected string concatenation for SQL queries passed to clojure.java.jdbc/query or next.jdbc/execute!. This is highly vulnerable to SQL injection if user input is involved. Always use parameterized queries (e.g., `(jdbc/query db-spec [\"SELECT * FROM users WHERE name = ?\" user-input])` or `(next.jdbc/execute! ds [\"SELECT * FROM users WHERE name = ?\" user-input])`) to prevent malicious input from altering query logic."
+}
+
+rule clojure-command-injection-sh-string-concat {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.clj" AND content CONTAINS "clojure.java.shell/sh (str"
+  MESSAGE "Potential Command Injection: Detected string concatenation for commands passed to clojure.java.shell/sh. This is highly vulnerable to command injection if user input is involved. Always pass commands and arguments as a vector (e.g., `(sh [\"ls\" \"-l\" user-input])`) to prevent shell metacharacter interpretation and ensure arguments are treated as literal values."
+}
+
+rule clojure-unsafe-read-string-eval-load-string {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.clj" AND (content CONTAINS "(read-string " OR content CONTAINS "(eval " OR content CONTAINS "(load-string ")
+  MESSAGE "Critical Code Execution Vulnerability: Detected usage of `read-string`, `eval`, or `load-string`. These functions can execute arbitrary Clojure code and are extremely dangerous if used with untrusted input, leading to Remote Code Execution (RCE). For reading data, use `clojure.edn/read-string` which is a safer alternative for EDN data. Avoid `eval` and `load-string` in production code, especially when processing dynamic or untrusted input."
+}
+
+rule clojure-path-traversal-file-string-concat {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.clj" AND content CONTAINS "java.io.File. (str"
+  MESSAGE "Potential Path Traversal: Detected string concatenation for file paths passed to `java.io.File.` constructor. This can lead to path traversal vulnerabilities if user input is involved, allowing access to arbitrary files on the system. Sanitize and validate all path components, use `java.nio.file.Path` with proper resolution, and canonicalize paths (e.g., `.getCanonicalPath()`) to restrict file access to intended directories."
+}
+
+rule clojure-insecure-clj-http-config {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.clj" AND content CONTAINS "clj-http.client/" AND content CONTAINS ":insecure? true"
+  MESSAGE "Insecure HTTP Client Configuration: Detected `clj-http.client` call with `:insecure? true`. This disables SSL/TLS certificate validation, making the application vulnerable to Man-in-the-Middle (MITM) attacks by allowing connections to servers with invalid or self-signed certificates. Ensure SSL/TLS verification is enabled for production environments. Remove `:insecure? true` or set it to `false`."
+}
+
+rule clojure-discourage-legacy-jdbc {
+  enabled true
+  priority 50
+  severity warning
+  LOG write
+  IF path GLOB "**/*.clj" AND content CONTAINS "clojure.java.jdbc" AND NOT content CONTAINS "next.jdbc"
+  MESSAGE "Discouraged Legacy Database Library: Detected usage of `clojure.java.jdbc` without `next.jdbc` also being present. While functional, `next.jdbc` is the modern, recommended library for Clojure database access, offering improved performance, better security features (e.g., built-in parameterization), and a more idiomatic API. Consider using `next.jdbc` for new database interactions to leverage these benefits and reduce potential pitfalls associated with older libraries."
+}

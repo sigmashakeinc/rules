@@ -1,0 +1,3 @@
+{
+  "description": "Drone CI is a container-native continuous integration platform using YAML-based configuration. These rules govern the definition of pipelines, secret management, and automated testing in ephemeral CI environments."
+}

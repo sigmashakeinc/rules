@@ -1,0 +1,66 @@
+# elixir_write_safety.rules — Elixir write-time security enforcement.
+# Technology: elixir | Capability: write
+# Covers: code eval, command injection, SQL injection (Ecto), atom exhaustion, hardcoded secrets.
+
+rule no-code-eval-elixir {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.ex" AND content CONTAINS "Code.eval_string"
+  OR path GLOB "**/*.exs" AND content CONTAINS "Code.eval_string"
+  OR path GLOB "**/*.ex" AND content CONTAINS "Code.eval_file"
+  OR path GLOB "**/*.ex" AND content CONTAINS ":erlang.apply"
+  MESSAGE "Code.eval_string() and Code.eval_file() execute arbitrary Elixir code at runtime — a critical RCE vector. Redesign to use pattern matching, function dispatch maps, or macros at compile time."
+}
+
+rule no-system-cmd-injection {
+  enabled true
+  priority 95
+  severity error
+  LOG write
+  IF path GLOB "**/*.ex" AND content LINE_REGEX "System\\.cmd\\s*\\([^,]+,\\s*\\[[^\\]]*<>"
+  OR path GLOB "**/*.ex" AND content LINE_REGEX ":os\\.cmd\\s*\\(.*<>"
+  OR path GLOB "**/*.exs" AND content LINE_REGEX "System\\.cmd.*<>"
+  MESSAGE "String concatenation with <> in System.cmd arguments enables command injection. Build arguments as separate list elements — never join user input into a command string."
+}
+
+rule no-sql-fragment-ecto {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.ex" AND content LINE_REGEX "fragment\\s*\\([^)]*<>"
+  OR path GLOB "**/*.ex" AND content LINE_REGEX "from\\s+.*where:.*<>"
+  OR path GLOB "**/*.ex" AND content LINE_REGEX "Repo\\.(query|query!)\\s*\\([^,]*<>"
+  MESSAGE "String concatenation in Ecto fragments or raw SQL enables SQL injection. Use Ecto's parameterized fragment/2 with ^ for interpolation: fragment('col = ?', ^user_value)"
+}
+
+rule no-string-to-atom-user-input {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.ex" AND content LINE_REGEX "String\\.to_atom\\s*\\(\\s*(params|conn\\.params|Map\\.get)"
+  OR path GLOB "**/*.ex" AND content LINE_REGEX ":erlang\\.binary_to_atom\\s*\\("
+  MESSAGE "String.to_atom() with user input can exhaust the atom table (atoms are never garbage collected in Erlang/BEAM), causing a node crash. Use String.to_existing_atom/1 or work with string keys."
+}
+
+rule no-hardcoded-secrets-elixir {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.ex" AND content LINE_REGEX "(password|api_key|secret_key|token|secret):\\s*\"[^\"]{8,}\""
+  OR path GLOB "config/*.exs" AND content LINE_REGEX "(password|api_key|secret_key):\\s*\"[^\"]{8,}\""
+  MESSAGE "Hardcoded secrets in Elixir source or config files are committed to version control. Use runtime configuration with System.get_env()/1 or a secrets manager via Config.Provider."
+}
+
+rule no-unsafe-deserialization-elixir {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.ex" AND content CONTAINS ":erlang.binary_to_term"
+  MESSAGE ":erlang.binary_to_term/1 deserializes arbitrary Erlang terms and can execute arbitrary code if given malicious input. Use :erlang.binary_to_term(bin, [:safe]) to restrict to safe terms only."
+}

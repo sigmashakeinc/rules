@@ -1,0 +1,93 @@
+# mcp_any_security.rules — Security rules for SigmaShake MCP tool calls.
+# Technology: mcp | Capability: any
+# Covers: rule injection via inline ALLOW/FORCE, malformed hub submissions,
+# human approval for publishing, and github token exposure in eval payloads.
+
+rule no-eval-inline-allow {
+  enabled true
+  priority 100
+  severity error
+  DENY any
+  IF tool EQUALS "sigmashake_eval" AND input.rules REGEX "\\b[Aa][Ll][Ll][Oo][Ww]\\b"
+  MESSAGE "Inline rules containing ALLOW decisions are blocked. An agent could inject an ALLOW rule to override existing DENY rules — this is a rule injection attack. Use stored rules from the hub instead of inline overrides."
+}
+
+rule no-eval-inline-force {
+  enabled true
+  priority 95
+  severity error
+  DENY any
+  IF tool EQUALS "sigmashake_eval" AND input.rules REGEX "\\b[Ff][Oo][Rr][Cc][Ee]\\b"
+  MESSAGE "Inline rules containing FORCE decisions are blocked. FORCE rules with SUBSTITUTE can redirect tool behavior — this is a rule injection vector. Use stored rules managed through the hub."
+}
+
+rule no-hub-submit-bad-url {
+  enabled true
+  priority 95
+  severity error
+  DENY any
+  IF tool EQUALS "sigmashake_hub_submit" AND input.repo_url NOT REGEX "^https://github\\.com/[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$"
+  MESSAGE "Hub submission blocked — repo_url must be a valid GitHub HTTPS URL (https://github.com/owner/repo). SSH URLs, non-GitHub hosts, and URLs with trailing paths or fragments are not accepted."
+}
+
+rule no-token-in-eval-input {
+  enabled true
+  priority 95
+  severity error
+  DENY any
+  IF tool EQUALS "sigmashake_eval" AND input.input REGEX "(ghp_[a-zA-Z0-9]{36}|github_pat_[a-zA-Z0-9_]{82}|gho_[a-zA-Z0-9]{36})"
+  OR tool EQUALS "sigmashake_eval" AND input.input REGEX "(sk-[a-zA-Z0-9]{20,}|ant-api[a-zA-Z0-9-]{20,})"
+  OR tool EQUALS "sigmashake_eval" AND input.input REGEX "(AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16})"
+  OR tool EQUALS "sigmashake_eval" AND input.input REGEX "(xox[baprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{35})"
+  MESSAGE "Token or API key detected in eval input (GitHub, Anthropic, OpenAI, AWS, Slack, or Google). Eval inputs are persisted in the audit log in plaintext — secrets must never flow through eval. Pass tokens only to sigmashake_hub_submit, never through eval."
+}
+
+rule no-eval-tool-poisoning {
+  enabled true
+  priority 100
+  severity error
+  DENY any
+  IF tool EQUALS "sigmashake_eval" AND input.rules REGEX "[Ii]gnore\\s+(all\\s+)?(previous|prior|earlier|above)\\s+(instructions|rules|constraints)"
+  OR tool EQUALS "sigmashake_eval" AND input.rules REGEX "<\\s*(system|sysprompt|admin)\\s*>"
+  OR tool EQUALS "sigmashake_eval" AND input.rules REGEX "[Yy]ou\\s+are\\s+now\\s+"
+  MESSAGE "Inline rules contain prompt-injection markers — this is the tool-poisoning pattern documented in MCPTox and the WhatsApp MCP exfiltration disclosure (Invariant Labs, 2025). Drop the inline rules and load reviewed rules from the hub instead."
+}
+
+rule no-eval-invisible-unicode {
+  enabled true
+  priority 95
+  severity error
+  DENY any
+  IF tool EQUALS "sigmashake_eval" AND input.rules REGEX "[\\u202a-\\u202e\\u2066-\\u2069\\ue0000-\\ue007f]"
+  OR tool EQUALS "sigmashake_eval" AND input.input REGEX "[\\u202a-\\u202e\\u2066-\\u2069\\ue0000-\\ue007f]"
+  MESSAGE "Invisible unicode (bidi override or Tag block) detected. These code points hide instructions inside tool descriptions and are the primary mechanism for stealth tool poisoning attacks against MCP clients (Trail of Bits, 2025). Strip non-printable characters before eval."
+}
+
+rule no-hub-submit-path-traversal {
+  enabled true
+  priority 95
+  severity error
+  DENY any
+  IF tool EQUALS "sigmashake_hub_submit" AND input.repo_url REGEX "(\\.\\./|\\x00|%00|file://|javascript:)"
+  MESSAGE "Hub submission contains path-traversal or non-HTTPS scheme. CVE-2025-68145 (mcp-server-git path bypass) showed how unchecked paths in MCP submissions become RCE chains — the repo_url must be a clean https:// URL with no traversal sequences."
+}
+
+rule ask-eval-many-inline-rules {
+  enabled true
+  priority 80
+  severity warning
+  ASK any
+  IF tool EQUALS "sigmashake_eval" AND input.rules REGEX "(rule\\s+[a-z][a-z0-9-]*\\s*\\{[\\s\\S]*?\\}[\\s\\S]*?){5,}"
+  MESSAGE "Eval contains 5+ inline rules in a single call. Bulk inline rule submission is the smuggling pattern documented for MCP tool poisoning — reviewers cannot easily audit large inline blobs. Prefer hub-stored rules; only proceed if every inline rule is reviewed."
+  PROMPT "This eval bundles five or more inline rules. Confirm: (1) every rule was reviewed line-by-line, (2) no hidden instructions or invisible characters are embedded, (3) hub-stored rules cannot serve the same purpose."
+}
+
+rule ask-hub-submit {
+  enabled true
+  priority 90
+  severity warning
+  ASK any
+  IF tool EQUALS "sigmashake_hub_submit"
+  MESSAGE "Publishing a ruleset to the SigmaShake Hub is a public action that makes rules available to all users. Verify the repo URL, rule contents, and that no secrets are embedded."
+  PROMPT "Is this ruleset ready for public distribution? Confirm: (1) repo_url is correct, (2) rules have been tested locally with 'ssg eval', (3) no secrets or internal paths are embedded in rule messages."
+}

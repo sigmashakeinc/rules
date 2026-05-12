@@ -1,0 +1,3 @@
+{
+  "description": "macOS security and safety governance rules for AI coding agents. Blocks disabling SIP, Gatekeeper bypass, TCC permission reset, osascript admin escalation, NVRAM security settings, Keychain dump, firewall disable, LaunchDaemon persistence, ATS bypass, and sandbox disabling."
+}

@@ -1,0 +1,57 @@
+# privacy_write_pii.rules — PII and privacy protection rules.
+# Technology: privacy | Capability: write
+# Covers: logging PII, GDPR compliance, data retention, consent, tracking.
+
+rule no-log-pii-fields {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF content LINE_REGEX "(?:log|logger|console)\\.[a-z]+\\([^)]*(?:email|phone|ssn|passport|credit_card|card_number|dob|date_of_birth|ip_address)[^)]*\\)"
+  OR content LINE_REGEX "(?:log|logger|console)\\.[a-z]+\\([^)]*user\\.(email|phone|address)[^)]*\\)"
+  MESSAGE "Logging PII fields (email, phone, SSN, credit card) violates GDPR Article 5 and most privacy regulations. Log user IDs or anonymized identifiers instead."
+}
+
+rule no-pii-in-url-params {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF content LINE_REGEX "\\?(?:email|ssn|phone|card)="
+  OR content LINE_REGEX "[&?](?:email|ssn|phone|card_number)="
+  MESSAGE "PII in URL query parameters is logged in server access logs, browser history, and CDN logs. Pass sensitive data in the request body or headers instead."
+}
+
+rule ask-data-retention {
+  enabled true
+  priority 60
+  severity info
+  LOG write
+  IF content LINE_REGEX "(?:INSERT|UPDATE).*(?:users|accounts|profiles|personal|pii)"
+  OR content LINE_REGEX "db\\.(?:insert|upsert|create).*(?:user|account|profile)"
+  MESSAGE "Personal data being stored. Ensure your data retention policy is documented — GDPR requires data to be deleted when no longer needed for its original purpose."
+}
+
+rule no-tracking-without-consent {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF content CONTAINS "window.analytics"
+  OR content CONTAINS "gtag("
+  OR content CONTAINS "fbq("
+  OR content CONTAINS "mixpanel"
+  OR content CONTAINS "_hsp.push"
+  OR content CONTAINS "intercom"
+  MESSAGE "Analytics or tracking script detected. GDPR and CCPA require explicit user consent before loading third-party tracking. Ensure this loads only after consent is granted."
+}
+
+rule no-plaintext-sensitive-fields {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF content LINE_REGEX "(?:password|ssn|credit_card)\\s*(?:TEXT|VARCHAR|CHAR|STRING)(?!.*hash|.*encrypt)"
+  OR content LINE_REGEX "columns?.*(?:password|ssn|credit_card).*type.*(?:string|text)"
+  MESSAGE "Storing passwords, SSNs, or credit card numbers in plaintext violates PCI-DSS and GDPR. Hash passwords (bcrypt/argon2), encrypt SSNs, and use a payment processor for card data."
+}

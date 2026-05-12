@@ -1,0 +1,3 @@
+{
+  "description": "Gemini 3.1 is a high-performance multimodal model from Google optimized for tool execution and long-context reasoning. These rules govern tool hijacking mitigation and prompt injection prevention for Gemini 3.1 agents."
+}

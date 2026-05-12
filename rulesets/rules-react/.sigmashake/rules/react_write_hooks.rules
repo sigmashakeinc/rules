@@ -1,0 +1,32 @@
+# react_write_hooks.rules — React hooks correctness rules.
+# Technology: react | Capability: write
+# Covers: rules of hooks, exhaustive deps, stale closures.
+
+rule no-hooks-in-conditionals {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "if\\s*\\([^)]*\\)\\s*\\{[^}]*use[A-Z]"
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "if\\s*\\([^)]*\\)\\s*\\{[^}]*use[A-Z]"
+  MESSAGE "React hooks must not be called inside conditionals. This violates the Rules of Hooks and causes unpredictable behavior. Move the hook call to the top level."
+}
+
+rule ask-empty-dep-array {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "use(Effect|Callback|Memo)\\s*\\([^,]+,\\s*\\[\\]"
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "use(Effect|Callback|Memo)\\s*\\([^,]+,\\s*\\[\\]"
+  MESSAGE "Empty dependency array [] means this hook only runs once (on mount). Verify this is intentional and there are no stale closure issues with captured values."
+}
+
+rule no-setstate-in-render {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "const\\s+\\w+\\s*=\\s*useState" AND content LINE_REGEX "set[A-Z]\\w+\\s*\\("
+  MESSAGE "Calling setState directly in the render body (outside useEffect) causes an infinite render loop. Move state updates into event handlers or useEffect."
+}

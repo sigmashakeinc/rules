@@ -1,0 +1,20 @@
+# macos_exec_footguns.rules
+# Technology: macos | Capability: exec | Description: macOS specific footguns
+
+rule block-macos-erase-disk {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command WORD "diskutil" AND command WORD "eraseDisk"
+  MESSAGE "Free Protection: Erasing disks via diskutil is blocked to prevent data loss."
+}
+
+rule block-macos-open-applications {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command CONTAINS "open /Applications/*"
+  MESSAGE "Free Protection: Opening all applications simultaneously is blocked to prevent system freeze."
+}

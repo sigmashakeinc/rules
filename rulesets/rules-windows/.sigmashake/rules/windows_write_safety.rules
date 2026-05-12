@@ -1,0 +1,92 @@
+# windows_write_safety.rules — Windows write-time safety enforcement.
+# Technology: windows | Capability: write
+# Covers: hosts file, autorun.inf, startup folders, Defender exclusions, registry exports.
+
+rule no-hosts-file-redirect {
+  enabled true
+  priority 95
+  severity error
+  LOG write
+  IF path GLOB "**/drivers/etc/hosts" AND content LINE_REGEX "^[0-9].*\\.microsoft\\.com"
+  OR path GLOB "**/drivers/etc/hosts" AND content LINE_REGEX "^[0-9].*windowsupdate\\.com"
+  OR path GLOB "**/drivers/etc/hosts" AND content LINE_REGEX "^[0-9].*\\.windows\\.com"
+  MESSAGE "Redirecting Microsoft/Windows Update domains in the hosts file blocks security patches and Defender signature updates. This is a common malware technique to prevent detection and remediation."
+}
+
+rule no-autorun-inf {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/autorun.inf"
+  OR content CONTAINS "[autorun]" AND content CONTAINS "open="
+  MESSAGE "autorun.inf files trigger automatic execution when media is inserted — a classic worm propagation and persistence technique. Modern Windows disables AutoRun, but these files remain suspicious indicators."
+}
+
+rule no-startup-folder-write {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/Start Menu/Programs/Startup/**"
+  OR path GLOB "**/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Startup/**"
+  OR path GLOB "**/ProgramData/Microsoft/Windows/Start Menu/Programs/Startup/**"
+  MESSAGE "Placing files in Windows Startup folders creates persistence that executes on every login. This is a common malware persistence mechanism."
+}
+
+rule no-defender-exclusion {
+  enabled true
+  priority 100
+  severity error
+  LOG write
+  IF content CONTAINS "Add-MpPreference" AND content CONTAINS "ExclusionPath"
+  OR content CONTAINS "Add-MpPreference" AND content CONTAINS "ExclusionProcess"
+  OR content LINE_REGEX "DisableRealtimeMonitoring.*true"
+  MESSAGE "Adding Windows Defender exclusions creates security blind spots. Attackers commonly write malware to excluded paths to bypass detection. Only exclude specific verified trusted paths."
+}
+
+rule no-reg-export-sensitive {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.reg" AND content CONTAINS "HKLM\\SAM"
+  OR path GLOB "**/*.reg" AND content CONTAINS "HKLM\\SECURITY"
+  OR path GLOB "**/*.reg" AND content CONTAINS "HKLM\\SYSTEM\\CurrentControlSet\\Control\\LSA"
+  MESSAGE "Exporting SAM, SECURITY, or LSA registry hives captures credential material including password hashes and LSA secrets. These exports enable offline password cracking."
+}
+
+rule no-motw-strip {
+  enabled true
+  priority 95
+  severity error
+  ASK write
+  IF content CONTAINS "Unblock-File"
+  OR content LINE_REGEX "Remove-Item.*:Zone\\.Identifier"
+  OR content LINE_REGEX "(Set|Clear)-Content.*-Stream\\s+Zone\\.Identifier"
+  OR content LINE_REGEX "\\[IO\\.File\\]::.*Zone\\.Identifier"
+  MESSAGE "RISK: Stripping the Mark-of-the-Web (Zone.Identifier ADS) defeats SmartScreen, Smart App Control, and Office Protected View — the exact bypass exploited by CVE-2024-21412, CVE-2024-38213 (copy2pwn), and CVE-2025-33053. FIX: leave MOTW intact; if a file is internally trusted, re-sign it with Authenticode instead of unblocking."
+  PROMPT "Why is MOTW being removed? Prefer Authenticode signing over Unblock-File so SmartScreen reputation and SAC enforcement keep working."
+}
+
+rule no-wdac-applocker-bypass {
+  enabled true
+  priority 95
+  severity error
+  LOG write
+  IF path GLOB "**/*.csproj" AND content LINE_REGEX "<Target\\s+Name=.*>[\\s\\S]*<Exec"
+  OR path GLOB "**/*.xml" AND content CONTAINS "InstallUtil"
+  OR content REGEX "msbuild.*\\s+\\S+\\.(xml|csproj|proj)\\b"
+  OR content CONTAINS "CodeIntegrity\\SiPolicy"
+  MESSAGE "RISK: Inline MSBuild <Target><Exec> blocks and InstallUtil-driven payloads are catalogued WDAC/AppLocker bypasses (MITRE T1127), and writes under CodeIntegrity\\SiPolicy can swap policy to audit mode. FIX: enforce WDAC in block mode with a signed policy and remove MSBuild/InstallUtil from your allowlist."
+}
+
+rule no-bits-job-persistence {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF content LINE_REGEX "bitsadmin\\s+\\/setnotifycmdline"
+  OR content LINE_REGEX "Start-BitsTransfer.*-Priority\\s+Foreground"
+  MESSAGE "RISK: BITS jobs with /SetNotifyCmdLine survive reboot, run as SYSTEM, and bypass many egress filters — a long-running persistence/exfil technique (MITRE T1197). FIX: restrict BITS destinations to WSUS/Intune FQDNs via firewall and GPO, and use a Windows Service for legitimate background work."
+}

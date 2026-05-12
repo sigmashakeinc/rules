@@ -1,0 +1,22 @@
+# claude-code_exec_git_safety.rules
+# Technology: claude-code | Capability: exec | Description: Fix for "Claude deleted my code" Reddit complaints
+
+rule block-claude-code-git-death-spiral {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF input.agent_model CONTAINS "claude" AND command CONTAINS "git reset --hard"
+  OR input.agent_model CONTAINS "claude" AND command CONTAINS "git clean -fd"
+  OR input.agent_model CONTAINS "claude" AND command CONTAINS "git checkout -- ."
+  MESSAGE "Claude Code Pain Point Fix: Hard resets and clean commands are blocked. Claude cannot 'rage-quit' and wipe your uncommitted work."
+}
+
+rule ask-claude-code-git-revert {
+  enabled true
+  priority 95
+  severity warning
+  LOG execution
+  IF input.agent_model CONTAINS "claude" AND command CONTAINS "git revert"
+  MESSAGE "Claude Code Pain Point Fix: Reverting commits often deletes the exact feature you just asked it to build."
+}

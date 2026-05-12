@@ -1,0 +1,20 @@
+# rspack_write_safety.rules
+# Technology: rspack | Capability: write
+
+rule rspack-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "builtins.html"
+  MESSAGE "Blocked an unsafe pattern in rspack. Use the recommended best practices for 2025/2026."
+}
+
+rule rspack-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "rspack.config.js"
+  MESSAGE "You are using an outdated API for rspack. Please upgrade to the newer API."
+}

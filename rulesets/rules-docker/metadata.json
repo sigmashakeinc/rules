@@ -1,0 +1,3 @@
+{
+  "description": "Docker is a platform for developing and running applications in containers. These rules guide AI agents in containerizing applications, managing Dockerfiles, and optimizing multi-stage builds and Docker Compose configurations."
+}

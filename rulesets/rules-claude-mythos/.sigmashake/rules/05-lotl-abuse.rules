@@ -1,0 +1,35 @@
+# 05-lotl-abuse.rules — Defenses against Living off the Land (LotL) execution bypasses
+# Technology: bash | Capability: exec
+
+rule block-lotl-shells {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command REGEX "\\bpython[23]?\\s+-c.*pty\\.spawn"
+  OR command REGEX "\\bperl\\s+-e.*exec"
+  OR command REGEX "\\bruby\\s+-e.*exec"
+  OR command REGEX "\\bawk\\s+'BEGIN\\s*\\{\\s*system"
+  MESSAGE "Blocked: The agent is attempting to spawn a reverse shell or unmonitored PTY session using a LotL binary (Python, Perl, Ruby, Awk). This bypasses governance logs and isolates the agent."
+}
+
+rule block-base64-execution {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command REGEX "\\bbase64\\s+-d.*\\|\\s*(bash|sh|zsh)\\b"
+  OR command REGEX "\\bbase64\\s+--decode.*\\|\\s*(bash|sh|zsh)\\b"
+  OR command REGEX "\\bpython[23]?\\s+-c.*base64\\.b64decode"
+  MESSAGE "Blocked: The agent is executing an obfuscated (Base64) payload directly in a subshell. This is an evasion technique used to bypass text-based pattern constraints."
+}
+
+rule ask-suspicious-downloads {
+  enabled true
+  priority 85
+  severity warning
+  ASK execution
+  IF command REGEX "\\b(curl|wget)\\b.*\\|\\s*(bash|sh|zsh|python|perl|ruby)\\b"
+  MESSAGE "The agent is attempting to download a remote script and immediately pipe it into an interpreter (curl | sh). This is a known execution vector for malicious payloads."
+  PROMPT "Review the remote URL. Is this a trusted installation script or an unverified remote execution sequence?"
+}

@@ -1,0 +1,49 @@
+# os_exec_agent_footguns.rules
+# Technology: os | Capability: exec | Description: Basic protection against AI agent footguns
+
+rule block-system-shutdown {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command WORD "shutdown"
+  OR command WORD "reboot"
+  OR command WORD "halt"
+  OR command WORD "poweroff"
+  OR command CONTAINS "init 0"
+  OR command CONTAINS "init 6"
+  MESSAGE "Free Protection: System shutdown and reboot commands are blocked to prevent AI agents from halting the host machine."
+}
+
+rule block-fork-bomb {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command CONTAINS ":(){"
+  OR command CONTAINS ":|:&"
+  MESSAGE "Free Protection: Known fork-bomb patterns are blocked to prevent system freeze."
+}
+
+rule prevent-oom-resource-exhaustion {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command CONTAINS "dd if=/dev/zero"
+  OR command CONTAINS "ulimit -v unlimited"
+  OR command CONTAINS "stress --vm"
+  MESSAGE "Free Protection: Resource exhaustion commands that could cause OOM (Out Of Memory) are blocked."
+}
+
+rule prevent-input-disable {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command CONTAINS "xinput disable"
+  OR command CONTAINS "rmmod psmouse"
+  OR command CONTAINS "rmmod usbkbd"
+  OR command CONTAINS "rmmod usbhid"
+  MESSAGE "Free Protection: Disabling input devices is blocked to prevent system lockout."
+}

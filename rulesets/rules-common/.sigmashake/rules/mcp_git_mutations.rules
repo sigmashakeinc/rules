@@ -1,0 +1,32 @@
+# mcp_git_mutations.rules
+
+rule warn-git-branch-delete {
+  MESSAGE "Agent is attempting to delete a branch via MCP."
+  IF tool CONTAINS "github_"
+  OR tool CONTAINS "gitlab_"
+  AND tool CONTAINS "delete_branch"
+  severity warning
+  priority 90
+  ASK any
+  PROMPT "The agent is trying to delete a branch. Allow?"
+}
+
+rule block-git-main-mutation {
+  MESSAGE "Blocked direct mutation of 'main' or 'master' branch via MCP."
+  IF (tool CONTAINS "github_" OR tool CONTAINS "gitlab_")
+  AND (tool CONTAINS "update_file" OR tool CONTAINS "push")
+  AND (input.branch EQUALS "main" OR input.branch EQUALS "master" OR input.ref EQUALS "refs/heads/main")
+  severity error
+  priority 100
+  DENY any
+}
+
+rule warn-git-merge {
+  MESSAGE "Agent is attempting to merge a pull request."
+  IF (tool CONTAINS "github_" OR tool CONTAINS "gitlab_")
+  AND tool CONTAINS "merge"
+  severity warning
+  priority 80
+  ASK any
+  PROMPT "Allow the agent to merge this pull request?"
+}

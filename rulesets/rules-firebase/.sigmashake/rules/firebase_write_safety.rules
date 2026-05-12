@@ -1,0 +1,20 @@
+# firebase_write_safety.rules
+# Technology: firebase | Capability: write
+
+rule firebase-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS ".rules"
+  MESSAGE "Blocked an unsafe pattern in firebase. Use the recommended best practices for 2025/2026."
+}
+
+rule firebase-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "firebase.database()"
+  MESSAGE "You are using an outdated API for firebase. Please upgrade to the newer API."
+}

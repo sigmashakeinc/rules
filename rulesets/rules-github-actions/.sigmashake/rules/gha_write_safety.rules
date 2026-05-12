@@ -1,0 +1,64 @@
+# gha_write_safety.rules — GitHub Actions write-time security enforcement.
+# Technology: gha | Capability: write
+# Covers: expression injection, pull_request_target misuse, hardcoded secrets, permissive permissions, untrusted actions.
+
+rule no-expression-injection-gha {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB ".github/workflows/*.yml" AND content LINE_REGEX "run:.*\\$\\{\\{\\s*github\\.event\\.(issue|pull_request|comment|review|head_commit|commits)"
+  OR path GLOB ".github/workflows/*.yaml" AND content LINE_REGEX "run:.*\\$\\{\\{\\s*github\\.event\\.(issue|pull_request|comment|review|head_commit|commits)"
+  MESSAGE "Injecting github.event context directly into run: steps allows attackers to execute arbitrary code via crafted PR titles, commit messages, or issue bodies. Store the value in an env variable first and reference $ENV_VAR in the run step."
+}
+
+rule no-pull-request-target-checkout {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB ".github/workflows/*.yml" AND content CONTAINS "pull_request_target" AND content CONTAINS "actions/checkout"
+  OR path GLOB ".github/workflows/*.yaml" AND content CONTAINS "pull_request_target" AND content CONTAINS "actions/checkout"
+  MESSAGE "pull_request_target with actions/checkout of the PR branch executes untrusted code with write permissions — the most critical GitHub Actions misconfiguration. Use pull_request instead, or explicitly checkout the base branch."
+}
+
+rule no-hardcoded-secrets-gha {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB ".github/workflows/*.yml" AND content LINE_REGEX "(password|token|api_key|secret):\\s*['\"]?[A-Za-z0-9]{20,}"
+  OR path GLOB ".github/workflows/*.yaml" AND content LINE_REGEX "(PASSWORD|TOKEN|API_KEY|SECRET):\\s*[A-Za-z0-9]{20,}"
+  MESSAGE "Hardcoded secrets in workflow files are stored in plaintext in the repository. Use encrypted GitHub Secrets: ${{ secrets.MY_SECRET }} or environment secrets."
+}
+
+rule no-write-all-permissions {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB ".github/workflows/*.yml" AND content LINE_REGEX "permissions:\\s*write-all"
+  OR path GLOB ".github/workflows/*.yaml" AND content LINE_REGEX "permissions:\\s*write-all"
+  OR path GLOB ".github/workflows/*.yml" AND content LINE_REGEX "contents:\\s*write" AND content LINE_REGEX "packages:\\s*write" AND content LINE_REGEX "id-token:\\s*write"
+  MESSAGE "write-all permissions grant the workflow GITHUB_TOKEN access to write to all repository resources. Apply least-privilege: declare only the specific permissions needed (e.g., contents: read)."
+}
+
+rule no-unpinned-action-version {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB ".github/workflows/*.yml" AND content LINE_REGEX "uses:\\s+[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+@(main|master|latest|v[0-9]+)"
+  OR path GLOB ".github/workflows/*.yaml" AND content LINE_REGEX "uses:\\s+[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+@(main|master|latest|v[0-9]+)"
+  MESSAGE "Referencing actions by branch name or floating tag allows supply chain attacks — the action can be updated to malicious code. Pin to a full commit SHA: uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683"
+}
+
+rule no-self-hosted-runner-public-repo {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB ".github/workflows/*.yml" AND content CONTAINS "runs-on: self-hosted" AND content CONTAINS "pull_request"
+  OR path GLOB ".github/workflows/*.yaml" AND content CONTAINS "runs-on: self-hosted" AND content CONTAINS "pull_request"
+  MESSAGE "Self-hosted runners on pull_request events in public repos allow untrusted fork PRs to execute code on your infrastructure. Use GitHub-hosted runners for public repo CI, or require approval for fork PRs."
+}

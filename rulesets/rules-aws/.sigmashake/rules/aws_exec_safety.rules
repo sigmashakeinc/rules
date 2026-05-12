@@ -1,0 +1,92 @@
+# aws_exec_safety.rules — AWS CLI safety for AI agents.
+# Technology: aws | Capability: exec
+# Covers: public S3 buckets, IAM, resource deletion, region awareness.
+
+rule no-s3-public-acl {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command CONTAINS "s3api put-bucket-acl" AND command CONTAINS "public"
+  OR command CONTAINS "--acl public-read"
+  OR command CONTAINS "--acl public-read-write"
+  OR command CONTAINS "s3 website"
+  MESSAGE "Making an S3 bucket public exposes all objects to the internet. Use pre-signed URLs or CloudFront for controlled access instead."
+}
+
+rule no-iam-star-permissions {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.json" AND content LINE_REGEX "\"Action\":\\s*\"\\*\""
+  OR path GLOB "**/*.yaml" AND content LINE_REGEX "Action:\\s*\"\\*\""
+  OR path GLOB "**/*.yml" AND content LINE_REGEX "Action:\\s*\"\\*\""
+  MESSAGE "IAM wildcard Action '*' grants full access to all AWS services. Use least-privilege — specify only the exact actions needed."
+}
+
+rule no-resource-star-with-write {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.json" AND content LINE_REGEX "\"Resource\":\\s*\"\\*\"" AND content CONTAINS "Action"
+  OR path GLOB "**/*.yaml" AND content LINE_REGEX "Resource:\\s*['\"]\\*['\"]"
+  MESSAGE "IAM Resource '*' applies permissions to all resources. Scope the resource ARN to the specific bucket, table, or service where possible."
+}
+
+rule ask-aws-delete {
+  enabled true
+  priority 90
+  severity warning
+  ASK execution
+  IF command CONTAINS "aws s3 rm"
+  OR command CONTAINS "aws s3api delete"
+  OR command CONTAINS "aws ec2 terminate"
+  OR command CONTAINS "aws rds delete"
+  OR command CONTAINS "aws dynamodb delete-table"
+  MESSAGE "AWS resource deletion is irreversible. Verify the target resource and AWS_PROFILE/region before proceeding."
+  PROMPT "Have you confirmed the AWS_PROFILE and region? Which specific resource will be deleted? Is this a production resource?"
+}
+
+rule ask-aws-kms-delete-key {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF command CONTAINS "kms schedule-key-deletion"
+  OR command CONTAINS "kms disable-key"
+  MESSAGE "RISK: Scheduling a KMS key for deletion (or disabling it) permanently destroys every ciphertext encrypted under it — RDS snapshots, S3 objects, EBS volumes become unrecoverable. FIX: Confirm no active resources reference the key (use aws kms list-grants, check CloudTrail) and prefer disabling with a long pending-window before deletion."
+  PROMPT "Which KMS key ID is this, and have you verified no production data is encrypted under it?"
+}
+
+rule ask-iam-create-access-key {
+  enabled true
+  priority 85
+  severity warning
+  ASK execution
+  IF command CONTAINS "iam create-access-key"
+  OR command CONTAINS "iam create-user"
+  OR command CONTAINS "iam create-login-profile"
+  MESSAGE "RISK: Long-lived IAM user access keys are the #1 source of AWS credential leaks (GitGuardian 2025). FIX: Prefer IAM Identity Center (SSO), IAM Roles for Service Accounts (IRSA), or role assumption with STS short-lived credentials instead of static user keys."
+  PROMPT "Why does this workload need a static IAM user instead of an IAM role or SSO?"
+}
+
+rule no-aws-configure-secret-inline {
+  enabled true
+  priority 90
+  severity error
+  DENY execution
+  IF command CONTAINS "aws configure set aws_secret_access_key"
+  OR command CONTAINS "aws configure set aws_session_token"
+  MESSAGE "RISK: Passing secret keys on the command line writes them to shell history and process listings (ps, /proc). FIX: Use 'aws configure' interactively, 'aws sso login', or set env vars in a file sourced once — never pass the secret as an argv."
+}
+
+rule log-aws-profile {
+  enabled true
+  priority 50
+  severity info
+  LOG execution
+  IF command STARTS_WITH "aws "
+  MESSAGE "AWS CLI command detected. Ensure AWS_PROFILE and AWS_DEFAULT_REGION are set correctly for the target environment."
+}

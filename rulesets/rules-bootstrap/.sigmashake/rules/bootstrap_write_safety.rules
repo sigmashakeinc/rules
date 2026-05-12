@@ -1,0 +1,65 @@
+# bootstrap_write_safety.rules
+# Technology: bootstrap | Capability: write
+
+rule bootstrap-disable-sanitizer {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.html" AND content CONTAINS "data-bs-sanitize=\"false\""
+  MESSAGE "Potential Cross-Site Scripting (XSS) vulnerability: 'data-bs-sanitize=\"false\"' explicitly disables Bootstrap's built-in sanitizer for tooltips/popovers. This is highly dangerous if content is user-supplied. Ensure all dynamic content is thoroughly sanitized using a robust library like DOMPurify, or remove this attribute to enable Bootstrap's default sanitization."
+}
+
+rule bootstrap-html-content-risk {
+  enabled true
+  priority 90
+  severity warning
+  LOG write
+  IF path GLOB "**/*.html" AND content CONTAINS "data-bs-html=\"true\""
+  MESSAGE "Potential Cross-Site Scripting (XSS) risk: 'data-bs-html=\"true\"' allows HTML content in Bootstrap components (e.g., tooltips, popovers). If this content is derived from untrusted user input, it creates an XSS vector. Ensure any HTML rendered via this attribute is strictly sanitized using a library like DOMPurify or only originates from trusted sources. Prefer 'data-bs-html=\"false\"' or 'textContent' for untrusted input."
+}
+
+rule bootstrap-legacy-jquery {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.js" AND (content CONTAINS "jQuery" OR content CONTAINS "$(")
+  MESSAGE "Legacy jQuery usage detected. Bootstrap 5 and later versions do not require jQuery. Including jQuery adds unnecessary overhead and a larger attack surface. For new Bootstrap 5+ projects, prefer vanilla JavaScript. If using an older Bootstrap version, ensure jQuery is up-to-date and used securely."
+}
+
+rule bootstrap-javascript-scheme-injection {
+  enabled true
+  priority 98
+  severity error
+  DENY write
+  IF path GLOB "**/*.html" AND (content CONTAINS "href=\"javascript:" OR content CONTAINS "data-bs-target=\"javascript:")
+  MESSAGE "Critical Cross-Site Scripting (XSS) vulnerability: 'javascript:' scheme detected in 'href' or 'data-bs-target' attribute. This allows direct execution of arbitrary JavaScript code. Never use 'javascript:' URLs with untrusted input. Remove this pattern and use proper event handlers or secure navigation methods."
+}
+
+rule bootstrap-deprecated-sanitizer-whitelist {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/*.js" AND content CONTAINS "whitelist:"
+  MESSAGE "Deprecated Bootstrap sanitizer option 'whitelist' detected. In Bootstrap 5, the 'whitelist' option for sanitization has been replaced by 'allowList'. Update your sanitizer configuration to use 'allowList' for improved clarity and compatibility with modern Bootstrap versions."
+}
+
+rule bootstrap-unsafe-innerhtml {
+  enabled true
+  priority 92
+  severity error
+  DENY write
+  IF path GLOB "**/*.js" AND content CONTAINS "innerHTML ="
+  MESSAGE "Potential Cross-Site Scripting (XSS) vulnerability: Direct assignment to 'innerHTML' detected. If the assigned value is derived from untrusted user input, this is a common XSS vector. Always sanitize HTML content using a robust library like DOMPurify before assigning to 'innerHTML', or prefer 'textContent' for plain text."
+}
+
+rule bootstrap-google-js-style-var {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/*.js" AND content CONTAINS "var "
+  MESSAGE "Google JavaScript Style Guide violation: Use of 'var' keyword detected. The Google JavaScript Style Guide recommends using 'const' or 'let' instead of 'var' for block-scoped variable declarations. Update to 'const' or 'let' for better scope management and code clarity."
+}

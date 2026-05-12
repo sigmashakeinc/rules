@@ -1,0 +1,20 @@
+# cypress_write_safety.rules
+# Technology: cypress | Capability: write
+
+rule cypress-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "cy.exec("
+  MESSAGE "Blocked an unsafe pattern in cypress. Use the recommended best practices for 2025/2026."
+}
+
+rule cypress-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "cy.server()"
+  MESSAGE "You are using an outdated API for cypress. Please upgrade to the newer API."
+}

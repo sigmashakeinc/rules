@@ -1,0 +1,45 @@
+# ts_write_style.rules — TypeScript code style and quality guidance.
+# Technology: ts | Capability: write
+# Covers: var declarations, console.log, empty catch, const preference.
+
+rule no-var-declarations {
+  enabled false
+  priority 40
+  severity warning
+  LOG write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "\\bvar\\s+[a-zA-Z_$]"
+  OR path GLOB "**/*.tsx" AND content LINE_REGEX "\\bvar\\s+[a-zA-Z_$]"
+  OR path GLOB "**/*.js" AND content LINE_REGEX "\\bvar\\s+[a-zA-Z_$]"
+  MESSAGE "Prefer 'const' or 'let' over 'var'. Block-scoped declarations prevent hoisting bugs and clarify intent."
+}
+
+rule no-console-log-in-src {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "src/**/*.ts" AND content CONTAINS "console.log("
+  OR path GLOB "src/**/*.tsx" AND content CONTAINS "console.log("
+  MESSAGE "console.log() in source code detected. Use a structured logger instead so output can be controlled in production."
+}
+
+rule no-empty-catch {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "catch\\s*\\([^)]*\\)\\s*\\{\\s*\\}"
+  OR path GLOB "**/*.tsx" AND content LINE_REGEX "catch\\s*\\([^)]*\\)\\s*\\{\\s*\\}"
+  OR path GLOB "**/*.js" AND content LINE_REGEX "catch\\s*\\([^)]*\\)\\s*\\{\\s*\\}"
+  MESSAGE "Empty catch block silently swallows errors. At minimum, log the error or rethrow it."
+}
+
+rule prefer-const-over-let {
+  enabled false
+  priority 30
+  severity info
+  LOG write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "\\blet\\s+[a-zA-Z_$][a-zA-Z0-9_$]*\\s*="
+  OR path GLOB "**/*.tsx" AND content LINE_REGEX "\\blet\\s+[a-zA-Z_$][a-zA-Z0-9_$]*\\s*="
+  MESSAGE "Consider 'const' if this variable is never reassigned. Immutable bindings make code easier to reason about."
+}

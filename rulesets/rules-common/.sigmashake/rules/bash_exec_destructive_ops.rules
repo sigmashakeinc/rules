@@ -1,0 +1,49 @@
+# bash_exec_destructive_ops.rules
+
+rule block-destructive-rm {
+  MESSAGE "Blocked dangerous 'rm' command with recursive or force flags without explicit user confirmation."
+  IF command REGEX "rm\s+(-rf|-rf\s+|--recursive\s+|--force\s+)"
+  AND command NOT CONTAINS "/tmp/"
+  AND command NOT CONTAINS "node_modules"
+  AND command NOT CONTAINS ".cache"
+  severity error
+  priority 100
+  DENY execution
+}
+
+rule block-git-force-push {
+  MESSAGE "Blocked 'git push --force' to prevent rewriting history on shared branches."
+  IF command CONTAINS "git push"
+  AND (command CONTAINS "--force" OR command CONTAINS "-f")
+  AND (command NOT CONTAINS " -f " AND command NOT CONTAINS " --force ") # avoid false positives if part of string
+  severity error
+  priority 95
+  DENY execution
+}
+
+rule block-git-hard-reset {
+  MESSAGE "Blocked 'git reset --hard' as it can result in uncommitted work loss."
+  IF command CONTAINS "git reset --hard"
+  severity warning
+  priority 90
+  ASK execution
+  PROMPT "Are you sure you want to perform a hard reset? This will discard all uncommitted changes."
+}
+
+rule block-destructive-dd {
+  MESSAGE "Blocked 'dd' command which can overwrite entire disks or partitions."
+  IF command STARTS_WITH "dd "
+  AND command CONTAINS "of=/dev/"
+  severity error
+  priority 100
+  DENY execution
+}
+
+rule block-shell-injection-risk {
+  MESSAGE "Detected suspicious shell pipe to 'bash' or 'sh' which could execute remote scripts."
+  IF command REGEX "curl.*\|\s*(bash|sh|zsh)"
+  OR command REGEX "wget.*-O-.*\|\s*(bash|sh|zsh)"
+  severity error
+  priority 100
+  DENY execution
+}

@@ -1,0 +1,20 @@
+# esbuild_write_safety.rules
+# Technology: esbuild | Capability: write
+
+rule esbuild-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "drop: ['console']"
+  MESSAGE "Blocked an unsafe pattern in esbuild. Use the recommended best practices for 2025/2026."
+}
+
+rule esbuild-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "esbuild.buildSync"
+  MESSAGE "You are using an outdated API for esbuild. Please upgrade to the newer API."
+}

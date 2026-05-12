@@ -1,0 +1,40 @@
+# mcp_any_data_leak.rules
+
+rule warn-mcp-slack-post {
+  MESSAGE "Agent is attempting to post message to Slack via MCP. This could result in internal data leaks."
+  IF tool STARTS_WITH "slack_"
+  AND tool ENDS_WITH "_message"
+  severity warning
+  priority 80
+  ASK any
+  PROMPT "Allow the agent to post to Slack? This message may contain internal codebase details."
+}
+
+rule block-mcp-jira-delete {
+  MESSAGE "Blocked direct Jira issue deletion by the agent."
+  IF tool STARTS_WITH "jira_"
+  AND tool CONTAINS "delete"
+  severity error
+  priority 100
+  DENY any
+}
+
+rule warn-mcp-github-pr-create {
+  MESSAGE "Agent is creating a GitHub Pull Request."
+  IF tool STARTS_WITH "github_"
+  AND tool CONTAINS "pull_request"
+  severity info
+  priority 50
+  LOG any
+}
+
+rule block-mcp-external-http {
+  MESSAGE "Blocked unauthorized external HTTP requests through generic fetch/curl tools."
+  IF tool EQUALS "fetch"
+  OR tool EQUALS "curl_mcp"
+  AND (input.url NOT CONTAINS "github.com" AND input.url NOT CONTAINS "npmjs.com")
+  severity warning
+  priority 90
+  ASK any
+  PROMPT "The agent is making an external request to ${input.url}. Allow?"
+}

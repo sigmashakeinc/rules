@@ -1,0 +1,3 @@
+{
+  "description": "Nomad is a highly flexible workload orchestrator that enables an organization to easily deploy and manage any containerized or legacy application. These rules govern Nomad job specifications to ensure secure task execution, proper resource allocation, and adherence to orchestration best practices."
+}

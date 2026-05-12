@@ -1,0 +1,23 @@
+# gemini-3.1_model_specific.rules
+# Technology: gemini-3.1 | Capability: exec | Description: Gemini 3.1 model-specific protections
+
+rule block-gemini31-pro-workspace-poisoning {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF input.agent_model CONTAINS "gemini-3.1-pro" AND command CONTAINS "cat " AND command CONTAINS "curl"
+  OR input.agent_model CONTAINS "gemini-3.1-pro" AND command CONTAINS "cat " AND command CONTAINS "wget"
+  MESSAGE "Gemini 3.1 Pro: Piping workspace contents to network tools is blocked to prevent Indirect Prompt Injection (IDPI) exfiltration."
+}
+
+rule ask-gemini31-flash-excessive-agency {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF input.agent_model CONTAINS "gemini-3.1-flash" AND command CONTAINS "gcloud iam"
+  OR input.agent_model CONTAINS "gemini-3.1-flash" AND command CONTAINS "gcloud projects delete"
+  MESSAGE "Gemini 3.1 Flash: High-speed models require HITL approval for destructive or IAM-mutating cloud operations."
+  PROMPT "The Gemini 3.1 Flash agent is attempting a critical cloud operation. Do you approve?"
+}

@@ -1,0 +1,84 @@
+# py_write_safety.rules — Python write-time safety enforcement.
+# Technology: py | Capability: write
+# Covers: eval/exec bans, dangerous imports, SQL injection, deserialization, hardcoded secrets.
+
+rule no-eval-exec {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content CONTAINS "eval("
+  OR path GLOB "**/*.py" AND content CONTAINS "exec("
+  MESSAGE "eval() and exec() allow arbitrary code execution and are banned. Refactor to use safe alternatives — if you need dynamic dispatch, use a dict of callables."
+}
+
+rule no-os-system {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content CONTAINS "os.system("
+  OR path GLOB "**/*.py" AND content CONTAINS "os.popen("
+  MESSAGE "os.system() and os.popen() pass commands to the shell unsanitized. Use subprocess.run() with a list of arguments and shell=False."
+}
+
+rule no-shell-true {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content CONTAINS "shell=True"
+  MESSAGE "subprocess with shell=True passes the command through the shell, enabling injection attacks. Use shell=False and pass arguments as a list."
+}
+
+rule no-pickle-loads {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content CONTAINS "pickle.loads("
+  OR path GLOB "**/*.py" AND content CONTAINS "pickle.load("
+  OR path GLOB "**/*.py" AND content CONTAINS "cPickle.loads("
+  MESSAGE "pickle.loads() with untrusted data is a remote code execution vulnerability. Use json.loads() or a safe serialization format for untrusted input."
+}
+
+rule no-sql-string-format {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "execute\\s*\\(\\s*[\"'].*%.*[\"']\\s*%"
+  OR path GLOB "**/*.py" AND content LINE_REGEX "execute\\s*\\(\\s*f[\"']"
+  OR path GLOB "**/*.py" AND content LINE_REGEX "execute\\s*\\(\\s*[\"'].*\\+\\s*"
+  MESSAGE "String formatting in SQL queries enables SQL injection. Use parameterized queries: cursor.execute('SELECT * FROM t WHERE id = %s', (user_id,))"
+}
+
+rule no-yaml-load-unsafe {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "yaml\\.load\\s*\\([^,)]*\\)"
+  OR path GLOB "**/*.py" AND content LINE_REGEX "yaml\\.load\\s*\\([^)]*Loader=yaml\\.Loader"
+  MESSAGE "yaml.load() with untrusted input allows arbitrary code execution. Use yaml.safe_load() instead."
+}
+
+rule no-subprocess-user-input {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "subprocess\\.(run|call|check_output|Popen)\\s*\\(.*f['\"]"
+  OR path GLOB "**/*.py" AND content LINE_REGEX "subprocess\\.(run|call|check_output|Popen)\\s*\\([^,)]*\\+"
+  OR path GLOB "**/*.py" AND content LINE_REGEX "subprocess\\.(run|call|Popen)\\s*\\(.*shell=True.*\\+"
+  MESSAGE "subprocess calls with string interpolation/concatenation enable command injection. Pass arguments as a list with shell=False: subprocess.run(['cmd', user_arg], shell=False)"
+}
+
+rule no-assert-for-validation {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "^\\s*assert\\s+.*,\\s*[\"']"
+  MESSAGE "assert statements are stripped when Python runs with -O (optimize). Use explicit if/raise for input validation in production code."
+}

@@ -1,0 +1,20 @@
+# numpy_write_safety.rules
+# Technology: numpy | Capability: write
+
+rule numpy-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "np.load(allow_pickle=True)"
+  MESSAGE "Blocked an unsafe pattern in numpy. Use the recommended best practices for 2025/2026."
+}
+
+rule numpy-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "np.matrix"
+  MESSAGE "You are using an outdated API for numpy. Please upgrade to the newer API."
+}

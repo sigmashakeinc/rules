@@ -1,0 +1,33 @@
+# 06-kernel-and-injection.rules — Defenses against kernel exploits and memory injection
+# Technology: bash | Capability: exec
+
+rule deny-kernel-modules {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "\\b(insmod|modprobe|rmmod)\\b"
+  MESSAGE "Blocked: The agent is attempting to load or manipulate kernel modules. This is a severe sandbox escape vector and is never permitted for autonomous agents."
+}
+
+rule deny-ld-preload {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command CONTAINS "LD_PRELOAD="
+  OR command CONTAINS "LD_LIBRARY_PATH=" AND command CONTAINS "/tmp/"
+  OR command CONTAINS "PROMPT_COMMAND="
+  MESSAGE "Blocked: The agent is attempting to manipulate LD_PRELOAD, LD_LIBRARY_PATH (with temporary directories), or PROMPT_COMMAND. This is a well-known process injection and hook interception technique."
+}
+
+rule deny-ptrace-dmesg {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command REGEX "\\bdmesg\\b.*grep.*\\b(addr|sysoffset|kernel)\\b"
+  OR command REGEX "\\bcat\\s+/proc/kallsyms\\b"
+  OR command CONTAINS "process_vm_writev"
+  MESSAGE "Blocked: The agent is searching for kernel base addresses (KASLR defeats) by reading dmesg, kallsyms, or accessing process memory directly. This indicates an active kernel exploitation attempt."
+}

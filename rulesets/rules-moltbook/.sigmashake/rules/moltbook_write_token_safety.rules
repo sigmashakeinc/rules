@@ -1,0 +1,62 @@
+# moltbook_write_token_safety.rules — Moltbook token and data write safety.
+# Technology: moltbook | Capability: write
+# Covers: API token hardcoding, Supabase credential exposure,
+# post content injection, email address logging, and config auditing.
+
+rule no-moltbook-api-token-in-source {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF content LINE_REGEX "moltbook.*token\\s*[:=]\\s*['\"][^'\"]{8,}"
+  OR content LINE_REGEX "MOLTBOOK_API_KEY\\s*[:=]\\s*['\"][^'\"]{8,}"
+  OR content LINE_REGEX "moltbook.*secret\\s*[:=]\\s*['\"][^'\"]{8,}"
+  OR content LINE_REGEX "MOLTBOOK_TOKEN\\s*[:=]\\s*['\"][^'\"]{8,}"
+  MESSAGE "Moltbook token in source code. The Moltbook breach (Wiz Research) exposed 1.5M API authentication tokens from a misconfigured Supabase database. Hardcoded tokens are especially dangerous given Moltbook's known infrastructure weaknesses — use environment variables."
+}
+
+rule no-moltbook-supabase-credentials-in-source {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF content LINE_REGEX "supabase_url\\s*[:=]\\s*['\"]https://[^'\"]+\\.supabase\\.co"
+  OR content LINE_REGEX "SUPABASE_URL.*\\.supabase\\.co"
+  OR content LINE_REGEX "SUPABASE_ANON_KEY\\s*[:=]\\s*['\"][^'\"]{20,}"
+  OR content LINE_REGEX "SUPABASE_SERVICE_ROLE_KEY\\s*[:=]\\s*['\"][^'\"]{20,}"
+  MESSAGE "Supabase connection credentials in source code. The Moltbook data breach (1.5M tokens, 35K emails) was caused by an exposed Supabase anon key that granted full read/write access to the entire database. Supabase credentials hardcoded in source enable any reader to bypass all application-level security."
+}
+
+rule ask-moltbook-agent-post-content {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF content CONTAINS "moltbook" AND content LINE_REGEX "(post|create|publish|submit)\\s*\\(" AND content CONTAINS "agent"
+  OR content LINE_REGEX "moltbook.*post.*content"
+  OR content LINE_REGEX "moltb.*\\.post\\("
+  MESSAGE "Moltbook post/message creation by agent. Agent-to-agent prompt injection via Moltbook posts is documented: 'hiding malicious instructions in a post tricks a bot into sharing sensitive data' (Wiz Research). Content posted by agents is read by all connected OpenClaw bots as potential instructions."
+}
+
+rule no-moltbook-email-in-source {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF content LINE_REGEX "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}" AND content CONTAINS "moltbook"
+  OR content CONTAINS "user_email" AND content CONTAINS "moltbook"
+  OR content CONTAINS "user.email" AND content CONTAINS "moltbook"
+  MESSAGE "Email addresses in Moltbook-related code. 35,000 email addresses were exposed in the Moltbook data breach. Do not hardcode, log, or embed email addresses in Moltbook integrations — use opaque user IDs instead."
+}
+
+rule log-moltbook-config-file-write {
+  enabled true
+  priority 55
+  severity info
+  LOG write
+  IF path REGEX "moltbook.*config"
+  OR path REGEX "\\.moltbook/"
+  OR path REGEX "moltbook.*\\.env"
+  OR path REGEX "moltbook.*\\.ya?ml"
+  MESSAGE "Moltbook configuration written. Moltbook was 'entirely vibe-coded with zero security review' (fanaticalfuturist.com disclosure). All config changes are logged. Palo Alto Networks mapped Moltbook against OWASP Top 10 for AI Agents and found failures across nearly every category."
+}

@@ -1,0 +1,96 @@
+# docker_write_security.rules — build-time and runtime supply-chain / hardening.
+# Technology: docker | Capability: write
+# Duplicates of root/privileged/latest/socket live in docker_write_safety.rules.
+
+rule docker-no-add-for-files {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/Dockerfile*" AND content LINE_REGEX "^ADD\\s+(?!https?://)[^\\s]"
+  MESSAGE "RISK: ADD auto-extracts tar archives and fetches URLs with no checksum, introducing path-traversal and tampering surface. FIX: Use COPY for local files; for remote fetches use RUN curl with a verified sha256."
+}
+
+rule docker-secrets-in-env {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/Dockerfile*" AND content LINE_REGEX "(?i)^ENV\\s+([A-Z_]*(PASSWORD|SECRET|API[_-]?KEY|TOKEN|PRIVATE[_-]?KEY|AWS_SECRET))\\s*="
+  OR path GLOB "**/docker-compose*.y*ml" AND content LINE_REGEX "(?i)^\\s*(PASSWORD|SECRET|API_KEY|TOKEN|PRIVATE_KEY):\\s*[\"']?[A-Za-z0-9]"
+  MESSAGE "RISK: Secrets in ENV or literal compose values are baked into the image layer and surfaced by 'docker inspect'/'docker history' forever. FIX: Use BuildKit '--mount=type=secret' at build time and Docker/K8s secrets or env-file injection at runtime."
+}
+
+rule docker-secrets-in-build-arg {
+  enabled true
+  priority 92
+  severity error
+  DENY write
+  IF path GLOB "**/Dockerfile*" AND content LINE_REGEX "(?i)^ARG\\s+([A-Z_]*(PASSWORD|SECRET|API[_-]?KEY|TOKEN|PRIVATE[_-]?KEY|AWS_SECRET|AWS_ACCESS))"
+  MESSAGE "RISK: ARG values are recorded in image history (docker history --no-trunc) and leak even when unset in the final image — documented by Docker build-checks SecretsUsedInArgOrEnv. FIX: Use 'RUN --mount=type=secret,id=foo' with BuildKit."
+}
+
+rule docker-expose-all-interfaces {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/docker-compose*.y*ml" AND content LINE_REGEX "-\\s+[\"']?0\\.0\\.0\\.0:"
+  MESSAGE "RISK: Binding 0.0.0.0 exposes the port on every host interface, including public ones, which has caused repeated unauthenticated DB exposures (Redis, Mongo, Elastic). FIX: Bind to 127.0.0.1 for dev; in prod rely on a reverse proxy or explicit firewall rules."
+}
+
+rule docker-cap-add-dangerous {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/docker-compose*.y*ml" AND content LINE_REGEX "^\\s*-\\s+(ALL|SYS_ADMIN|SYS_MODULE|SYS_PTRACE|DAC_READ_SEARCH)\\s*$"
+  OR path GLOB "**/*.sh" AND content LINE_REGEX "--cap-add[= ](ALL|SYS_ADMIN|SYS_MODULE|SYS_PTRACE|DAC_READ_SEARCH)"
+  MESSAGE "RISK: CAP_SYS_ADMIN (and ALL/SYS_MODULE/SYS_PTRACE/DAC_READ_SEARCH) is effectively equivalent to root — it enables mount, kernel-module load, ptrace of host processes, and has been the pivot in multiple container-escape CVEs. FIX: Drop all capabilities and add back only the specific ones (e.g. NET_BIND_SERVICE) you need."
+}
+
+rule docker-host-namespace-share {
+  enabled true
+  priority 92
+  severity error
+  DENY write
+  IF path GLOB "**/docker-compose*.y*ml" AND content LINE_REGEX "(network_mode|pid|ipc)\\s*:\\s*[\"']?host[\"']?"
+  OR path GLOB "**/*.sh" AND content LINE_REGEX "docker\\s+run[^\\n]*--(network|pid|ipc)[= ]host"
+  MESSAGE "RISK: Sharing the host network/PID/IPC namespace removes a core isolation boundary — the container can sniff host traffic, send signals to host processes, and access host SysV IPC. FIX: Use a user-defined bridge network and default namespaces; expose only the ports you need."
+}
+
+rule docker-curl-pipe-shell {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/Dockerfile*" AND content LINE_REGEX "(?i)(curl|wget)\\s[^|\\n]*\\|\\s*(sudo\\s+)?(sh|bash)"
+  MESSAGE "RISK: 'curl ... | sh' in a build layer executes arbitrary upstream content with no integrity check — a compromised CDN or typo-squatted domain becomes RCE in every rebuild. FIX: Download to a file, verify sha256, then execute; or install from a pinned package repository."
+}
+
+rule docker-no-new-privileges-missing {
+  enabled true
+  priority 60
+  severity info
+  LOG write
+  IF path GLOB "**/docker-compose*.y*ml" AND content CONTAINS "image:" AND content NOT CONTAINS "no-new-privileges"
+  MESSAGE "RISK: Without 'security_opt: [no-new-privileges:true]' a setuid binary inside the container can still gain privileges, undermining a non-root USER. FIX: Add 'security_opt:\\n  - no-new-privileges:true' to each service."
+}
+
+rule docker-chmod-world-writable {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/Dockerfile*" AND content LINE_REGEX "chmod\\s+(-R\\s+)?(0?777|a\\+w)\\b"
+  MESSAGE "RISK: chmod 777 inside the image makes files world-writable across every container user, defeating the non-root USER hardening and enabling tamper-on-write attacks. FIX: Set ownership with 'COPY --chown=app:app' and use 0755/0644."
+}
+
+rule docker-apt-upgrade-in-layer {
+  enabled true
+  priority 65
+  severity warning
+  LOG write
+  IF path GLOB "**/Dockerfile*" AND content LINE_REGEX "apt(-get)?\\s+(dist-)?upgrade"
+  MESSAGE "RISK: 'apt-get upgrade' at build time pulls unpinned package versions, breaking reproducibility and potentially replacing a pinned base image's tested libraries. FIX: Rebuild on an updated base image tag/digest instead; install only the specific packages you need with 'apt-get install -y --no-install-recommends <pkg>=<version>'."
+}

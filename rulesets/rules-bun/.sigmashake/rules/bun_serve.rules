@@ -1,0 +1,31 @@
+# bun_serve.rules — Guard Bun.serve and WebSocket configuration.
+# Technology: bun | Capability: write
+
+rule bun-websocket-upgrade-no-origin-check {
+  enabled true
+  priority 80
+  severity warning
+  ASK write
+  IF path GLOB "**/*.{js,ts,jsx,tsx,mjs,cjs}" AND content CONTAINS "server.upgrade(" AND NOT content CONTAINS "origin"
+  MESSAGE "RISK: Bun.serve WebSocket upgrade() without an Origin check is vulnerable to Cross-Site WebSocket Hijacking — a malicious page can open an authenticated socket to your server. FIX: Validate req.headers.get('origin') against an allowlist before calling server.upgrade(req)."
+  PROMPT "Have you validated req.headers.get('origin') against an allowlist before upgrade()?"
+}
+
+rule bun-serve-oversized-body {
+  enabled true
+  priority 60
+  severity info
+  LOG write
+  IF path GLOB "**/*.{js,ts,jsx,tsx,mjs,cjs}" AND content CONTAINS "Bun.serve(" AND NOT content CONTAINS "maxRequestBodySize"
+  MESSAGE "RISK: Bun.serve defaults maxRequestBodySize to 128 MB, letting a single request exhaust memory (DoS). FIX: Set an explicit maxRequestBodySize appropriate to the endpoint (e.g. 1_000_000 for JSON APIs)."
+}
+
+rule bun-package-trusted-dependencies {
+  enabled true
+  priority 75
+  severity warning
+  ASK write
+  IF path GLOB "**/package.json" AND content CONTAINS "trustedDependencies"
+  MESSAGE "RISK: Entries in trustedDependencies re-enable arbitrary postinstall script execution that Bun disables by default, widening the supply-chain attack surface. FIX: Remove entries you do not need; for each remaining one, audit its install scripts and pin an exact version."
+  PROMPT "Have you reviewed the install scripts of every package listed in trustedDependencies?"
+}

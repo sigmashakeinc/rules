@@ -1,0 +1,20 @@
+# pytorch_write_safety.rules
+# Technology: pytorch | Capability: write
+
+rule pytorch-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "torch.load("
+  MESSAGE "Blocked an unsafe pattern in pytorch. Use the recommended best practices for 2025/2026."
+}
+
+rule pytorch-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "Variable("
+  MESSAGE "You are using an outdated API for pytorch. Please upgrade to the newer API."
+}

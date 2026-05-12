@@ -1,0 +1,116 @@
+# py_write_extra.rules
+# Technology: python | Capability: write
+# Covers: TLS, weak crypto, XML/tar parsing, debug modes, temp files, secrets.
+
+rule no-requests-verify-false {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "verify\\s*=\\s*False"
+  MESSAGE "RISK: verify=False disables TLS certificate validation, enabling MITM attacks. FIX: remove the argument, or pass verify='/path/to/ca-bundle.pem' for a private CA."
+}
+
+rule no-ssl-unverified-context {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content CONTAINS "_create_unverified_context"
+  OR path GLOB "**/*.py" AND content CONTAINS "CERT_NONE"
+  MESSAGE "RISK: ssl._create_unverified_context / CERT_NONE disables certificate verification. FIX: use ssl.create_default_context() and configure a trusted CA bundle."
+}
+
+rule no-md5-sha1-for-security {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "hashlib\\.(md5|sha1)\\s*\\("
+  MESSAGE "RISK: MD5/SHA1 are broken for security use (collisions, length-extension). FIX: use hashlib.sha256() for integrity, or hashlib.blake2b()/SHA-3; add usedforsecurity=False only for non-security hashing."
+}
+
+rule no-random-for-tokens {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "random\\.(random|randint|choice|choices|sample|getrandbits)\\s*\\(.*(token|secret|password|key|nonce|salt)"
+  MESSAGE "RISK: random module is not cryptographically secure and is predictable. FIX: use the secrets module — secrets.token_urlsafe(32), secrets.token_hex(), or secrets.choice()."
+}
+
+rule no-xml-untrusted-parser {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "(^|\\s)import\\s+xml\\.(etree|sax|dom|parsers\\.expat)"
+  OR path GLOB "**/*.py" AND content LINE_REGEX "from\\s+xml\\.(etree|sax|dom)"
+  MESSAGE "RISK: stdlib xml parsers are vulnerable to XXE, billion-laughs, and entity-expansion attacks on untrusted input. FIX: use defusedxml (pip install defusedxml) as a drop-in replacement."
+}
+
+rule no-tarfile-extractall-unfiltered {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "\\.extractall\\s*\\(\\s*\\)"
+  OR path GLOB "**/*.py" AND content LINE_REGEX "\\.extractall\\s*\\([^)]*\\)" AND content NOT CONTAINS "filter="
+  MESSAGE "RISK: tarfile extractall without filter= is vulnerable to path traversal (CVE-2007-4559); Python 3.14 requires explicit filter. FIX: pass filter='data' to reject absolute paths, symlinks, and special files."
+}
+
+rule no-flask-debug-true {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "app\\.run\\s*\\([^)]*debug\\s*=\\s*True"
+  OR path GLOB "**/*.py" AND content LINE_REGEX "DEBUG\\s*=\\s*True" AND path GLOB "**/settings.py"
+  MESSAGE "RISK: Flask/Werkzeug debug mode exposes an interactive PIN-protected console that allows RCE if the PIN is leaked (CVE-2024-34069 class). FIX: never ship debug=True; gate on an env var that is False in production."
+}
+
+rule no-jinja2-autoescape-off {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "Environment\\s*\\([^)]*autoescape\\s*=\\s*False"
+  OR path GLOB "**/*.py" AND content LINE_REGEX "Environment\\s*\\(\\s*\\)"
+  MESSAGE "RISK: Jinja2 Environment() defaults to autoescape=False, enabling XSS in HTML templates. FIX: pass autoescape=select_autoescape(['html','xml']) or autoescape=True."
+}
+
+rule no-tempfile-mktemp {
+  enabled true
+  priority 75
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content CONTAINS "tempfile.mktemp("
+  MESSAGE "RISK: tempfile.mktemp() has a TOCTOU race — an attacker can pre-create the path as a symlink. FIX: use tempfile.mkstemp() or NamedTemporaryFile(), which atomically create the file."
+}
+
+rule no-hardcoded-secrets {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "(aws_secret_access_key|api_key|password|secret_key)\\s*=\\s*[\"'][A-Za-z0-9/_+=\\-]{16,}[\"']"
+  MESSAGE "RISK: hardcoded credentials leak when code is committed or shared. FIX: load secrets from environment variables (os.environ) or a secret manager; add the pattern to pre-commit gitleaks."
+}
+
+rule no-requests-timeout-missing {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "requests\\.(get|post|put|delete|patch|head|request)\\s*\\([^)]*\\)" AND content NOT CONTAINS "timeout="
+  MESSAGE "RISK: requests calls without timeout= can hang indefinitely, causing resource exhaustion. FIX: pass timeout=(connect, read) seconds, e.g. requests.get(url, timeout=(5, 30))."
+}
+
+rule no-django-secret-key-hardcoded {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/settings.py" AND content LINE_REGEX "SECRET_KEY\\s*=\\s*[\"'][^\"']+[\"']"
+  MESSAGE "RISK: a hardcoded Django SECRET_KEY compromises session/CSRF signing if committed. FIX: SECRET_KEY = os.environ['DJANGO_SECRET_KEY'] and provision per-environment."
+}

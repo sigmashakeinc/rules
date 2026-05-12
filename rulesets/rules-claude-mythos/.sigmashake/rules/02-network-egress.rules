@@ -1,0 +1,24 @@
+# 02-network-egress.rules — Network egress & data exfiltration controls.
+# Catches unauthorized data transfers to unknown destinations.
+# Safe-list domains are editable below — adjust for your organization.
+
+# Block uploads to known paste/file-sharing services
+rule block-pastebins {
+  enabled true
+  priority 92
+  severity error
+  DENY execution
+  IF command REGEX "(pastebin\\.com|hastebin\\.com|paste\\.ee|dpaste\\.org|transfer\\.sh|0x0\\.st|file\\.io|paste\\.mozilla\\.org)"
+  MESSAGE "Blocked: uploading to paste/file-sharing services is forbidden."
+}
+
+# ASK for any network egress to unrecognized domains
+rule ask-network-egress {
+  enabled true
+  priority 90
+  severity warning
+  ASK execution
+  IF command REGEX "\\b(curl|wget|http|nc|ncat|socat)\\b" AND command NOT REGEX "(github\\.com|npmjs\\.org|registry\\.npmjs\\.org|hub\\.sigmashake\\.com|api\\.sigmashake\\.com|localhost|127\\.0\\.0\\.1)"
+  PROMPT "This command transfers data to an unrecognized network destination. Allow?"
+  MESSAGE "Requires approval: network egress to unrecognized domain."
+}

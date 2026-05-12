@@ -1,0 +1,20 @@
+# vitest_write_safety.rules
+# Technology: vitest | Capability: write
+
+rule vitest-warn-mock-clear {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/vitest.config.*" AND content CONTAINS "mockReset: false"
+  MESSAGE "If mockReset is false, mocked modules might leak state between tests. Ensure tests do not have cross-dependencies due to shared mock state."
+}
+
+rule vitest-warn-test-timeout {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/vitest.config.*" AND content LINE_REGEX "testTimeout\\s*:\\s*[0-9]{5,}"
+  MESSAGE "A very large testTimeout is detected. This could indicate inefficient tests or tests that are prone to hanging (e.g. unclosed connections, infinite loops)."
+}

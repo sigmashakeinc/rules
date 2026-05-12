@@ -1,0 +1,53 @@
+# 03-destructive-ops-hitl.rules — Strict Human-in-the-Loop for destructive operations.
+# Catches destructive patterns that the base destructive-ops rule doesn't cover.
+# Uses ASK instead of DENY — the human decides.
+
+# Destructive filesystem operations beyond rm -rf
+rule ask-destructive-fs {
+  enabled true
+  priority 94
+  severity error
+  ASK execution
+  IF command REGEX "\\b(chmod\\s+777|chmod\\s+-R|chown\\s+-R)\\b"
+  OR command REGEX "\\b(mkfs|fdisk|wipefs|shred)\\b"
+  OR command REGEX "(>\\s*/dev/|dd\\s+if=)"
+  PROMPT "This is a destructive filesystem operation that could cause data loss. Approve?"
+  MESSAGE "Requires human approval: destructive filesystem operation."
+}
+
+# Destructive process operations
+rule ask-destructive-process {
+  enabled true
+  priority 94
+  severity error
+  ASK execution
+  IF command REGEX "\\bkill\\s+-9\\b"
+  OR command REGEX "\\bkillall\\b"
+  OR command REGEX "\\bpkill\\s+-9\\b"
+  PROMPT "This will forcefully terminate process(es) without graceful shutdown. Approve?"
+  MESSAGE "Requires human approval: forceful process termination."
+}
+
+# Destructive SQL operations
+rule ask-destructive-sql {
+  enabled true
+  priority 94
+  severity error
+  ASK execution
+  IF command REGEX "(?i)\\b(drop\\s+(table|database|schema))\\b"
+  OR command REGEX "(?i)\\b(truncate\\s+table)\\b"
+  OR command REGEX "(?i)\\bdelete\\s+from\\s+\\w+\\s*;"
+  OR command REGEX "(?i)\\balter\\s+table\\s+\\w+\\s+drop\\b"
+  PROMPT "This SQL operation could permanently destroy data. Approve?"
+  MESSAGE "Requires human approval: destructive SQL operation."
+}
+
+# Database migration writes require approval
+rule ask-migration-write {
+  enabled true
+  priority 93
+  severity warning
+  LOG write
+  IF path GLOB "**/migrations/**" AND content REGEX "(?i)\\b(drop|truncate|delete)\\b"
+  MESSAGE "Requires human approval: migration with destructive SQL detected."
+}

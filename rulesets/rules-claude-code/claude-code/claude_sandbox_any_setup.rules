@@ -1,0 +1,20 @@
+# claude_sandbox_any_setup.rules
+
+rule audit-sandbox-setup {
+  MESSAGE "Agent is modifying its own sandbox or permission settings."
+  IF input.command CONTAINS "/sandbox"
+  OR input.command CONTAINS "/permissions"
+  severity warning
+  priority 80
+  ASK any
+  PROMPT "Allow the agent to modify its sandbox or permission settings? This can be used to escalate or modify its restrictions."
+}
+
+rule block-sandbox-bypass {
+  MESSAGE "Blocked attempt to bypass sandbox by specifying root or system directories."
+  IF input.command CONTAINS "/sandbox"
+  AND (input.command CONTAINS "/" OR input.command CONTAINS "--all-access")
+  severity error
+  priority 100
+  DENY any
+}

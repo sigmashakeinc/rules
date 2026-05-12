@@ -1,0 +1,20 @@
+# consul_write_safety.rules
+# Technology: consul | Capability: write
+
+rule consul-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "verify_incoming = false"
+  MESSAGE "Blocked an unsafe pattern in consul. Use the recommended best practices for 2025/2026."
+}
+
+rule consul-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "consul_kv"
+  MESSAGE "You are using an outdated API for consul. Please upgrade to the newer API."
+}

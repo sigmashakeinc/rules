@@ -1,0 +1,57 @@
+# test_write_hygiene.rules — Test suite hygiene and quality rules.
+# Technology: test | Capability: write
+# Covers: skipped tests, .only, hardcoded delays, testing implementation details.
+
+rule no-test-only {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.test.ts" AND content LINE_REGEX "\\.only\\s*\\("
+  OR path GLOB "**/*.spec.ts" AND content LINE_REGEX "\\.only\\s*\\("
+  OR path GLOB "**/*.test.js" AND content LINE_REGEX "\\.only\\s*\\("
+  OR path GLOB "**/*.spec.js" AND content LINE_REGEX "\\.only\\s*\\("
+  OR path GLOB "**/*.test.tsx" AND content LINE_REGEX "\\.only\\s*\\("
+  MESSAGE "test.only() or describe.only() is committed. These selectively run tests, silently skipping all others. Remove .only before committing — it hides test failures."
+}
+
+rule no-skipped-tests {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.test.*" AND content LINE_REGEX "(?:test|it|describe)\\.skip\\s*\\("
+  OR path GLOB "**/*.spec.*" AND content LINE_REGEX "(?:test|it|describe)\\.skip\\s*\\("
+  OR path GLOB "**/*.test.*" AND content LINE_REGEX "xit\\s*\\("
+  OR content LINE_REGEX "xdescribe\\s*\\("
+  MESSAGE "Skipped test committed. Skipped tests accumulate and create false confidence in test coverage. Fix the underlying issue or remove the test entirely."
+}
+
+rule no-hardcoded-sleep {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.test.*" AND content LINE_REGEX "(?:sleep|setTimeout|delay)\\s*\\(\\s*[0-9]{3,}"
+  OR path GLOB "**/*.spec.*" AND content LINE_REGEX "(?:sleep|setTimeout|delay)\\s*\\(\\s*[0-9]{3,}"
+  MESSAGE "Hardcoded delays in tests make test suites slow and brittle. Use waitFor(), polling assertions, or event-driven synchronization instead of fixed timeouts."
+}
+
+rule no-console-in-tests {
+  enabled true
+  priority 60
+  severity info
+  LOG write
+  IF path GLOB "**/*.test.*" AND content CONTAINS "console.log("
+  OR path GLOB "**/*.spec.*" AND content CONTAINS "console.log("
+  MESSAGE "console.log() in test files produces noisy output. Use the test framework's debug utilities or remove debug logging before committing."
+}
+
+rule ask-no-assertions {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.test.*" AND content LINE_REGEX "(?:it|test)\\s*\\(['\"][^'\"]+['\"]\\s*,\\s*(?:async\\s*)?\\(\\)\\s*=>\\s*\\{[^}]*\\}\\s*\\)"
+  MESSAGE "Test function with no assertions detected. Tests without assertions always pass, giving false confidence. Add at least one expect() call."
+}

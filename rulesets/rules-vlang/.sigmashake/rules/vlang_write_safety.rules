@@ -1,0 +1,20 @@
+# vlang_write_safety.rules
+# Technology: vlang | Capability: write
+
+rule vlang-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "C.malloc"
+  MESSAGE "Blocked an unsafe pattern in vlang. Use the recommended best practices for 2025/2026."
+}
+
+rule vlang-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "os.exec"
+  MESSAGE "You are using an outdated API for vlang. Please upgrade to the newer API."
+}

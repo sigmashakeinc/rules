@@ -1,0 +1,20 @@
+# saltstack_write_safety.rules
+# Technology: saltstack | Capability: write
+
+rule saltstack-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "cmd.run"
+  MESSAGE "Blocked an unsafe pattern in saltstack. Use the recommended best practices for 2025/2026."
+}
+
+rule saltstack-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "salt.modules.cmdmod"
+  MESSAGE "You are using an outdated API for saltstack. Please upgrade to the newer API."
+}

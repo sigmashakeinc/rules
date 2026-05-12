@@ -1,0 +1,20 @@
+# neo4j_write_safety.rules
+# Technology: neo4j | Capability: write
+
+rule neo4j-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "apoc.algo.execute"
+  MESSAGE "Blocked an unsafe pattern in neo4j. Use the recommended best practices for 2025/2026."
+}
+
+rule neo4j-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "START n=node()"
+  MESSAGE "You are using an outdated API for neo4j. Please upgrade to the newer API."
+}

@@ -1,0 +1,38 @@
+# plandex_refactor_safety.rules
+
+rule audit-plandex-large-refactor {
+  MESSAGE "Plandex is initiating a large-scale refactor touching multiple files."
+  IF tool EQUALS "PlandexAgent"
+  AND input.plan_size WORD "large"
+  severity info
+  priority 50
+  LOG any
+}
+
+rule warn-plandex-sandbox-bypass {
+  MESSAGE "Plandex is attempting to apply changes directly, bypassing the 'Diff Review Sandbox'."
+  IF tool EQUALS "PlandexAgent"
+  AND input.sandbox_enabled EQUALS "false"
+  severity warning
+  priority 95
+  ASK any
+  PROMPT "Allow Plandex to apply multi-file changes without sandbox review?"
+}
+
+rule block-plandex-unconstrained-reasoning {
+  MESSAGE "Blocked Plandex from running with unconstrained context and model settings in sensitive environments."
+  IF tool EQUALS "PlandexAgent"
+  AND (path CONTAINS "/prod/" OR path CONTAINS "/production/")
+  severity error
+  priority 100
+  DENY any
+}
+
+rule audit-plandex-external-docs {
+  MESSAGE "Plandex is fetching external documentation via MCP."
+  IF tool STARTS_WITH "fetch_"
+  OR tool EQUALS "google_search"
+  severity info
+  priority 50
+  LOG any
+}

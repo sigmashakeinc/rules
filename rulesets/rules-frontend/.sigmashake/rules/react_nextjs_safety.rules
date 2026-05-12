@@ -1,0 +1,40 @@
+# react_nextjs_safety.rules
+
+rule block-dangerously-set-inner-html {
+  MESSAGE "Detected 'dangerouslySetInnerHTML' in React component. This is a common XSS vector."
+  IF (path ENDS_WITH ".tsx" OR path ENDS_WITH ".jsx")
+  AND content CONTAINS "dangerouslySetInnerHTML"
+  severity warning
+  priority 90
+  LOG write
+}
+
+rule warn-nextjs-server-action-validation {
+  MESSAGE "Next.js Server Action detected. Ensure all user inputs are strictly validated (e.g., using Zod)."
+  IF (path ENDS_WITH ".tsx" OR path ENDS_WITH ".ts")
+  AND content CONTAINS "use server"
+  AND content NOT CONTAINS "zod"
+  severity info
+  priority 50
+  LOG write
+}
+
+rule block-unsafe-redirect {
+  MESSAGE "Detected potential open redirect in frontend code."
+  IF (path ENDS_WITH ".ts" OR path ENDS_WITH ".tsx")
+  AND (content CONTAINS "window.location =" OR content CONTAINS "redirect(")
+  AND content REGEX "(params|query)\."
+  severity warning
+  priority 85
+  LOG write
+}
+
+rule audit-csp-missing {
+  MESSAGE "Next.js project is missing a Content Security Policy (CSP) header in configuration."
+  IF path ENDS_WITH "next.config.js"
+  OR path ENDS_WITH "next.config.mjs"
+  AND content NOT CONTAINS "Content-Security-Policy"
+  severity warning
+  priority 80
+  LOG write
+}

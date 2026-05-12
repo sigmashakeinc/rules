@@ -1,0 +1,3 @@
+{
+  "description": "AWS CloudFormation is an Infrastructure as Code (IaC) service for provisioning and managing AWS resources using templates. These rules guide AI agents in defining, deploying, and managing complex AWS stacks and resource dependencies."
+}

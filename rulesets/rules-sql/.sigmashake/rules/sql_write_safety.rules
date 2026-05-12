@@ -1,0 +1,52 @@
+# sql_write_safety.rules — SQL and database safety rules.
+# Technology: sql | Capability: write
+# Covers: DROP TABLE, TRUNCATE, parameterized queries, migration safety.
+
+rule no-drop-table-without-confirm {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.sql" AND content LINE_REGEX "DROP\\s+TABLE\\s+(?!IF\\s+EXISTS)"
+  OR path GLOB "**/migrations/**" AND content LINE_REGEX "DROP\\s+TABLE\\s+(?!IF\\s+EXISTS)"
+  MESSAGE "DROP TABLE without IF EXISTS will fail loudly if the table doesn't exist. Use 'DROP TABLE IF EXISTS table_name' to make migrations idempotent."
+}
+
+rule ask-truncate {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.sql" AND content LINE_REGEX "TRUNCATE\\s+TABLE"
+  OR path GLOB "**/*.sql" AND content LINE_REGEX "TRUNCATE\\s+\\w+"
+  MESSAGE "TRUNCATE permanently deletes all rows in a table and cannot be rolled back in some databases. Confirm this is intentional."
+}
+
+rule no-delete-without-where {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.sql" AND content LINE_REGEX "DELETE\\s+FROM\\s+\\w+\\s*;"
+  OR path GLOB "**/*.sql" AND content LINE_REGEX "DELETE\\s+FROM\\s+\\w+\\s*$"
+  MESSAGE "DELETE without a WHERE clause deletes all rows. Add a WHERE condition or use TRUNCATE explicitly if a full clear is intended."
+}
+
+rule no-update-without-where {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.sql" AND content LINE_REGEX "UPDATE\\s+\\w+\\s+SET\\s+.*(?<!WHERE)\\s*;"
+  MESSAGE "UPDATE without a WHERE clause updates every row. Add a WHERE condition to target specific rows."
+}
+
+rule ask-alter-column-drop {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.sql" AND content LINE_REGEX "ALTER\\s+TABLE.*DROP\\s+COLUMN"
+  OR path GLOB "**/migrations/**" AND content LINE_REGEX "DROP\\s+COLUMN"
+  MESSAGE "Dropping a column is irreversible and will cause errors in any code that references it. Ensure all application code has been updated first."
+}

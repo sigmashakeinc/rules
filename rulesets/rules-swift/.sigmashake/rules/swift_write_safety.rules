@@ -1,0 +1,77 @@
+# swift_write_safety.rules — Swift write-time security enforcement.
+# Technology: swift | Capability: write
+# Covers: force unwrap, insecure URLSession, SQL injection, hardcoded secrets, NSLog sensitive data, insecure storage.
+
+rule no-force-unwrap {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.swift" AND content LINE_REGEX "[^!]=.*[^!=]![^=]"
+  OR path GLOB "**/*.swift" AND content LINE_REGEX "\\bas\\!\\b"
+  MESSAGE "Force unwrapping (!) crashes the app on nil — prefer optional binding (if let / guard let) or provide a safe default. Force casts (as!) crash on type mismatch."
+}
+
+rule no-try-force {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.swift" AND content LINE_REGEX "\\btry!\\b"
+  MESSAGE "try! crashes the app if the expression throws. Use try? to return nil on failure, or use a proper do/try/catch block to handle errors gracefully."
+}
+
+rule no-allow-invalid-ssl {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.swift" AND content CONTAINS "allowsInvalidSSLCertificates"
+  OR path GLOB "**/*.swift" AND content CONTAINS "SSLPinningMode.none"
+  OR path GLOB "**/*.swift" AND content LINE_REGEX "NSAllowsArbitraryLoads.*true"
+  MESSAGE "Disabling SSL certificate validation exposes the app to man-in-the-middle attacks. Never disable certificate validation in production code."
+}
+
+rule no-sql-interpolation-swift {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.swift" AND content CONTAINS "executeUpdate(" AND content CONTAINS "\\("
+  OR path GLOB "**/*.swift" AND content CONTAINS "executeQuery(" AND content CONTAINS "\\("
+  OR path GLOB "**/*.swift" AND content CONTAINS "db.execute(" AND content CONTAINS "\\("
+  MESSAGE "String interpolation in SQL queries enables SQL injection. Use parameterized queries with ? placeholders: db.executeUpdate('SELECT * FROM t WHERE id = ?', withArgumentsIn: [id])"
+}
+
+rule no-hardcoded-secrets-swift {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.swift" AND content LINE_REGEX "(apiKey|api_key|password|secret|token|clientSecret)\\s*=\\s*\"[^\"]{8,}\""
+  OR path GLOB "**/*.swift" AND content LINE_REGEX "let\\s+(apiKey|api_key|password|secret|token)\\s*=\\s*\""
+  MESSAGE "Hardcoded secrets in Swift source are embedded in the app binary and can be extracted with strings/otool. Store secrets server-side or use the Keychain for local storage."
+}
+
+rule no-nslog-sensitive-data {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.swift" AND content LINE_REGEX "NSLog.*password"
+  OR path GLOB "**/*.swift" AND content LINE_REGEX "NSLog.*token"
+  OR path GLOB "**/*.swift" AND content LINE_REGEX "print.*password"
+  OR path GLOB "**/*.swift" AND content LINE_REGEX "print.*apiKey"
+  MESSAGE "Logging sensitive data (passwords, tokens, keys) exposes them in device logs accessible to developers and crash reporting tools. Remove sensitive values from log statements."
+}
+
+rule no-insecure-data-storage {
+  enabled true
+  priority 85
+  severity error
+  LOG write
+  IF path GLOB "**/*.swift" AND content LINE_REGEX "UserDefaults.*password"
+  OR path GLOB "**/*.swift" AND content LINE_REGEX "UserDefaults.*token"
+  OR path GLOB "**/*.swift" AND content LINE_REGEX "UserDefaults.*apiKey"
+  MESSAGE "UserDefaults stores data in an unencrypted plist on the device filesystem. Use the Keychain to store passwords, tokens, and other sensitive values securely."
+}

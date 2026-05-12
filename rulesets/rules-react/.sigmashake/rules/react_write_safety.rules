@@ -1,0 +1,107 @@
+# react_write_safety.rules — React and JSX security enforcement.
+# Technology: react | Capability: write
+# Covers: XSS via dangerouslySetInnerHTML, missing keys, href injection, eval in JSX.
+
+rule no-dangerous-html {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.tsx" AND content CONTAINS "dangerouslySetInnerHTML"
+  OR path GLOB "**/*.jsx" AND content CONTAINS "dangerouslySetInnerHTML"
+  MESSAGE "dangerouslySetInnerHTML bypasses React's XSS protection. If you need HTML rendering, sanitize with DOMPurify first: dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }}"
+}
+
+rule no-href-javascript {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "href\\s*=\\s*[{\"']javascript:"
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "href\\s*=\\s*[{\"']javascript:"
+  MESSAGE "href=\"javascript:\" enables XSS attacks. Use onClick handlers instead of javascript: URIs."
+}
+
+rule ask-external-url-href {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "href\\s*=\\s*\\{[^}]*\\}"
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "href\\s*=\\s*\\{[^}]*\\}"
+  MESSAGE "Dynamic href detected. Validate that user-supplied values cannot inject javascript: or data: URIs."
+}
+
+rule no-target-blank-without-rel {
+  enabled true
+  priority 80
+  severity error
+  DENY write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "target\\s*=\\s*[\"']_blank[\"']" AND content NOT CONTAINS "rel="
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "target\\s*=\\s*[\"']_blank[\"']" AND content NOT CONTAINS "rel="
+  MESSAGE "target=\"_blank\" without rel=\"noopener noreferrer\" allows the new page to access window.opener (reverse tabnapping). Add rel=\"noopener noreferrer\"."
+}
+
+rule no-token-in-localstorage {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.{ts,tsx,js,jsx}" AND content LINE_REGEX "localStorage\\.setItem\\(\\s*[\"'](?:access_?token|auth_?token|jwt|id_?token|refresh_?token|bearer)"
+  MESSAGE "Storing auth tokens in localStorage exposes them to any XSS on the page (OWASP guidance). Keep access tokens in memory and long-lived refresh tokens in HttpOnly SameSite cookies."
+}
+
+rule no-nextjs-middleware-subrequest {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.{ts,tsx,js,jsx}" AND content CONTAINS "x-middleware-subrequest"
+  MESSAGE "Referencing the x-middleware-subrequest header is associated with CVE-2025-29927 (Next.js middleware auth bypass). Upgrade Next.js to >=14.2.25 / >=15.2.3 and strip this header at the edge; do not trust it in application code."
+}
+
+rule no-react-router-prerender-headers {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.{ts,tsx,js,jsx}" AND content LINE_REGEX "X-React-Router-(SPA-Mode|Prerender-Data)"
+  MESSAGE "X-React-Router-SPA-Mode / X-React-Router-Prerender-Data headers are attacker-controlled inputs behind CVE-2025-43864/43865 (cache poisoning, data spoofing). Upgrade react-router to >=7.5.2 and never forward or trust these headers."
+}
+
+rule ask-use-server-action {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.{ts,tsx,js,jsx}" AND content LINE_REGEX "^\\s*[\"']use server[\"']\\s*;?\\s*$"
+  MESSAGE "'use server' exposes an HTTP endpoint callable by any client (see CVE-2025-55182/55183/55184). Authenticate + authorize every server action, validate all arguments, and ensure React is on >=19.0.1/19.1.2/19.2.1."
+}
+
+rule no-find-dom-node {
+  enabled true
+  priority 80
+  severity error
+  DENY write
+  IF path GLOB "**/*.{ts,tsx,js,jsx}" AND content LINE_REGEX "(ReactDOM\\.)?findDOMNode\\s*\\("
+  MESSAGE "findDOMNode was removed in React 19. Use a ref (useRef/createRef) attached to the target element instead."
+}
+
+rule no-string-refs {
+  enabled true
+  priority 75
+  severity error
+  DENY write
+  IF path GLOB "**/*.{tsx,jsx}" AND content LINE_REGEX "\\sref\\s*=\\s*[\"'][a-zA-Z_][\\w-]*[\"']"
+  MESSAGE "String refs (ref=\"name\") were removed in React 19. Use useRef() or a callback ref (ref={el => ...}) instead."
+}
+
+rule no-missing-key-in-list {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "\\.map\\(\\s*\\([^)]*\\)\\s*=>"
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "\\.map\\(\\s*\\([^)]*\\)\\s*=>"
+  MESSAGE "Array .map() rendering detected. Ensure each rendered element has a unique 'key' prop — missing keys cause incorrect re-renders and React warnings."
+}

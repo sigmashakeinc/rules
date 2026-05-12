@@ -1,0 +1,3 @@
+{
+  "description": "Governance rules designed to protect against agentic vulnerabilities in Claude 4.6 workflows. These rules prevent approval fatigue, context pollution loops, and common AI-driven security risks."
+}

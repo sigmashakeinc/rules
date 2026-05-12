@@ -1,0 +1,30 @@
+# linux_exec_footguns.rules
+# Technology: linux | Capability: exec | Description: Linux specific footguns
+
+rule block-mkfs-formatting {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command CONTAINS "mkfs" AND command CONTAINS "/dev/"
+  MESSAGE "Free Protection: Formatting block devices using mkfs is blocked."
+}
+
+rule block-crontab-remove {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command CONTAINS "crontab -r"
+  MESSAGE "Free Protection: Removing the entire crontab is blocked to prevent accidental loss of scheduled tasks."
+}
+
+rule block-chown-nobody-root {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command CONTAINS "chown -R nobody" AND command CONTAINS "/"
+  OR command CONTAINS "chown -R nogroup" AND command CONTAINS "/"
+  MESSAGE "Free Protection: Recursive ownership changes to nobody on root paths are blocked."
+}

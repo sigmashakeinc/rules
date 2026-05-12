@@ -1,0 +1,47 @@
+# zig_write_extra.rules
+# Technology: zig | Capability: write
+
+rule zig-warn-ignore-errors {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.zig" AND content LINE_REGEX "_\\s*=\\s*\\w+\\("
+  MESSAGE "Ignoring error returns (e.g. `_ = trySomething()`) can leave the system in an inconsistent or insecure state if an operation fails."
+}
+
+rule zig-warn-release-fast {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/build.zig" AND content CONTAINS "ReleaseFast"
+  MESSAGE "RISK: ReleaseFast (and ReleaseSmall) strip bounds checks, integer-overflow checks, and 'std.debug.assert', re-enabling classic memory-safety bugs. FIX: Default to ReleaseSafe for network-facing or untrusted-input code; reserve ReleaseFast for hot paths with independent fuzzing."
+}
+
+rule zig-build-zon-minimum-zig-version {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/build.zig.zon" AND content NOT CONTAINS "minimum_zig_version"
+  MESSAGE "RISK: Without 'minimum_zig_version' the package silently builds on unsupported toolchains, masking breaking changes from 0.14/0.15 (Writergate, Managed→Unmanaged). FIX: Add '.minimum_zig_version = \"0.15.1\"' (or your actual tested version) to build.zig.zon."
+}
+
+rule zig-fixed-buffer-allocator-untrusted {
+  enabled true
+  priority 65
+  severity info
+  LOG write
+  IF path GLOB "**/*.zig" AND content CONTAINS "std.heap.FixedBufferAllocator"
+  MESSAGE "RISK: FixedBufferAllocator returns OutOfMemory when exhausted; handling untrusted sizes with it invites easy DoS and subtle aliasing bugs. FIX: Cap input sizes before allocation and use GeneralPurposeAllocator or ArenaAllocator for variable-sized work."
+}
+
+rule zig-tls-insecure-client {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.zig" AND content LINE_REGEX "\\.ca_bundle\\s*=\\s*\\.none\\b"
+  MESSAGE "RISK: Setting a TLS client's ca_bundle to '.none' disables certificate verification, permitting trivial MITM against 'std.crypto.tls' / 'std.http.Client'. FIX: Load the system bundle via 'std.crypto.Certificate.Bundle.rescan' or pin a specific root certificate."
+}

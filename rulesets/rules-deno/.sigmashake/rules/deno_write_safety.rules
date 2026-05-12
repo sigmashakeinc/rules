@@ -1,0 +1,20 @@
+# deno_write_safety.rules
+# Technology: deno | Capability: write
+
+rule deno-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "Deno.run("
+  MESSAGE "Blocked an unsafe pattern in deno. Use the recommended best practices for 2025/2026."
+}
+
+rule deno-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "Deno.Buffer"
+  MESSAGE "You are using an outdated API for deno. Please upgrade to the newer API."
+}

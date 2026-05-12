@@ -1,0 +1,41 @@
+# gpt-5_model_specific.rules
+# Technology: gpt-5 | Capability: exec | Description: GPT-5 model-specific protections
+
+rule block-gpt5-pro-unsandboxed-shell {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF input.agent_model CONTAINS "gpt-5-pro" AND command CONTAINS "docker run" AND command NOT CONTAINS "--network none"
+  MESSAGE "GPT-5 Pro (Thinking Mode): Advanced reasoning agents must execute shell commands in fully isolated, network-less sandboxes."
+}
+
+rule ask-gpt5-turbo-web-fetch {
+  enabled true
+  priority 90
+  severity warning
+  ASK execution
+  IF input.agent_model CONTAINS "gpt-5-turbo" AND command WORD "curl"
+  OR input.agent_model CONTAINS "gpt-5-turbo" AND command WORD "wget"
+  MESSAGE "GPT-5 Turbo (Fast Mode): Fetching untrusted web data at high speeds exposes the agent to Indirect Prompt Injection (IPI)."
+  PROMPT "The GPT-5 Turbo agent is retrieving untrusted web data. Do you approve?"
+}
+
+rule block-gpt5-omni-media-exfil {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF input.agent_model CONTAINS "gpt-5-omni" AND command CONTAINS "ffmpeg" AND command CONTAINS "http"
+  MESSAGE "GPT-5 Omni (Multimodal): Pushing processed audio/video streams directly to external HTTP endpoints is blocked to prevent media exfiltration."
+}
+
+rule block-gpt5-mini-unauthorized-writes {
+  enabled true
+  priority 90
+  severity error
+  DENY execution
+  IF input.agent_model CONTAINS "gpt-5-mini" AND command CONTAINS "echo " AND command CONTAINS ">>"
+  OR input.agent_model CONTAINS "gpt-5-nano" AND command CONTAINS "echo " AND command CONTAINS ">>"
+  MESSAGE "GPT-5 Mini/Nano: Lightweight models are restricted from modifying files via shell redirects to prevent context hallucination errors."
+}

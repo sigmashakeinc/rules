@@ -1,0 +1,152 @@
+# ubuntu_exec_safety.rules — Ubuntu/Linux execution safety enforcement.
+# Technology: ubuntu | Capability: exec
+# Covers: sudoers misconfig, AppArmor/SELinux disable, SUID, SSH hardening, UFW, shadow access.
+
+rule no-visudo-bypass {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command CONTAINS "/etc/sudoers" AND command NOT CONTAINS "visudo"
+  OR command REGEX "echo.*NOPASSWD.*>>.*sudoers"
+  OR command REGEX "tee.*sudoers"
+  MESSAGE "Editing /etc/sudoers directly can corrupt the file and lock you out. Always use 'visudo' which validates syntax before saving."
+}
+
+rule no-nopasswd-sudo {
+  enabled true
+  priority 100
+  severity error
+  ASK execution
+  IF command CONTAINS "NOPASSWD"
+  OR command REGEX "echo.*NOPASSWD.*sudo"
+  MESSAGE "NOPASSWD in sudoers removes the password requirement for sudo, allowing privilege escalation without authentication. Require passwords for all sudo calls."
+  PROMPT "Is NOPASSWD required for an automated service? If so, restrict it to a specific command: 'user ALL=(ALL) NOPASSWD: /usr/bin/specific-cmd'"
+}
+
+rule no-disable-apparmor {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command CONTAINS "systemctl disable apparmor"
+  OR command CONTAINS "systemctl stop apparmor"
+  OR command REGEX "aa-disable\\s+/"
+  OR command CONTAINS "aa-teardown"
+  MESSAGE "Disabling AppArmor removes mandatory access control protections that confine processes to their expected behavior. Keep AppArmor enforcing in production."
+}
+
+rule no-disable-ufw {
+  enabled true
+  priority 90
+  severity error
+  ASK execution
+  IF command CONTAINS "ufw disable"
+  OR command CONTAINS "ufw reset"
+  OR command REGEX "iptables\\s+-F"
+  OR command REGEX "iptables\\s+--flush"
+  OR command CONTAINS "systemctl stop ufw"
+  MESSAGE "Disabling the firewall (UFW/iptables) exposes all ports to the network. Ensure firewall rules are preserved and only temporarily bypassed if absolutely necessary."
+  PROMPT "Is disabling the firewall intentional? If testing, use 'ufw allow <port>' rather than disabling entirely. Restore with 'ufw enable' immediately after."
+}
+
+rule no-suid-setgid {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF command CONTAINS "chmod +s"
+  OR command CONTAINS "chmod u+s"
+  OR command CONTAINS "chmod g+s"
+  OR command REGEX "chmod\\s+[0-9]*[246][0-9]{3}"
+  MESSAGE "Setting the SUID/SGID bit allows a program to run with the owner's (often root's) privileges regardless of who executes it — a common privilege escalation vector. Avoid SUID/SGID on custom binaries."
+  PROMPT "Is SUID/SGID required? Consider using capabilities (setcap) for specific privileges instead: 'setcap cap_net_bind_service=+ep /path/to/binary'"
+}
+
+rule no-selinux-disable {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command CONTAINS "setenforce 0"
+  OR command REGEX "sed.*selinux.*disabled"
+  OR command REGEX "sed.*SELINUX=disabled"
+  MESSAGE "Disabling SELinux removes mandatory access control that prevents privilege escalation and confines processes. Set to permissive mode for debugging, not disabled."
+}
+
+rule no-read-etc-shadow {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "cat\\s+/etc/shadow"
+  OR command REGEX "less\\s+/etc/shadow"
+  OR command REGEX "head\\s+/etc/shadow"
+  OR command REGEX "tail\\s+/etc/shadow"
+  OR command REGEX "cp\\s+/etc/shadow"
+  MESSAGE "/etc/shadow contains hashed passwords for all system accounts. Reading this file enables offline password cracking. Access via PAM or getspent() for legitimate use."
+}
+
+rule no-curl-pipe-bash {
+  enabled true
+  priority 100
+  severity error
+  ASK execution
+  IF command REGEX "(curl|wget)\\s+[^|]*\\|\\s*(sudo\\s+)?(bash|sh|zsh)"
+  MESSAGE "RISK: Piping a remote script straight into a shell runs unverified, unsigned code as your user (or root) — partial downloads or a compromised host can execute destructive commands. FIX: Download to a file, inspect/checksum it, then run: 'curl -fsSL URL -o setup.sh; less setup.sh; bash setup.sh'."
+  PROMPT "Confirm you trust this URL and have reviewed the script. Prefer the distro package or a signed apt repository when possible."
+}
+
+rule no-apt-key-add {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF command CONTAINS "apt-key add"
+  OR command CONTAINS "apt-key adv"
+  MESSAGE "RISK: 'apt-key' is deprecated in Ubuntu 22.04 and removed in 24.04; keys placed in the global trusted keyring can sign packages from ANY repo, breaking the per-repo trust boundary. FIX: write the dearmored key to /etc/apt/keyrings/<name>.gpg and reference it with 'signed-by=/etc/apt/keyrings/<name>.gpg' in the .sources / .list entry."
+  PROMPT "Migrate this to a scoped signed-by keyring before running."
+}
+
+rule no-rm-rf-root {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "rm\\s+(-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r|-rf|-fr)\\s+(--no-preserve-root\\s+)?/(\\s|$|\\*)"
+  OR command CONTAINS "--no-preserve-root"
+  MESSAGE "RISK: 'rm -rf /' (or with --no-preserve-root) wipes the entire filesystem; an unset variable in a script (e.g. 'rm -rf $UNSET/') turns this into 'rm -rf /'. FIX: target a specific absolute path, quote variables, and use 'set -u' so unset vars abort the script."
+}
+
+rule no-chmod-world-writable {
+  enabled true
+  priority 90
+  severity error
+  ASK execution
+  IF command REGEX "chmod\\s+(-R\\s+)?(777|666|a\\+w|o\\+w)\\s+/"
+  MESSAGE "RISK: World-writable system paths let any local user replace binaries, configs, or scripts that root later executes — a classic local privilege-escalation vector. FIX: grant the minimum needed mode (typically 644 for files, 755 for dirs) and use group ownership instead of world-write."
+  PROMPT "Confirm the target path is non-system and that world-write is genuinely required."
+}
+
+rule no-enable-unprivileged-userns {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF command REGEX "sysctl\\s+(-w\\s+)?kernel\\.unprivileged_userns_clone\\s*=\\s*1"
+  OR command REGEX "kernel\\.apparmor_restrict_unprivileged_userns\\s*=\\s*0"
+  MESSAGE "RISK: Re-enabling unprivileged user namespaces (or disabling AppArmor's userns restriction added in Ubuntu 23.10/24.04) exposes the kernel to bugs like CVE-2024-1086 (nf_tables LPE, actively exploited in ransomware). FIX: leave the restriction in place; grant only the specific binary that needs it via 'aa-genprof'/profile, or use 'unshare' under a confined profile."
+  PROMPT "Is unprivileged userns truly required system-wide? Prefer per-binary AppArmor allowance."
+}
+
+rule no-passwd-root-direct {
+  enabled true
+  priority 90
+  severity error
+  ASK execution
+  IF command REGEX "passwd\\s+root"
+  OR command REGEX "echo.*:.*chpasswd"
+  OR command REGEX "usermod\\s+-p\\s+\\S+\\s+root"
+  MESSAGE "Directly setting or changing the root password is a high-impact operation that can lock out other administrators. Use sudo and document the change."
+  PROMPT "Is changing the root password intentional? Confirm this is a deliberate administrative action, not an unintended command."
+}

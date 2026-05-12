@@ -1,0 +1,22 @@
+# gemma-4_model_specific.rules
+# Technology: gemma-4 | Capability: exec | Description: Gemma 4 model-specific protections
+
+rule block-gemma4-unsandboxed-repl {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF input.agent_model CONTAINS "gemma-4" AND command WORD "python" AND command CONTAINS "-c"
+  OR input.agent_model CONTAINS "gemma-4" AND command WORD "python3" AND command CONTAINS "-c"
+  MESSAGE "Gemma 4 Protection: Inline Python execution is blocked to prevent REPL-based sandbox escapes and unmonitored code execution."
+}
+
+rule block-gemma4-multimodal-exfil {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF input.agent_model CONTAINS "gemma-4" AND command CONTAINS "base64" AND command CONTAINS "curl"
+  OR input.agent_model CONTAINS "gemma-4" AND command CONTAINS "base64" AND command CONTAINS "/dev/tcp"
+  MESSAGE "Gemma 4 Protection: Base64 encoding files and piping to network sockets is blocked to prevent multimodal data exfiltration."
+}

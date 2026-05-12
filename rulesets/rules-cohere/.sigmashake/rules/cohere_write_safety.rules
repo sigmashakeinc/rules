@@ -1,0 +1,56 @@
+# cohere_write_safety.rules
+# Technology: cohere | Capability: write
+
+rule cohere-insecure-shell-execution {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content CONTAINS "subprocess.run(" AND content CONTAINS "shell=True" AND (content CONTAINS "f\"" OR content CONTAINS "cmd_var" OR content CONTAINS "user_input")
+  MESSAGE "Generated Python code uses `subprocess.run` with `shell=True` and potentially user-controlled input (e.g., f-strings, variables). This is a critical command injection vulnerability. Always sanitize inputs and avoid `shell=True` for untrusted commands. Prefer `shell=False` and pass commands as a list of arguments."
+}
+
+rule cohere-sensitive-api-key-leakage {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "COHERE_API_KEY = \"sk-cohere-"
+  MESSAGE "Generated code appears to embed a Cohere API key directly. This is a severe security risk. API keys should be loaded from environment variables, secure vaults, or configuration management, never hardcoded. Remove the hardcoded key immediately."
+}
+
+rule cohere-deprecated-unsafe-generation-api {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "cohere.generate_code(" AND content CONTAINS "safety_filters=False"
+  MESSAGE "Generated code uses the deprecated `cohere.generate_code` API with `safety_filters=False`. This bypasses critical security guardrails. Migrate to `cohere.generate_safe_code()` or ensure `safety_filters=True` is explicitly set and justified. This configuration is highly discouraged for production environments."
+}
+
+rule cohere-insecure-filesystem-write-config {
+  enabled true
+  priority 80
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "cohere.CodeGenerationConfig(allow_filesystem_write=True)"
+  MESSAGE "Generated code configures `cohere.CodeGenerationConfig` to `allow_filesystem_write=True`. This grants the AI model broad write access to the filesystem, posing a significant risk for data corruption or malicious file creation. Restrict filesystem access unless absolutely necessary and implement strict sandboxing. Default to `allow_filesystem_write=False`."
+}
+
+rule cohere-path-traversal-risk-python {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.py" AND content CONTAINS "f\"{base_path}/{filename}\"" AND (content CONTAINS "open(" OR content CONTAINS "os.remove(" OR content CONTAINS "os.mkdir(")
+  MESSAGE "Generated Python code constructs file paths using string concatenation (e.g., f-strings) instead of `os.path.join`. This is a common source of path traversal vulnerabilities. Always use `os.path.join()` to safely construct paths, especially when dealing with user-controlled input."
+}
+
+rule cohere-python-wildcard-imports-style-security {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/*.py" AND content CONTAINS "from " AND content CONTAINS " import *"
+  MESSAGE "Generated Python code uses wildcard imports (`from module import *`). While not strictly a vulnerability, this is discouraged by the Cohere recommended style guide for generated code (aligning with PEP 8). It can lead to namespace pollution, make code harder to read, and obscure the origin of functions, potentially hiding malicious imports. Prefer explicit imports (e.g., `from module import func1, func2`)."
+}

@@ -1,0 +1,94 @@
+# windows_read_privacy.rules — Windows privacy protection for AI coding agents.
+# Technology: windows | Capability: exec + read
+# Covers: browser history, Outlook/email, Credential Manager, Recent files, location, activity timeline.
+
+rule no-read-browser-history-windows {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF command REGEX "sqlite3.*AppData.*Chrome.*History"
+  OR command REGEX "sqlite3.*AppData.*Edge.*History"
+  OR command REGEX "sqlite3.*AppData.*Firefox.*places\\.sqlite"
+  OR command REGEX "copy.*AppData.*Chrome.*History"
+  OR command REGEX "type.*AppData.*Chrome.*History"
+  MESSAGE "Reading Chrome, Edge, or Firefox browsing history from AppData exposes private browsing data including URLs, search queries, and visit timestamps. This is personal data protected under GDPR and CCPA."
+  PROMPT "Is browser history access required for this task? Ask the user to export their bookmarks manually rather than reading history databases directly."
+}
+
+rule no-read-outlook-pst-ost {
+  enabled true
+  priority 100
+  severity error
+  ASK execution
+  IF command REGEX "copy.*\\.pst\\b"
+  OR command REGEX "copy.*\\.ost\\b"
+  OR command REGEX "robocopy.*\\.pst"
+  OR command REGEX "type.*\\.pst"
+  OR command REGEX "Get-Item.*\\.pst"
+  MESSAGE "Copying or reading Outlook PST/OST files exports all private email, calendar, and contact data. PST files contain years of personal communications and are subject to privacy and data protection laws."
+  PROMPT "Is accessing the Outlook PST/OST file intentional? This exports all email, calendar, and contacts. Ensure explicit user consent and a legitimate business justification."
+}
+
+rule no-credential-manager-read {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "cmdkey\\s+\\/list"
+  OR command REGEX "Get-StoredCredential"
+  OR command CONTAINS "CredRead"
+  OR command REGEX "vaultcmd\\s+\\/listcreds"
+  MESSAGE "Reading Windows Credential Manager enumerates stored passwords for websites, network shares, and applications. These are personal credentials that must not be accessed by AI agents."
+}
+
+rule no-read-recent-files {
+  enabled true
+  priority 75
+  severity warning
+  ASK execution
+  IF command REGEX "dir.*AppData.*Recent"
+  OR command REGEX "Get-ChildItem.*Recent"
+  OR command REGEX "ls.*AppData.*Recent"
+  OR command REGEX "type.*AutomaticDestinations"
+  MESSAGE "Reading the Windows Recent Files folder (AppData\\Microsoft\\Windows\\Recent) and jump lists reveals which files the user has recently opened — personal workflow and activity data."
+  PROMPT "Is reading the Recent Files list required? This reveals private file access patterns. Consider a less privacy-invasive approach to discover project files."
+}
+
+rule no-read-windows-activity-timeline {
+  enabled true
+  priority 85
+  severity warning
+  ASK execution
+  IF command REGEX "sqlite3.*ActivitiesCache\\.db"
+  OR command REGEX "copy.*ActivitiesCache\\.db"
+  OR command REGEX "Get-Item.*ActivitiesCache"
+  MESSAGE "Windows Timeline (ActivitiesCache.db) stores a detailed history of all applications used, documents opened, and websites visited. This personal activity data should not be accessed without consent."
+  PROMPT "Is Windows Timeline access required? This database contains detailed personal activity. Ensure the user explicitly consents to this level of activity monitoring."
+}
+
+rule no-windows-location-access {
+  enabled true
+  priority 90
+  severity error
+  ASK execution
+  IF command REGEX "Get-WinEvent.*location"
+  OR command REGEX "reg.*LocationServiceMaster"
+  OR command REGEX "Get-Location.*Windows.*Location"
+  OR command REGEX "sqlite3.*LocationDB"
+  MESSAGE "Accessing Windows location services data or LocationDB exposes the device's location history. Location data is sensitive personal information protected under GDPR and CCPA."
+  PROMPT "Is location data access required? Ensure location access is legally authorized and the user has explicitly consented to location data collection."
+}
+
+rule no-sam-ntds-access {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "reg\\s+save.*SAM"
+  OR command REGEX "reg\\s+save.*SECURITY"
+  OR command REGEX "copy.*\\\\ntds\\.dit"
+  OR command REGEX "vssadmin.*shadow.*ntds"
+  OR command CONTAINS "ntdsutil"
+  MESSAGE "Accessing the SAM database or ntds.dit exports Windows credential hashes for all accounts, enabling offline password cracking. This is a critical security boundary — never export these files in development workflows."
+}

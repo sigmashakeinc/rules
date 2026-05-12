@@ -1,0 +1,45 @@
+# fs_write_risks.rules
+
+rule block-etc-hosts-write {
+  MESSAGE "Blocked modification of /etc/hosts which can be used for DNS spoofing or local traffic redirection."
+  IF path EQUALS "/etc/hosts"
+  severity error
+  priority 100
+  DENY write
+}
+
+rule block-ssh-config-write {
+  MESSAGE "Blocked modification of SSH config to prevent man-in-the-middle or credential exfiltration setups."
+  IF path GLOB "**/.ssh/config"
+  severity error
+  priority 100
+  DENY write
+}
+
+rule block-git-config-write {
+  MESSAGE "Blocked modification of .git/config which can be used to set up malicious hooks or credential helpers."
+  IF path GLOB "**/.git/config"
+  severity error
+  priority 95
+  DENY write
+}
+
+rule warn-cron-write {
+  MESSAGE "Agent is attempting to modify crontab or scheduled jobs. This can be used for persistence."
+  IF path CONTAINS "/var/spool/cron/"
+  OR path STARTS_WITH "/etc/cron."
+  severity warning
+  priority 90
+  LOG write
+}
+
+rule block-sensitive-binary-write {
+  MESSAGE "Blocked modification of common system binaries to prevent backdoor insertion."
+  IF path STARTS_WITH "/usr/bin/"
+  OR path STARTS_WITH "/bin/"
+  OR path STARTS_WITH "/usr/sbin/"
+  OR path STARTS_WITH "/sbin/"
+  severity error
+  priority 100
+  DENY write
+}

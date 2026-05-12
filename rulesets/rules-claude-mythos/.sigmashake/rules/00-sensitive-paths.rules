@@ -1,0 +1,63 @@
+# 00-sensitive-paths.rules — Sensitive path & memory protection.
+# Priority 95: fires before most user rules.
+# Blocks access to /proc, .env, .ssh, .git/config and diagnostic tools.
+
+# Block reads from /proc — kernel memory, process info, and syscall tables
+rule block-proc-access {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command REGEX "\\b(cat|head|tail|less|more|strings|hexdump|xxd)\\b.*\\s/proc/"
+  OR command CONTAINS "/proc/self"
+  OR command CONTAINS "/proc/kcore"
+  OR command CONTAINS "/proc/kallsyms"
+  OR command CONTAINS "/proc/meminfo"
+  MESSAGE "Blocked: /proc access is restricted — contains kernel memory and process internals."
+}
+
+# Block reading /proc paths via Read tool
+rule block-proc-read {
+  enabled true
+  priority 95
+  severity error
+  DENY read
+  IF path STARTS_WITH "/proc/"
+  MESSAGE "Blocked: reading /proc is restricted — contains sensitive kernel and process data."
+}
+
+# Block SSH key directory access
+rule block-ssh-keys {
+  enabled true
+  priority 95
+  severity error
+  DENY any
+  IF path GLOB "**/.ssh/*"
+  OR command CONTAINS ".ssh/"
+  OR command CONTAINS "id_rsa"
+  OR command CONTAINS "id_ed25519"
+  MESSAGE "Blocked: SSH key directory is off-limits."
+}
+
+# Block Git config access (may contain credentials)
+rule block-git-config-read {
+  enabled true
+  priority 94
+  severity error
+  DENY read
+  IF path GLOB "**/.git/config"
+  OR path GLOB "**/.gitconfig"
+  OR path EQUALS "/etc/gitconfig"
+  MESSAGE "Blocked: Git configuration files may contain credentials."
+}
+
+# Low-level diagnostic tools require explicit approval
+rule ask-diagnostic-tools {
+  enabled true
+  priority 95
+  severity error
+  ASK execution
+  IF command REGEX "\\b(gdb|strace|ltrace|ptrace|dd|dmesg|perf|bpftrace|sysctl)\\b"
+  PROMPT "This command uses a low-level diagnostic tool that can inspect memory and kernel state. Allow?"
+  MESSAGE "Requires approval: diagnostic/memory tools need explicit authorization."
+}

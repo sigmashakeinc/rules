@@ -1,0 +1,54 @@
+# react_write_a11y.rules — React accessibility (a11y) enforcement.
+# Technology: react | Capability: write
+# Covers: missing alt text, interactive elements, ARIA roles, keyboard navigation.
+
+rule no-img-without-alt {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "<img\\s[^>]*>" AND content NOT LINE_REGEX "<img\\s[^>]*alt="
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "<img\\s[^>]*>" AND content NOT LINE_REGEX "<img\\s[^>]*alt="
+  MESSAGE "img element missing alt attribute. Screen readers cannot describe the image. Add alt=\"description\" for meaningful images, alt=\"\" for decorative ones."
+}
+
+rule no-click-without-keyboard {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "onClick\\s*=" AND content NOT LINE_REGEX "onKeyDown\\s*=" AND content NOT LINE_REGEX "<button" AND content NOT LINE_REGEX "<a\\s"
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "onClick\\s*=" AND content NOT LINE_REGEX "onKeyDown\\s*=" AND content NOT LINE_REGEX "<button" AND content NOT LINE_REGEX "<a\\s"
+  MESSAGE "Interactive element with onClick but no keyboard handler. Non-button/anchor elements with click handlers are inaccessible to keyboard users. Use <button> or add onKeyDown."
+}
+
+rule no-aria-hidden-on-focusable {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "aria-hidden\\s*=\\s*[{\"']true" AND content LINE_REGEX "tabIndex"
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "aria-hidden\\s*=\\s*[{\"']true" AND content LINE_REGEX "tabIndex"
+  MESSAGE "aria-hidden=\"true\" on a focusable element creates a keyboard trap — the element is invisible to screen readers but still reachable by keyboard. Remove tabIndex or aria-hidden."
+}
+
+rule no-empty-button-label {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "<button[^>]*>\\s*</button>"
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "<button[^>]*>\\s*</button>"
+  OR path GLOB "**/*.tsx" AND content LINE_REGEX "<button[^>]*/>\\s*$"
+  MESSAGE "Button with no text label. Screen readers will announce it as 'button' with no context. Add visible text or an aria-label attribute."
+}
+
+rule no-autofocus {
+  enabled true
+  priority 65
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tsx" AND content LINE_REGEX "autoFocus\\s*[={]"
+  OR path GLOB "**/*.jsx" AND content LINE_REGEX "autoFocus\\s*[={]"
+  MESSAGE "autoFocus moves keyboard focus unexpectedly, which can disorient screen reader users navigating a page. Use autoFocus only for modal dialogs or intentional focus management."
+}

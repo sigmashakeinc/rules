@@ -1,0 +1,33 @@
+# ts_write_crypto.rules
+# Technology: ts | Capability: write
+
+rule no-insecure-crypto-md5 {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "createHash\\(['\"]md5['\"]\\)"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "createHash\\(['\"]sha1['\"]\\)"
+  MESSAGE "MD5 and SHA1 are cryptographically broken. Use SHA-256 or better (e.g., SHA-3)."
+}
+
+rule no-jwt-none-algorithm {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "algorithms?\\s*:\\s*\\[?\\s*['\"]none['\"]"
+  OR path GLOB "**/*.tsx" AND content LINE_REGEX "algorithms?\\s*:\\s*\\[?\\s*['\"]none['\"]"
+  OR path GLOB "**/*.js" AND content LINE_REGEX "algorithms?\\s*:\\s*\\[?\\s*['\"]none['\"]"
+  MESSAGE "Accepting the JWT 'none' algorithm lets any attacker forge tokens by stripping the signature (CVE-2015-9235 class; still reappears in wrappers). Pin algorithms to a concrete list like ['RS256'] or ['HS256'] when calling jsonwebtoken.verify / jose.jwtVerify."
+}
+
+rule warn-math-random {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.ts" AND content CONTAINS "Math.random()"
+  OR path GLOB "**/*.tsx" AND content CONTAINS "Math.random()"
+  MESSAGE "Math.random() is cryptographically insecure. If this is for security tokens, passwords, or IDs, use crypto.getRandomValues() or crypto.randomBytes()."
+}

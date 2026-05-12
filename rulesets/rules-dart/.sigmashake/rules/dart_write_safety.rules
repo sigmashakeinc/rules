@@ -1,0 +1,73 @@
+# dart_write_safety.rules — Dart/Flutter write-time security enforcement.
+# Technology: dart | Capability: write
+# Covers: force unwrap, dart:mirrors, command injection, hardcoded secrets, insecure HTTP, SQL injection.
+
+rule no-force-unwrap-dart {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.dart" AND content LINE_REGEX "[a-zA-Z0-9_\\)\\]]!\\s*[.;,\\)]" AND content NOT CONTAINS "!=" AND content NOT CONTAINS "!is"
+  MESSAGE "The ! (null assertion) operator throws a Null check operator used on a null value exception. Use ?. for safe access or ?? for defaults rather than forcing non-null."
+}
+
+rule no-dart-mirrors {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.dart" AND content CONTAINS "dart:mirrors"
+  MESSAGE "dart:mirrors enables runtime reflection and is not available in Flutter production builds (tree-shaking incompatible). It also significantly increases binary size. Use code generation (build_runner) instead."
+}
+
+rule no-process-run-shell-dart {
+  enabled true
+  priority 95
+  severity error
+  LOG write
+  IF path GLOB "**/*.dart" AND content LINE_REGEX "Process\\.run\\s*\\(\\s*['\"]sh['\"]"
+  OR path GLOB "**/*.dart" AND content LINE_REGEX "Process\\.run\\s*\\(\\s*['\"]bash['\"]"
+  OR path GLOB "**/*.dart" AND content LINE_REGEX "Process\\.start\\s*\\(\\s*['\"]sh['\"]"
+  MESSAGE "Running sh/bash with user-provided arguments enables command injection. Pass commands as explicit argument lists without shell involvement."
+}
+
+rule no-sql-interpolation-dart {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.dart" AND content LINE_REGEX "(rawQuery|rawInsert|rawUpdate|rawDelete|execute)\\s*\\(\\s*['\"].*\\$"
+  OR path GLOB "**/*.dart" AND content LINE_REGEX "(rawQuery|execute)\\s*\\(\\s*['\"].*\\+\\s*"
+  MESSAGE "String interpolation in SQLite rawQuery enables SQL injection. Use parameterized queries: db.rawQuery('SELECT * FROM t WHERE id = ?', [id])"
+}
+
+rule no-hardcoded-secrets-dart {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.dart" AND content LINE_REGEX "const\\s+(apiKey|api_key|password|secret|token)\\s*=\\s*'[^']{8,}'"
+  OR path GLOB "**/*.dart" AND content LINE_REGEX "final\\s+(apiKey|api_key|password|secret|token)\\s*=\\s*'[^']{8,}'"
+  MESSAGE "Hardcoded secrets in Dart/Flutter are compiled into the app binary and extractable with tools like apktool. Use --dart-define for build-time secrets or fetch from a secure backend."
+}
+
+rule no-cleartext-http-dart {
+  enabled true
+  priority 85
+  severity error
+  LOG write
+  IF path GLOB "**/*.dart" AND content CONTAINS "Uri.parse('http:" AND content NOT CONTAINS "localhost"
+  OR path GLOB "**/*.dart" AND content CONTAINS "http.get(Uri.parse('http:"
+  MESSAGE "Cleartext HTTP transmits data without encryption. Use HTTPS for all production network calls. Android and iOS enforce HTTPS by default in production."
+}
+
+rule no-insecure-shared-prefs {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.dart" AND content LINE_REGEX "SharedPreferences.*password"
+  OR path GLOB "**/*.dart" AND content LINE_REGEX "SharedPreferences.*token"
+  OR path GLOB "**/*.dart" AND content LINE_REGEX "SharedPreferences.*apiKey"
+  MESSAGE "SharedPreferences stores data in plaintext. Use flutter_secure_storage for passwords, tokens, and other sensitive values — it uses Keychain on iOS and EncryptedSharedPreferences on Android."
+}

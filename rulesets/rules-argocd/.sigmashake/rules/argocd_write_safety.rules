@@ -1,0 +1,56 @@
+# argocd_write_safety.rules
+# Technology: argocd | Capability: write
+
+rule argocd-path-traversal-source {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND (content CONTAINS "path: ../" OR content CONTAINS "valueFiles: [\"../")
+  MESSAGE "Potential path traversal detected in application source path or Helm value files. Using '..' can lead to unauthorized file access outside the intended repository directory. Ensure all paths are relative to the application's root and do not escape it. Example fix: Use 'path: my-app' instead of 'path: ../my-app'."
+}
+
+rule argocd-deprecated-k8s-api {
+  enabled true
+  priority 90
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND (content CONTAINS "apiVersion: extensions/v1beta1" OR (content CONTAINS "apiVersion: apps/v1beta1" AND (content CONTAINS "kind: Deployment" OR content CONTAINS "kind: DaemonSet" OR content CONTAINS "kind: ReplicaSet")))
+  MESSAGE "Deprecated Kubernetes API version detected. Using 'extensions/v1beta1' or 'apps/v1beta1' for Deployments, DaemonSets, or ReplicaSets is deprecated and may lead to instability or breakage in future Kubernetes versions. Update to 'apiVersion: apps/v1'. This aligns with Google's general Kubernetes best practices for API versioning. Example fix: Change 'apiVersion: extensions/v1beta1' to 'apiVersion: apps/v1'."
+}
+
+rule argocd-insecure-sync-options {
+  enabled true
+  priority 98
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND (content CONTAINS "syncOptions: [\"AllowEmpty=true\"]" OR content CONTAINS "syncOptions: [\"Replace=true\"]")
+  MESSAGE "Insecure Argo CD sync option detected. 'AllowEmpty=true' can lead to accidental deletion of all resources if the manifest becomes empty. 'Replace=true' can bypass immutable fields and security controls. Avoid these options unless absolutely necessary and with extreme caution. Example fix: Remove 'AllowEmpty=true' or 'Replace=true' from syncOptions."
+}
+
+rule argocd-unpinned-target-revision {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "targetRevision: HEAD"
+  MESSAGE "Unpinned Git target revision detected. Using 'HEAD' for 'targetRevision' can lead to non-reproducible deployments and unexpected changes, potentially deploying unreviewed code. Pin to a specific commit SHA or a stable tag for security and reproducibility. Example fix: Change 'targetRevision: HEAD' to 'targetRevision: v1.2.3' or 'targetRevision: <commit-sha>'."
+}
+
+rule argocd-insecure-repo-url {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "repoURL: http://"
+  MESSAGE "Insecure Git repository URL detected. Using 'http://' for 'repoURL' is vulnerable to Man-in-the-Middle attacks and credential exposure. Always use 'https://' or 'ssh://' for secure communication. Example fix: Change 'repoURL: http://git.example.com/repo.git' to 'repoURL: https://git.example.com/repo.git'."
+}
+
+rule argocd-default-project-usage {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "project: default"
+  MESSAGE "Usage of the 'default' Argo CD project detected. The 'default' project often has broader permissions and is not recommended for production workloads. Create and use dedicated Argo CD projects with fine-grained RBAC for better security and isolation. Example fix: Change 'project: default' to 'project: my-secure-project'."
+}

@@ -1,0 +1,3 @@
+{
+  "description": "Weaviate is an open-source vector database that allows you to store data objects and vector embeddings. These rules govern schema definitions, query efficiency, and indexing best practices for AI agents."
+}

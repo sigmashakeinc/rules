@@ -1,0 +1,3 @@
+{
+  "description": "New Relic is an observability platform that helps engineers monitor, debug, and improve their entire stack. These rules ensure proper instrumentation, secure handling of telemetry data, and efficient alert configuration when agents interact with New Relic."
+}

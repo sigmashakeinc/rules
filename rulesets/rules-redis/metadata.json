@@ -1,0 +1,3 @@
+{
+  "description": "Redis is an in-memory data structure store used as a database, cache, and message broker. These rules govern efficient data modeling, command usage, and performance tuning for AI agents interacting with Redis."
+}

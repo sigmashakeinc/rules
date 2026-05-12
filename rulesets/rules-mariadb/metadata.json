@@ -1,0 +1,3 @@
+{
+  "description": "MariaDB is a popular open-source relational database that is a community-developed fork of MySQL. These rules govern MariaDB interactions, preventing SQL injection, insecure connection settings, and unauthorized data access patterns."
+}

@@ -1,0 +1,53 @@
+# java_write_safety.rules — Java security and safety rules.
+# Technology: java | Capability: write
+# Covers: SQL injection, XXE, deserialization, printStackTrace, null handling.
+
+rule no-string-concat-sql {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.java" AND content LINE_REGEX "(?:createStatement|executeQuery|executeUpdate)\\s*\\(\\s*\".*\\+"
+  OR path GLOB "**/*.java" AND content LINE_REGEX "(?:createStatement|executeQuery|executeUpdate)\\s*\\(\\s*\\w+\\s*\\+"
+  MESSAGE "SQL query built with string concatenation enables SQL injection. Use PreparedStatement with ? placeholders: PreparedStatement ps = conn.prepareStatement('SELECT * FROM t WHERE id = ?'); ps.setInt(1, id);"
+}
+
+rule no-xxe-vulnerable-parser {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.java" AND content CONTAINS "DocumentBuilderFactory.newInstance()" AND content NOT CONTAINS "setFeature"
+  OR path GLOB "**/*.java" AND content CONTAINS "SAXParserFactory.newInstance()" AND content NOT CONTAINS "setFeature"
+  MESSAGE "XML parser is vulnerable to XXE (XML External Entity) injection. Disable external entities: factory.setFeature('http://apache.org/xml/features/disallow-doctype-decl', true)"
+}
+
+rule no-java-deserialize {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.java" AND content CONTAINS "ObjectInputStream"
+  OR path GLOB "**/*.java" AND content CONTAINS "readObject()"
+  MESSAGE "Java deserialization of untrusted data is a critical RCE vulnerability (OWASP A08). Use JSON, Protobuf, or Apache Commons Collections safe deserialization instead."
+}
+
+rule no-exception-swallow {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.java" AND content LINE_REGEX "catch\\s*\\(.*Exception\\s+\\w+\\)\\s*\\{\\s*\\}"
+  OR path GLOB "**/*.java" AND content LINE_REGEX "catch\\s*\\(.*Exception\\s+\\w+\\)\\s*\\{\\s*//.*\\}"
+  MESSAGE "Empty catch block silently swallows exceptions. At minimum, log the exception. Swallowed exceptions make debugging production issues nearly impossible."
+}
+
+rule no-system-exit {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/*.java" AND content CONTAINS "System.exit("
+  OR path GLOB "**/*.java" AND content CONTAINS "Runtime.getRuntime().halt("
+  MESSAGE "System.exit() terminates the JVM abruptly, bypassing finally blocks and shutdown hooks. In library code, throw an exception instead. In web apps, let the container manage lifecycle."
+}

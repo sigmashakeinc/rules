@@ -1,0 +1,20 @@
+# qdrant_write_safety.rules
+# Technology: qdrant | Capability: write
+
+rule qdrant-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "QDRANT__SERVICE__API_KEY"
+  MESSAGE "Blocked an unsafe pattern in qdrant. Use the recommended best practices for 2025/2026."
+}
+
+rule qdrant-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "init_from"
+  MESSAGE "You are using an outdated API for qdrant. Please upgrade to the newer API."
+}

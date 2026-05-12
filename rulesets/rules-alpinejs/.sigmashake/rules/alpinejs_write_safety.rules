@@ -1,0 +1,56 @@
+# alpinejs_write_safety.rules
+# Technology: alpinejs | Capability: write
+
+rule alpinejs-xss-x-html-unsanitized {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.html" AND content CONTAINS "x-html=\""
+  MESSAGE "Potential Cross-Site Scripting (XSS) vulnerability detected. Using 'x-html' with unsanitized user input can lead to arbitrary code execution. Always prefer 'x-text' for displaying user-generated content. If 'x-html' is absolutely necessary, ensure the content is rigorously sanitized using a trusted library like DOMPurify before binding."
+}
+
+rule alpinejs-attribute-injection-x-bind-url {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.html" AND (content CONTAINS "x-bind:href=\"" OR content CONTAINS "x-bind:src=\"")
+  MESSAGE "Potential Attribute Injection vulnerability detected. Binding 'href' or 'src' attributes with untrusted input can lead to XSS (e.g., 'javascript:...' URLs) or resource loading from malicious domains. Always validate and sanitize URLs bound to 'x-bind:href' or 'x-bind:src' to ensure they conform to expected protocols and domains."
+}
+
+rule alpinejs-direct-eval-or-new-function {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.html" AND (content CONTAINS "eval(" OR content CONTAINS "new Function(")
+  MESSAGE "Direct use of 'eval()' or 'new Function()' within Alpine.js expressions is a severe security risk, enabling arbitrary code execution. This bypasses Alpine.js's secure expression evaluation. Refactor your code to use Alpine.js's built-in reactivity and event handling mechanisms, or define functions securely outside of inline expressions."
+}
+
+rule alpinejs-sensitive-data-in-x-data {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.html" AND (content CONTAINS "x-data=\"{ api_key:" OR content CONTAINS "x-data=\"{ secret:" OR content CONTAINS "x-data=\"{ token:" OR content CONTAINS "x-data=\"{ password:" OR content CONTAINS "x-data=\"{ private_key:")
+  MESSAGE "Sensitive data (e.g., API keys, secrets, tokens, passwords) detected directly within 'x-data' attributes. This exposes sensitive information to the client-side DOM and can be easily accessed by attackers. Store sensitive data securely on the backend and retrieve it via authenticated API calls, or use secure client-side storage mechanisms with appropriate encryption if absolutely necessary."
+}
+
+rule alpinejs-unsanitized-server-template-variable-in-x-data {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.html" AND (content CONTAINS "x-data=\"{{ " OR content CONTAINS "x-data='{!! " OR content CONTAINS "x-data=\"@{{")
+  MESSAGE "Potentially unsanitized server-side template variable detected within 'x-data'. Directly embedding server-side variables without proper escaping or sanitization can introduce XSS vulnerabilities if the variable contains untrusted user input. Ensure all server-side variables rendered into 'x-data' are properly escaped for HTML attributes or JSON context (e.g., using '{{ variable | json_encode }}' or equivalent)."
+}
+
+rule alpinejs-avoid-var-keyword {
+  enabled true
+  priority 50
+  severity warning
+  LOG write
+  IF path GLOB "**/*.html" AND (content CONTAINS "x-data=\"var " OR content CONTAINS "x-on:click=\"var " OR content CONTAINS "x-on:submit=\"var ")
+  MESSAGE "Usage of the 'var' keyword detected in Alpine.js expressions. While not a direct security vulnerability, 'var' has function-level scope and can lead to unexpected behavior or shadowing issues. Prefer 'let' or 'const' for block-scoped variable declarations to promote modern JavaScript practices and avoid potential scope-related issues."
+}

@@ -1,0 +1,13 @@
+# ts_write_config.rules — TypeScript build configuration safety.
+# Technology: ts | Capability: write
+# Covers: tsconfig.json security settings that can expose source code.
+
+rule no-sourcemap-in-tsconfig {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/tsconfig.json" AND content LINE_REGEX "\"sourceMap\"\\s*:\\s*true"
+  OR path GLOB "**/tsconfig.*.json" AND content LINE_REGEX "\"sourceMap\"\\s*:\\s*true"
+  MESSAGE "sourceMap: true exposes your TypeScript source code via .map files served alongside production bundles. Source maps allowed the Claude Code source code leak (March 31, 2026) — private TypeScript was fully reconstructable by anyone inspecting network traffic. Set sourceMap: false or omit the field entirely. For local debugging only, restrict source maps to dev-only tsconfig overrides never deployed to production."
+}

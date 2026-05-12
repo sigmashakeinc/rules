@@ -1,0 +1,39 @@
+# k8s_exec_governance.rules
+
+rule block-privileged-pod {
+  MESSAGE "Blocked creation of privileged pods to prevent container escapes and host takeover."
+  IF path GLOB "**/manifests/*.yaml"
+  OR path GLOB "**/charts/*.yaml"
+  AND content CONTAINS "privileged: true"
+  severity error
+  priority 100
+  DENY write
+}
+
+rule warn-missing-resource-limits {
+  MESSAGE "Kubernetes manifest is missing resource CPU or Memory limits. This can lead to cluster instability."
+  IF path GLOB "**/*.yaml"
+  AND content CONTAINS "kind: Pod"
+  OR content CONTAINS "kind: Deployment"
+  AND content NOT CONTAINS "limits:"
+  severity warning
+  priority 80
+  LOG write
+}
+
+rule block-k8s-delete-namespace {
+  MESSAGE "Blocked 'kubectl delete namespace' to prevent accidental loss of cluster resources."
+  IF command CONTAINS "kubectl delete namespace"
+  OR command CONTAINS "k delete ns"
+  severity error
+  priority 100
+  DENY execution
+}
+
+rule audit-k8s-port-forward {
+  MESSAGE "User is port-forwarding to a pod. This could expose internal services externally."
+  IF command CONTAINS "kubectl port-forward"
+  severity info
+  priority 50
+  LOG execution
+}

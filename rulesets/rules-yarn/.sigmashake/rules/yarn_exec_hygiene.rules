@@ -1,0 +1,48 @@
+# yarn_exec_hygiene.rules — Guard yarn publish and registry operations.
+# Technology: yarn | Capability: exec
+# Covers: publish, unpublish, dlx, patch (Classic + Berry).
+
+rule no-yarn-unpublish {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command STARTS_WITH "yarn npm unpublish"
+  OR command STARTS_WITH "yarn unpublish"
+  OR command REGEX "^yarn (npm )?unpublish\\b"
+  MESSAGE "yarn unpublish is blocked. Removing a published package version breaks all projects depending on it and cannot be undone after 72 hours. Use 'yarn npm deprecate' to discourage use without removing."
+}
+
+rule ask-yarn-publish {
+  enabled true
+  priority 90
+  severity warning
+  ASK execution
+  IF command STARTS_WITH "yarn npm publish"
+  OR command STARTS_WITH "yarn publish"
+  OR command REGEX "^yarn (npm )?publish\\b"
+  MESSAGE "Publishing via yarn is permanent (except within 72 hours). Verify version, build output, and .npmignore before publishing."
+  PROMPT "Have you verified: (1) correct version bump in package.json, (2) clean build output, (3) .npmignore excludes source/test files, (4) correct registry target?"
+}
+
+rule ask-yarn-dlx {
+  enabled true
+  priority 80
+  severity warning
+  ASK execution
+  IF command STARTS_WITH "yarn dlx"
+  OR command REGEX "^yarn dlx\\b"
+  MESSAGE "yarn dlx downloads and executes a package without installing it. Without a version pin, it always fetches the latest release — a compromised release executes immediately in your project."
+  PROMPT "Have you pinned the version? Prefer: yarn dlx <package>@<exact-version>"
+}
+
+rule ask-yarn-patch {
+  enabled true
+  priority 85
+  severity warning
+  ASK execution
+  IF command STARTS_WITH "yarn patch"
+  OR command REGEX "^yarn patch\\b"
+  MESSAGE "'yarn patch' modifies a dependency directly. The patch must be committed via 'yarn patch-commit' to the .yarn/patches directory to persist across reinstalls."
+  PROMPT "Will you commit this patch with 'yarn patch-commit'? Verify the patch is minimal and does not introduce unintended changes to the dependency."
+}

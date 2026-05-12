@@ -1,0 +1,103 @@
+# git_cve_mitigations.rules — Block known Git CVEs and config-based RCE vectors.
+# Technology: git | Capability: exec, write
+# Covers: CVE-2024-32002/32004, CVE-2024-50349/52006, CVE-2025-48384/48385, CVE-2025-27613,
+# malicious git config (core.hooksPath, core.fsmonitor, insteadOf), .git/hooks writes,
+# deprecated filter-branch, irreversible reflog/gc operations.
+
+rule no-hooks-path-override {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command CONTAINS "core.hooksPath"
+  MESSAGE "Overriding core.hooksPath is blocked. RISK: redirecting hooks lets any future git operation execute attacker-controlled scripts (persistent RCE). FIX: keep hooks in the repo's default .git/hooks directory and review each hook before enabling."
+}
+
+rule no-fsmonitor-config {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command CONTAINS "core.fsmonitor"
+  MESSAGE "Setting core.fsmonitor to an arbitrary command is blocked. RISK: git executes this command on every invocation — an attacker-controlled value yields silent RCE. FIX: use the built-in 'true' fsmonitor daemon or leave the setting unset."
+}
+
+rule deny-credential-helper-store {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command REGEX "git config[^#]*credential\\.helper\\s+store"
+  OR command REGEX "credential\\.helper=store"
+  MESSAGE "credential.helper=store is blocked. RISK: it writes plaintext credentials to ~/.git-credentials, readable by any process on the host. FIX: use an OS keychain helper (osxkeychain, manager-core, libsecret) or the short-lived 'cache' helper."
+}
+
+rule deny-global-insteadof {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command REGEX "git config\\s+--global[^#]*insteadOf"
+  OR command REGEX "git config\\s+--system[^#]*insteadOf"
+  MESSAGE "Global/system url.*.insteadOf rewrites are blocked. RISK: silently redirects every future clone/fetch through an attacker host (supply-chain MITM). FIX: scope URL rewrites to a single repo with 'git config --local' after human review."
+}
+
+rule ask-recurse-submodules-clone {
+  enabled true
+  priority 90
+  severity warning
+  ASK execution
+  IF command CONTAINS "--recurse-submodules"
+  AND command CONTAINS "git clone"
+  MESSAGE "Recursive submodule clone detected. RISK: CVE-2024-32002 and CVE-2025-48384 allow crafted submodules to write into .git/ and trigger post-checkout RCE on Git <2.50.1. FIX: clone without --recurse-submodules, inspect .gitmodules, then run 'git submodule update --init' on a trusted Git version."
+  PROMPT "Is this repository from a fully trusted source and is your git >= 2.50.1? Recursive submodule clones have a history of RCE CVEs (CVE-2024-32002, CVE-2025-48384)."
+}
+
+rule ask-submodule-update-untrusted {
+  enabled true
+  priority 85
+  severity warning
+  ASK execution
+  IF command REGEX "git submodule update[^#]*--init"
+  OR command REGEX "git submodule update[^#]*--remote"
+  MESSAGE "Submodule update detected. RISK: CVE-2025-48384 — a carriage-return in a submodule path checks out files outside the worktree and can install a hook that executes on the next git command. FIX: verify .gitmodules has no control characters and ensure git >= 2.50.1."
+  PROMPT "Have you inspected .gitmodules for CR/LF injection and confirmed git >= 2.50.1?"
+}
+
+rule deny-write-git-hooks {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/.git/hooks/**"
+  MESSAGE "Writing into .git/hooks is blocked. RISK: any executable placed there runs automatically on the matching git event (commit, checkout, merge) — a direct RCE foothold. FIX: use Husky, lefthook, or pre-commit which version-control hooks inside the repo under review."
+}
+
+rule deny-filter-branch {
+  enabled true
+  priority 80
+  severity error
+  DENY execution
+  IF command CONTAINS "git filter-branch"
+  MESSAGE "git filter-branch is blocked. RISK: officially deprecated — has known safety and performance bugs that silently corrupt history. FIX: use 'git filter-repo' (https://github.com/newren/git-filter-repo), which is the project-recommended replacement."
+}
+
+rule deny-reflog-expire-now {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command REGEX "git reflog expire[^#]*--expire=now[^#]*--all"
+  OR command REGEX "git gc[^#]*--prune=now"
+  MESSAGE "Immediate reflog expiry / gc prune is blocked. RISK: permanently deletes unreachable objects so mistakes from reset/rebase/branch-delete become unrecoverable. FIX: rely on the default 90-day reflog window, or prune with '--prune=1.day.ago' after a manual backup."
+}
+
+rule ask-update-ref-delete {
+  enabled true
+  priority 80
+  severity warning
+  ASK execution
+  IF command REGEX "git update-ref\\s+-d"
+  MESSAGE "Direct ref deletion via update-ref detected. RISK: bypasses branch/tag safety checks and leaves no reflog entry for recovery. FIX: use 'git branch -d' or 'git tag -d' so the operation is logged and the default gc window can recover it."
+  PROMPT "Why delete the ref directly instead of using branch/tag delete? Direct ref deletion is unrecoverable once gc runs."
+}

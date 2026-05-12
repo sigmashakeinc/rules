@@ -1,0 +1,20 @@
+# xamarin_write_safety.rules
+# Technology: xamarin | Capability: write
+
+rule xamarin-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "Java.Interop"
+  MESSAGE "Blocked an unsafe pattern in xamarin. Use the recommended best practices for 2025/2026."
+}
+
+rule xamarin-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "Forms.Init"
+  MESSAGE "You are using an outdated API for xamarin. Please upgrade to the newer API."
+}

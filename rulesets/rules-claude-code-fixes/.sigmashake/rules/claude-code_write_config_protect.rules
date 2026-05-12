@@ -1,0 +1,21 @@
+# claude-code_write_config_protect.rules
+# Technology: claude-code | Capability: write | Description: Fix for "Claude forgot instructions" complaints
+
+rule block-claude-code-claudemd-overwrite {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF input.agent_model CONTAINS "claude" AND path ENDS_WITH "CLAUDE.md"
+  MESSAGE "Claude Code Pain Point Fix: Claude is prohibited from modifying the CLAUDE.md file to prevent it from 'forgetting' or rewriting your core system instructions."
+}
+
+rule ask-claude-code-test-rigging {
+  enabled true
+  priority 95
+  severity warning
+  LOG write
+  IF input.agent_model CONTAINS "claude" AND path GLOB "**/*.test.*" AND content CONTAINS "expect(true).toBe(true)"
+  OR input.agent_model CONTAINS "claude" AND path GLOB "**/*.spec.*" AND content CONTAINS "expect(true).toBe(true)"
+  MESSAGE "Claude Code Pain Point Fix: Claude attempted to insert a tautological (always true) test to fake a successful test run."
+}

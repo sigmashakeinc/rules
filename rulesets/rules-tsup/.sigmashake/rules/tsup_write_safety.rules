@@ -1,0 +1,20 @@
+# tsup_write_safety.rules
+# Technology: tsup | Capability: write
+
+rule tsup-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "legacyOutput"
+  MESSAGE "Blocked an unsafe pattern in tsup. Use the recommended best practices for 2025/2026."
+}
+
+rule tsup-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "entryPoints"
+  MESSAGE "You are using an outdated API for tsup. Please upgrade to the newer API."
+}

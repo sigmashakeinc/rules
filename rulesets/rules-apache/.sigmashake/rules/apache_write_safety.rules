@@ -1,0 +1,39 @@
+# apache_write_safety.rules
+# Technology: apache | Capability: write
+
+rule apache-server-tokens {
+  enabled true
+  priority 90
+  severity warning
+  LOG write
+  IF path GLOB "**/*.conf" AND content NOT LINE_REGEX "ServerTokens\\s+Prod"
+  MESSAGE "Apache reveals its version and OS information by default. Attackers use this for reconnaissance. Add 'ServerTokens Prod' to hide version details."
+}
+
+rule apache-directory-listing {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.conf" AND content LINE_REGEX "Options\\s+.*\\+?Indexes"
+  OR path GLOB "**/.htaccess" AND content LINE_REGEX "Options\\s+.*\\+?Indexes"
+  MESSAGE "Enabling 'Indexes' allows directory listing, exposing your file structure and sensitive files to the public. Use 'Options -Indexes' to disable this."
+}
+
+rule apache-root-directory-access {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.conf" AND content LINE_REGEX "<Directory\\s+/>" AND content NOT CONTAINS "Require all denied"
+  MESSAGE "The root directory (<Directory />) must be locked down by default to prevent access to the entire server file system. Ensure 'Require all denied' is set."
+}
+
+rule apache-weak-ssl-protocols {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.conf" AND content LINE_REGEX "SSLProtocol.*\\+(SSLv2|SSLv3|TLSv1\\b|TLSv1\\.1)"
+  MESSAGE "Enabling weak or deprecated SSL/TLS protocols (SSLv2, SSLv3, TLS 1.0, TLS 1.1) exposes the server to cryptographic downgrade attacks. Allow only TLSv1.2 and TLSv1.3."
+}

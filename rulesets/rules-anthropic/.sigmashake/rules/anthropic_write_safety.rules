@@ -1,0 +1,65 @@
+# anthropic_write_safety.rules
+# Technology: anthropic | Capability: write
+
+rule anthropic-insecure-deserialization-pickle {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content CONTAINS "import pickle" AND content CONTAINS "pickle.loads("
+  MESSAGE "AI-generated code uses `pickle.loads` which is highly vulnerable to arbitrary code execution if deserializing untrusted data. This is a critical security risk. Replace `pickle` with safer serialization formats like JSON or YAML, and ensure all input is validated against a strict schema. For complex objects, consider custom serialization or secure alternatives."
+}
+
+rule anthropic-command-injection-os-system {
+  enabled true
+  priority 98
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content CONTAINS "import os" AND content CONTAINS "os.system("
+  MESSAGE "AI-generated code uses `os.system` which is prone to command injection vulnerabilities if any part of the command string originates from untrusted input. This allows attackers to execute arbitrary shell commands. Use `subprocess.run` with `shell=False` and pass arguments as a list to prevent injection."
+}
+
+rule anthropic-hardcoded-api-key {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content CONTAINS "api_key =" AND content MATCHES "api_key\\s*=\\s*[\"']sk-[a-zA-Z0-9]{32,64}[\"']"
+  MESSAGE "AI-generated code appears to hardcode an API key (e.g., 'sk-...') directly in the source. Hardcoding secrets is a severe security risk, leading to credential compromise. Store API keys securely using environment variables, a dedicated secret management service (e.g., AWS Secrets Manager, HashiCorp Vault), or a secure configuration file, and load them at runtime."
+}
+
+rule anthropic-insecure-randomness-for-security {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.py" AND content CONTAINS "import random" AND (content CONTAINS "random.randint(" OR content CONTAINS "random.choice(") AND (content CONTAINS "token =" OR content CONTAINS "password =" OR content CONTAINS "salt =")
+  MESSAGE "AI-generated code uses the `random` module for security-sensitive operations like generating tokens, passwords, or salts. The `random` module is not cryptographically secure. For security-critical randomness, use the `secrets` module (e.g., `secrets.token_hex()`, `secrets.randbelow()`) which provides cryptographically strong random numbers."
+}
+
+rule anthropic-unsafe-eval-exec {
+  enabled true
+  priority 92
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND (content CONTAINS "eval(" OR content CONTAINS "exec(")
+  MESSAGE "AI-generated code uses `eval()` or `exec()`. These functions are extremely dangerous when processing untrusted input, as they allow arbitrary code execution. This is a fundamental security anti-pattern. Refactor the code to avoid dynamic execution of untrusted strings; use safer alternatives like AST parsing, explicit function calls, or a sandboxed environment if absolutely necessary."
+}
+
+rule anthropic-path-traversal-os-path-join-unvalidated {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content CONTAINS "import os" AND content CONTAINS "os.path.join(" AND content MATCHES "os\\.path\\.join\\([^,]+,\\s*[a-zA-Z_][a-zA-Z0-9_]*\\)"
+  MESSAGE "AI-generated code uses `os.path.join` with a variable that might contain untrusted user input, potentially leading to path traversal vulnerabilities (e.g., `../../etc/passwd`). Always sanitize user-provided path components by removing '..' or absolute path indicators, and validate that the final path resolves within an allowed base directory using `os.path.abspath` and `os.path.commonprefix`."
+}
+
+rule anthropic-weak-hashing-algorithm {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/*.py" AND content CONTAINS "import hashlib" AND (content CONTAINS "hashlib.md5(" OR content CONTAINS "hashlib.sha1(")
+  MESSAGE "AI-generated code uses weak hashing algorithms like MD5 or SHA1 for security purposes. These algorithms are cryptographically broken and vulnerable to collision attacks. For password hashing, use `hashlib.sha256` or `hashlib.sha512` with a robust key derivation function like `pbkdf2_hmac` and a unique salt. For data integrity, use stronger algorithms like SHA256 or SHA3."
+}

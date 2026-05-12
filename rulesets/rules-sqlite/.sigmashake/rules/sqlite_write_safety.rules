@@ -1,0 +1,174 @@
+# sqlite_write_safety.rules
+# Technology: sqlite | Capability: write
+
+rule sqlite-block-load-extension {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "sqlite3_enable_load_extension(" AND content NOT CONTAINS "0)"
+  OR path GLOB "**/*" AND content CONTAINS "load_extension("
+  MESSAGE "RISK: Loadable SQLite extensions allow arbitrary native code execution via .so/.dll (CVE-2019-8457 class). FIX: Keep sqlite3_enable_load_extension(db, 0); never call load_extension() on untrusted input."
+}
+
+rule sqlite-warn-writable-schema {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content LINE_REGEX "[Pp][Rr][Aa][Gg][Mm][Aa]\\s+writable_schema\\s*=\\s*(ON|on|1|true|TRUE)"
+  MESSAGE "RISK: PRAGMA writable_schema=ON allows arbitrary modification of sqlite_master enabling persisted RCE via crafted triggers. FIX: Remove the PRAGMA; use ALTER TABLE / migrations instead."
+}
+
+rule sqlite-warn-trusted-schema {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content LINE_REGEX "[Pp][Rr][Aa][Gg][Mm][Aa]\\s+trusted_schema\\s*=\\s*(ON|on|1|true|TRUE)"
+  MESSAGE "RISK: trusted_schema=ON lets malicious triggers/views/virtual-tables in attached DBs invoke unsafe functions. FIX: Keep PRAGMA trusted_schema=OFF (the default since 3.31)."
+}
+
+rule sqlite-block-string-concatenation-sql {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.js" AND content LINE_REGEX "db\\.(run|get|all|exec|prepare)\\(\\s*[`\"'][^`\"']*\\$\\{"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "db\\.(run|get|all|exec|prepare)\\(\\s*[`\"'][^`\"']*\\$\\{"
+  OR path GLOB "**/*.py" AND content LINE_REGEX "(execute|executemany)\\s*\\(\\s*f[\"'][^\"']*\\{"
+  OR path GLOB "**/*.py" AND content LINE_REGEX "(execute|executemany)\\s*\\([^)]*[\"']\\s*%\\s*\\("
+  MESSAGE "RISK: String-built SQL is the #1 SQLite injection vector. FIX: Use parameter placeholders (? or :name) and bind values; never concatenate user input into SQL."
+}
+
+rule sqlite-warn-public-db-path {
+  enabled true
+  priority 90
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content LINE_REGEX "(/var/www/html/|public/|static/)[^\"'\\s]*\\.(db|sqlite|sqlite3)"
+  MESSAGE "RISK: Placing a .db/.sqlite file in a web-served directory exposes the entire database for download. FIX: Store DB files outside the web root (e.g. /var/lib/app)."
+}
+
+rule sqlite-block-python-executescript-userinput {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "\\.executescript\\s*\\(\\s*[a-zA-Z_][a-zA-Z0-9_]*\\s*\\)"
+  OR path GLOB "**/*.py" AND content LINE_REGEX "\\.executescript\\s*\\(\\s*f[\"']"
+  MESSAGE "RISK: cursor.executescript() runs multiple semicolon-separated statements with implicit commit — a direct SQL-injection sink (PEP 249). FIX: Call execute() per statement with bound ? parameters."
+}
+
+rule sqlite-block-attach-database-interpolation {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content LINE_REGEX "ATTACH\\s+DATABASE\\s+[`\"'][^`\"']*\\$\\{"
+  OR path GLOB "**/*.py" AND content LINE_REGEX "ATTACH\\s+DATABASE\\s+[\"']\\s*\\+|ATTACH\\s+DATABASE\\s+f[\"']"
+  MESSAGE "RISK: ATTACH DATABASE with interpolated paths enables path traversal and lets attackers attach malicious DB files (which can pivot via triggers if trusted_schema=ON). FIX: Allowlist filenames; pass them through bound parameters or hard-code paths."
+}
+
+rule sqlite-block-pragma-key-literal {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content LINE_REGEX "[Pp][Rr][Aa][Gg][Mm][Aa]\\s+(key|rekey)\\s*=\\s*[\"'][^\"']+[\"']"
+  MESSAGE "RISK: SQLCipher PRAGMA key='...' embeds the encryption key in source/SQL logs/traces. FIX: Use sqlite3_key_v2() C API or your binding's keyed-open with secrets pulled from a secret manager."
+}
+
+rule sqlite-block-better-sqlite3-exec-userinput {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.{js,ts,mjs,cjs}" AND content LINE_REGEX "\\.exec\\(\\s*[a-zA-Z_$][\\w$]*\\s*\\)"
+  AND content CONTAINS "better-sqlite3"
+  MESSAGE "RISK: better-sqlite3 db.exec(str) runs ALL semicolon-separated statements with no parameter binding — direct injection if str is user-derived. FIX: Use db.prepare(sql).run(params) and split DDL into separate prepared statements."
+}
+
+rule sqlite-block-uri-open-userinput {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "sqlite3\\.connect\\([^)]*uri\\s*=\\s*True"
+  AND content LINE_REGEX "f[\"']file:|[\"']file:[^\"']*[\"']\\s*\\+|\\.format\\("
+  MESSAGE "RISK: Opening with uri=True and a user-controlled file: URI lets the caller select VFS, enable mode=memory, swap journal files, etc. FIX: Disable URI mode or strictly validate the path and strip query parameters."
+}
+
+rule sqlite-warn-pragma-durability-off {
+  enabled true
+  priority 80
+  severity warning
+  ASK write
+  IF path GLOB "**/*" AND content LINE_REGEX "[Pp][Rr][Aa][Gg][Mm][Aa]\\s+(journal_mode\\s*=\\s*OFF|synchronous\\s*=\\s*OFF|synchronous\\s*=\\s*0)"
+  MESSAGE "RISK: journal_mode=OFF / synchronous=OFF disables crash recovery — a single power loss corrupts the database. FIX: Use WAL + synchronous=NORMAL in production; only disable in throwaway test fixtures."
+  PROMPT "Is this database disposable (test fixture, in-memory cache)? If it holds any data you'd be sad to lose, restore the default journal/synchronous settings."
+}
+
+rule sqlite-warn-foreign-keys-off {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content LINE_REGEX "[Pp][Rr][Aa][Gg][Mm][Aa]\\s+foreign_keys\\s*=\\s*(OFF|off|0|false|FALSE)"
+  MESSAGE "RISK: foreign_keys=OFF lets orphaned rows accumulate, breaking referential integrity assumptions in app code. FIX: Set PRAGMA foreign_keys=ON on every new connection (it is per-connection, not persistent)."
+}
+
+rule sqlite-warn-shared-cache-deprecated {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content LINE_REGEX "cache\\s*=\\s*shared|SQLITE_OPEN_SHAREDCACHE"
+  MESSAGE "RISK: Shared-cache mode is officially discouraged by SQLite (concurrency/corruption pitfalls, see sqlite.org/sharedcache.html). FIX: Use WAL journal mode for concurrent readers/writers instead."
+}
+
+rule sqlite-warn-check-same-thread-false {
+  enabled true
+  priority 80
+  severity warning
+  ASK write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "check_same_thread\\s*=\\s*False"
+  MESSAGE "RISK: check_same_thread=False without an explicit mutex causes race conditions and DB corruption — Python's sqlite3 connections are not thread-safe. FIX: Use one connection per thread, or wrap the connection in a Lock."
+  PROMPT "Is access to this connection serialized by an explicit Lock? If not, switch to one connection per thread instead of disabling check_same_thread."
+}
+
+rule sqlite-block-fts3-tokenizer-registration {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "fts3_tokenizer("
+  MESSAGE "RISK: fts3_tokenizer() lets SQL register a function-pointer tokenizer — a known RCE vector (CVE-2019-8457 family) when callable from untrusted SQL. FIX: Avoid the legacy two-arg fts3_tokenizer(); compile with -DSQLITE_ENABLE_FTS3_TOKENIZER off and use FTS5."
+}
+
+rule sqlite-block-c-exec-nonliteral {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.{c,cc,cpp,h,hpp}" AND content LINE_REGEX "sqlite3_exec\\s*\\(\\s*[a-zA-Z_][\\w]*\\s*,\\s*[a-zA-Z_][\\w]*"
+  MESSAGE "RISK: sqlite3_exec() with a non-literal SQL argument runs every semicolon-separated statement and is the classic C-API injection sink. FIX: Use sqlite3_prepare_v2() + sqlite3_bind_*() and step a single statement at a time."
+}
+
+rule sqlite-warn-old-better-sqlite3-version {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/package.json" AND content LINE_REGEX "\"better-sqlite3\"\\s*:\\s*\"[~^]?([0-8]\\.|9\\.[0-5]\\.|11\\.[0-9]\\.)"
+  MESSAGE "RISK: better-sqlite3 < 11.10 bundles SQLite older than 3.50.2, which is vulnerable to CVE-2025-6965 / CVE-2025-29087 (integer overflows leading to memory corruption). FIX: Bump to better-sqlite3 ≥ 11.10.0 (SQLite 3.50.2+)."
+}
+
+rule sqlite-warn-pragma-cell-size-check-off {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content LINE_REGEX "[Pp][Rr][Aa][Gg][Mm][Aa]\\s+cell_size_check\\s*=\\s*(OFF|off|0|false|FALSE)"
+  MESSAGE "RISK: cell_size_check=OFF disables a defensive integrity check that mitigates malformed-DB exploits. FIX: Leave the default ON, especially when opening DB files from untrusted sources."
+}

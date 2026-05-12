@@ -1,0 +1,20 @@
+# lit_write_safety.rules
+# Technology: lit | Capability: write
+
+rule lit-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "unsafeHTML"
+  MESSAGE "Blocked an unsafe pattern in lit. Use the recommended best practices for 2025/2026."
+}
+
+rule lit-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "customElement("
+  MESSAGE "You are using an outdated API for lit. Please upgrade to the newer API."
+}

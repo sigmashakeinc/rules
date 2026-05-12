@@ -1,0 +1,137 @@
+# aws_write_safety.rules
+# Technology: aws | Capability: write
+
+rule aws-s3-public-read {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "acl\\s*=\\s*[\"']public-read[\"']"
+  OR path GLOB "**/*.yaml" AND content LINE_REGEX "acl\\s*:\\s*public-read"
+  MESSAGE "Setting S3 buckets to 'public-read' exposes data to the entire internet. Ensure this is explicitly intended (e.g. for a static website) or use 'private' and enable Block Public Access (BPA)."
+}
+
+rule aws-iam-star-action {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.json" AND content LINE_REGEX "[\"']Action[\"']\\s*:\\s*[\"']\\*[\"']"
+  OR path GLOB "**/*.tf" AND content LINE_REGEX "actions\\s*=\\s*\\[\\s*[\"']\\*[\"']\\s*\\]"
+  MESSAGE "Using '*' for IAM actions grants administrative privileges. Follow the Principle of Least Privilege by explicitly defining necessary actions."
+}
+
+rule aws-sg-open-ssh-rdp {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "from_port\\s*=\\s*(22|3389)" AND content LINE_REGEX "cidr_blocks\\s*=\\s*\\[\\s*[\"']0\\.0\\.0\\.0/0[\"']\\s*\\]"
+  MESSAGE "Opening SSH (22) or RDP (3389) to 0.0.0.0/0 exposes management ports to the public internet, a massive security risk. Restrict to specific IP ranges or use AWS Systems Manager Session Manager."
+}
+
+rule aws-imds-v1 {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "http_tokens\\s*=\\s*[\"']optional[\"']"
+  MESSAGE "Using IMDSv1 (http_tokens = optional) makes instances vulnerable to SSRF attacks which can leak IAM credentials. Require IMDSv2 by setting http_tokens = 'required'."
+}
+
+rule aws-hardcoded-access-key {
+  enabled true
+  priority 99
+  severity error
+  DENY write
+  IF content LINE_REGEX "(AKIA|ASIA)[A-Z0-9]{16}"
+  MESSAGE "RISK: Hardcoded AWS access key ID detected — leaked keys are weaponized within minutes (GitGuardian 2025 found 23M+ exposed secrets, 70% still active after 2 years). FIX: Remove the key, rotate it immediately, and load credentials via IAM roles, AWS SSO, or environment variables (never commit them)."
+}
+
+rule aws-hardcoded-secret-key {
+  enabled true
+  priority 99
+  severity error
+  DENY write
+  IF content LINE_REGEX "aws_secret_access_key\\s*[=:]\\s*[\"'][A-Za-z0-9/+=]{40}[\"']"
+  MESSAGE "RISK: Hardcoded AWS secret access key literal detected. FIX: Delete the secret, rotate the IAM credential, and retrieve secrets at runtime from AWS Secrets Manager, Parameter Store, or an IAM role."
+}
+
+rule aws-iam-notaction-allow {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.json" AND content LINE_REGEX "\"NotAction\"" AND content LINE_REGEX "\"Effect\"\\s*:\\s*\"Allow\""
+  OR path GLOB "**/*.tf" AND content LINE_REGEX "not_actions\\s*=" AND content LINE_REGEX "effect\\s*=\\s*[\"']Allow[\"']"
+  MESSAGE "RISK: NotAction combined with Effect=Allow grants every AWS action not explicitly excluded — the same privilege-escalation pattern implicated in the Capital One breach. FIX: Use Effect=Allow with an explicit Action list, or reserve NotAction for Effect=Deny statements only."
+}
+
+rule aws-rds-unencrypted {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "storage_encrypted\\s*=\\s*false"
+  MESSAGE "RISK: RDS storage_encrypted = false leaves database snapshots, logs, and replicas unencrypted at rest, violating most compliance baselines (PCI/HIPAA/SOC2). FIX: Set storage_encrypted = true and specify kms_key_id for a customer-managed CMK."
+}
+
+rule aws-sg-open-db-ports {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "from_port\\s*=\\s*(3306|5432|1433|27017|6379|9200|5984)" AND content LINE_REGEX "cidr_blocks\\s*=\\s*\\[\\s*[\"']0\\.0\\.0\\.0/0[\"']"
+  MESSAGE "RISK: Database/cache ports (MySQL/Postgres/MSSQL/Mongo/Redis/Elastic/Couch) open to 0.0.0.0/0 are scanned and brute-forced within minutes. FIX: Restrict cidr_blocks to the app VPC/subnet or use security group references; never expose DB engines to the public internet."
+}
+
+rule aws-s3-block-public-access-disabled {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "block_public_(acls|policy)\\s*=\\s*false"
+  OR path GLOB "**/*.tf" AND content LINE_REGEX "restrict_public_buckets\\s*=\\s*false"
+  OR path GLOB "**/*.tf" AND content LINE_REGEX "ignore_public_acls\\s*=\\s*false"
+  MESSAGE "RISK: Disabling aws_s3_bucket_public_access_block settings removes the safety net that prevents accidental public exposure — the leading cause of S3 data leaks. FIX: Leave all four Block Public Access flags at true unless the bucket is an intentional public static site."
+}
+
+rule aws-lambda-env-plaintext-secret {
+  enabled true
+  priority 85
+  severity warning
+  ASK write
+  IF path GLOB "**/*.tf" AND content CONTAINS "aws_lambda_function" AND content LINE_REGEX "(PASSWORD|SECRET|API_KEY|TOKEN|PRIVATE_KEY)\\s*=\\s*[\"'][A-Za-z0-9/+=_-]{8,}[\"']"
+  OR path GLOB "**/*.yaml" AND content CONTAINS "AWS::Lambda::Function" AND content LINE_REGEX "(PASSWORD|SECRET|API_KEY|TOKEN):\\s*[A-Za-z0-9/+=]{8,}"
+  MESSAGE "RISK: Lambda environment variables are stored in plaintext in CloudFormation/Terraform state and visible to anyone with lambda:GetFunction. FIX: Fetch secrets at runtime from AWS Secrets Manager or SSM Parameter Store (SecureString), or encrypt envs with a CMK."
+  PROMPT "Is this value a real secret? If so, move it to Secrets Manager/SSM and reference it at runtime."
+}
+
+rule aws-imds-hop-limit {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.tf" AND content LINE_REGEX "http_put_response_hop_limit\\s*=\\s*([2-9]|[1-9][0-9]+)"
+  MESSAGE "RISK: IMDS hop limit >1 lets containerized workloads reach the instance metadata service and steal the EC2 role credentials (common SSRF pivot). FIX: Set http_put_response_hop_limit = 1 unless you explicitly need nested container access."
+}
+
+rule aws-cloudtrail-logging-disabled {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.tf" AND content CONTAINS "aws_cloudtrail" AND content LINE_REGEX "enable_logging\\s*=\\s*false"
+  MESSAGE "RISK: Disabling CloudTrail logging blinds incident response and breaks compliance requirements (CIS, PCI, HIPAA). FIX: Keep enable_logging = true and set is_multi_region_trail = true with log file validation enabled."
+}
+
+rule aws-s3-sse-c-customer-key {
+  enabled true
+  priority 80
+  severity warning
+  ASK write
+  IF content LINE_REGEX "SSECustomerKey\\s*[=:]"
+  OR content CONTAINS "x-amz-server-side-encryption-customer-key"
+  MESSAGE "RISK: SSE-C lets the caller supply the encryption key — the Codefinger ransomware campaign (Jan 2025) abused compromised credentials + SSE-C to encrypt victim S3 data with attacker-held keys. FIX: Prefer SSE-KMS with a customer-managed CMK so key material stays inside AWS KMS and access is auditable via CloudTrail."
+  PROMPT "Why is SSE-C needed here instead of SSE-KMS with a customer-managed key?"
+}

@@ -1,0 +1,3 @@
+{
+  "description": "Moltbook governance rules — guards against API token breaches, agent-to-agent prompt injection via social posts, misconfigured Supabase credential exposure, and the risk of vibe-coded infrastructure with no security review."
+}

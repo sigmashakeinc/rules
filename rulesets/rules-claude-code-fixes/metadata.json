@@ -1,0 +1,3 @@
+{
+  "description": "Guardrails that resolve common Claude Code pain points like infinite loops and accidental code deletion. These rules save API costs and protect codebases from autonomous mistakes."
+}

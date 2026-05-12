@@ -1,0 +1,38 @@
+# codex_self_healing_safety.rules
+
+rule audit-self-healing {
+  MESSAGE "Codex 'Self-healing' mode activated. It will autonomously run tests and iterate on fixes."
+  IF tool EQUALS "CodexRepair"
+  OR input.command CONTAINS "/repair"
+  severity info
+  priority 50
+  LOG any
+}
+
+rule limit-self-healing-iterations {
+  MESSAGE "Codex 'Self-healing' has exceeded the threshold of iterations. This could indicate an infinite loop."
+  IF tool EQUALS "CodexRepair"
+  AND input.iteration_count WORD "10"
+  severity warning
+  priority 90
+  LOG any
+}
+
+rule warn-autonomous-pr {
+  MESSAGE "Codex is creating an autonomous Pull Request."
+  IF tool EQUALS "CodexPR"
+  OR (tool EQUALS "github" AND input.description CONTAINS "Codex")
+  severity info
+  priority 50
+  LOG any
+}
+
+rule block-self-healing-force {
+  MESSAGE "Blocked 'Self-healing' attempt with forced dependency installation."
+  IF tool EQUALS "CodexRepair"
+  AND (input.command CONTAINS "npm install --force" OR input.command CONTAINS "yarn add --force")
+  severity warning
+  priority 95
+  ASK execution
+  PROMPT "Allow the agent to force-install dependencies to 'heal' the code?"
+}

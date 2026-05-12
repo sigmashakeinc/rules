@@ -1,0 +1,20 @@
+# compose-multiplatform_write_safety.rules
+# Technology: compose-multiplatform | Capability: write
+
+rule compose-multiplatform-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "Modifier.pointerInput"
+  MESSAGE "Blocked an unsafe pattern in compose-multiplatform. Use the recommended best practices for 2025/2026."
+}
+
+rule compose-multiplatform-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "DesktopMaterialTheme"
+  MESSAGE "You are using an outdated API for compose-multiplatform. Please upgrade to the newer API."
+}

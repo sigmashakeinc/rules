@@ -1,0 +1,56 @@
+# ant-design_write_safety.rules
+# Technology: ant-design | Capability: write
+
+rule ant-design-xss-dangerously-set-inner-html {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.(js|jsx|ts|tsx)" AND content CONTAINS "dangerouslySetInnerHTML"
+  MESSAGE "Detected 'dangerouslySetInnerHTML'. This is a critical Cross-Site Scripting (XSS) vulnerability if the content is not thoroughly sanitized. Always use a robust sanitization library like 'dompurify' to process any user-supplied or untrusted HTML before rendering. Prefer Ant Design's safe props or React's text rendering mechanisms where possible to avoid direct HTML injection."
+}
+
+rule ant-design-legacy-form-create {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.(js|jsx|ts|tsx)" AND content CONTAINS "Form.create("
+  MESSAGE "Detected usage of Ant Design v3 'Form.create()'. This Higher-Order Component (HOC) API is deprecated in Ant Design v4 and later. Please migrate to the modern 'Form' component and 'useForm' hook for improved maintainability, better performance, and full compatibility with React hooks. Using legacy APIs can lead to unexpected behavior, compatibility issues, or missed security updates in newer environments."
+}
+
+rule ant-design-unsanitized-html-in-alert-message-notification {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.(js|jsx|ts|tsx)" AND (content CONTAINS "message.error({ content: `<" OR content CONTAINS "message.warning({ content: `<" OR content CONTAINS "message.info({ content: `<" OR content CONTAINS "message.success({ content: `<" OR content CONTAINS "notification.open({ message: `<" OR content CONTAINS "notification.open({ description: `<" OR content CONTAINS "Alert message={<" OR content CONTAINS "Alert description={<")
+  MESSAGE "Detected direct HTML string (e.g., template literal with '<') being passed to Ant Design 'message', 'notification', or 'Alert' components' content/message/description props. This is a high-risk XSS vulnerability if the HTML originates from user input. Ensure all user-supplied content is rigorously sanitized using a library like 'dompurify' before being rendered as HTML in these components."
+}
+
+rule ant-design-deprecated-moment-js-usage {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.(js|jsx|ts|tsx)" AND (content CONTAINS "import moment from 'moment'" OR content CONTAINS "moment(" AND NOT content CONTAINS "dayjs().format")
+  MESSAGE "Detected usage of 'moment.js'. While not a direct security vulnerability, 'moment.js' is considered a legacy library with a larger bundle size and mutable objects that can lead to subtle bugs. Ant Design and the React community generally recommend 'dayjs' or native 'Date' objects for date/time handling. Consider migrating to 'dayjs' for better performance, smaller bundle size, and modern immutable date practices."
+}
+
+rule ant-design-upload-missing-before-upload-validation {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.(js|jsx|ts|tsx)" AND content CONTAINS "<Upload" AND NOT content CONTAINS "beforeUpload={"
+  MESSAGE "Detected Ant Design 'Upload' component without a 'beforeUpload' prop. This is a critical security risk as it allows users to upload any file type or size without client-side validation, potentially leading to Denial of Service (DoS), malware uploads, or other server-side vulnerabilities. Implement robust 'beforeUpload' logic to validate file type, size, and potentially content before the upload proceeds."
+}
+
+rule ant-design-input-password-visibility-toggle-disabled {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/*.(js|jsx|ts|tsx)" AND content CONTAINS "<Input.Password" AND content CONTAINS "visibilityToggle={false}"
+  MESSAGE "Detected 'Input.Password' with 'visibilityToggle' explicitly set to 'false'. Disabling the password visibility toggle can negatively impact user experience and make it harder for users to verify their input, potentially leading to mistyped passwords and account lockouts. It is generally recommended to keep this feature enabled (which is the default behavior) to improve usability and reduce user frustration."
+}

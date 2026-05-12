@@ -1,0 +1,65 @@
+# c_write_safety.rules
+# Technology: c | Capability: write
+
+rule c-unsafe-strcpy {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.c" AND content CONTAINS "strcpy("
+  MESSAGE "Avoid `strcpy()`. It does not perform bounds checking and is highly prone to buffer overflows. Use `strncpy()` with a specified maximum length, or `strlcpy()` (if available and appropriate for your platform) to prevent memory corruption. Consider `snprintf()` for safer string formatting and concatenation."
+}
+
+rule c-unsafe-gets {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.c" AND content CONTAINS "gets("
+  MESSAGE "Never use `gets()`. It provides no way to limit input length, making it extremely vulnerable to buffer overflows. Replace it with `fgets()` which allows specifying a maximum buffer size, or use `scanf()` with a length specifier (e.g., `%99s` for a 100-byte buffer) to prevent memory corruption."
+}
+
+rule c-format-string-vulnerability {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.c" AND content CONTAINS "printf(argv["
+  MESSAGE "Avoid using user-controlled input directly as the format string in `printf()`, `sprintf()`, or similar functions. This can lead to format string vulnerabilities, allowing information disclosure, arbitrary memory writes, or even arbitrary code execution. Always provide a constant format string, e.g., `printf(\"%s\", user_input);`."
+}
+
+rule c-command-injection-system {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.c" AND content CONTAINS "system("
+  MESSAGE "Using `system()` with unsanitized or user-controlled input is a major security risk, leading to command injection. Prefer `execve()` or `fork()`/`exec()` with carefully constructed arguments, or use a safer API that doesn't invoke a shell. If `system()` is unavoidable, ensure all input is rigorously validated and sanitized using functions like `strcspn()` or by whitelisting allowed characters."
+}
+
+rule c-return-address-of-local {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.c" AND content CONTAINS "return &"
+  MESSAGE "Returning a pointer to a local (stack-allocated) variable results in a dangling pointer (use-after-free vulnerability) as soon as the function returns. The memory will be invalid. Allocate memory on the heap using `malloc()` if the data needs to persist beyond the function's scope, or pass a buffer from the caller to be filled."
+}
+
+rule c-insecure-random-number-generation {
+  enabled true
+  priority 80
+  severity error
+  DENY write
+  IF path GLOB "**/*.c" AND content CONTAINS "rand("
+  MESSAGE "Do not use `rand()` or `srand()` for security-sensitive operations (e.g., generating keys, nonces, or session IDs). These functions provide pseudo-random numbers that are predictable. Use cryptographically secure random number generators like `arc4random()` (BSD/macOS), `CryptGenRandom()` (Windows), or reading from `/dev/urandom` (Linux) instead."
+}
+
+rule c-google-style-complex-macro {
+  enabled true
+  priority 50
+  severity warning
+  LOG write
+  IF path GLOB "**/*.c" AND content CONTAINS "#define" AND content CONTAINS "do {"
+  MESSAGE "Consider refactoring complex, multi-statement preprocessor macros (especially those using `do { ... } while(0)`) into `inline` functions or regular functions. The Google C++ Style Guide (and general good practice) discourages complex macros due to potential for unexpected side effects, debugging difficulties, and reduced readability. Functions offer better type checking and scope control."
+}

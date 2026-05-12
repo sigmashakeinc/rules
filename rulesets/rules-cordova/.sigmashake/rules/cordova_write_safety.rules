@@ -1,0 +1,20 @@
+# cordova_write_safety.rules
+# Technology: cordova | Capability: write
+
+rule cordova-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "cordova.exec("
+  MESSAGE "Blocked an unsafe pattern in cordova. Use the recommended best practices for 2025/2026."
+}
+
+rule cordova-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "window.plugins"
+  MESSAGE "You are using an outdated API for cordova. Please upgrade to the newer API."
+}

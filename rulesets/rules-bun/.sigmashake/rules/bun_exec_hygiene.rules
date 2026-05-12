@@ -1,0 +1,36 @@
+# bun_exec_hygiene.rules — Guard bun publish and runtime execution.
+# Technology: bun | Capability: exec
+# Covers: bun publish, bunx unversioned, bun patch.
+
+rule ask-bun-publish {
+  enabled true
+  priority 90
+  severity warning
+  ASK execution
+  IF command STARTS_WITH "bun publish"
+  OR command REGEX "^bun publish\\b"
+  MESSAGE "Publishing to npm via bun is permanent (except within 72 hours). Verify the version, build output, and included files before publishing."
+  PROMPT "Have you verified: (1) correct version bump in package.json, (2) clean build output, (3) only intended files are included, (4) correct registry target?"
+}
+
+rule ask-bunx-unversioned {
+  enabled true
+  priority 80
+  severity warning
+  ASK execution
+  IF command REGEX "^bunx\\s+[a-zA-Z@][^@\\s]*(\\s|$)"
+  OR command REGEX "^bun x\\s+[a-zA-Z@][^@\\s]*(\\s|$)"
+  MESSAGE "bunx without a pinned version always fetches the latest release. A compromised package version could execute malicious code in your project during the run."
+  PROMPT "Have you pinned the version? Prefer: bunx <package>@<exact-version>"
+}
+
+rule ask-bun-patch {
+  enabled true
+  priority 85
+  severity warning
+  ASK execution
+  IF command STARTS_WITH "bun patch"
+  OR command REGEX "^bun patch\\b"
+  MESSAGE "'bun patch' modifies a dependency directly in node_modules. Patches are fragile — they are silently lost on the next 'bun install' unless committed with 'bun patch --commit'."
+  PROMPT "Will you commit this patch with 'bun patch --commit'? Verify the patch is minimal and does not introduce unintended behavioral changes."
+}

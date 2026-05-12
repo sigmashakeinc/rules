@@ -1,0 +1,23 @@
+# claude-code_exec_cost_control.rules
+# Technology: claude-code | Capability: exec | Description: Fix for "Claude Code cost too high" token burn complaints
+
+rule block-claude-code-massive-reads {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF input.agent_model CONTAINS "claude" AND command CONTAINS "cat package-lock.json"
+  OR input.agent_model CONTAINS "claude" AND command CONTAINS "cat bun.lock"
+  OR input.agent_model CONTAINS "claude" AND command CONTAINS "cat yarn.lock"
+  MESSAGE "Claude Code Pain Point Fix: Reading massive lockfiles burns thousands of tokens instantly. Blocked to save API costs."
+}
+
+rule block-claude-code-infinite-find-loop {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF input.agent_model CONTAINS "claude" AND command CONTAINS "find / "
+  OR input.agent_model CONTAINS "claude" AND command CONTAINS "find ~ "
+  MESSAGE "Claude Code Pain Point Fix: Unconstrained root or home directory searches cause massive terminal output and token exhaustion."
+}

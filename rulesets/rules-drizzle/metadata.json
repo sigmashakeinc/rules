@@ -1,0 +1,3 @@
+{
+  "description": "Drizzle ORM is a lightweight, type-safe TypeScript ORM with SQL-like syntax. These rules govern schema definition, migrations, and efficient database querying for modern TypeScript projects."
+}

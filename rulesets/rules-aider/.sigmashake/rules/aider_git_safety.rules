@@ -1,0 +1,28 @@
+# aider_git_safety.rules
+
+rule audit-aider-commit-loop {
+  MESSAGE "Aider is running in an automatic 'edit-commit' loop. This can result in many small, unreviewed commits."
+  IF tool EQUALS "AiderTool"
+  AND input.command CONTAINS "--auto-commit"
+  severity info
+  priority 50
+  LOG any
+}
+
+rule warn-aider-shell-exec {
+  MESSAGE "Aider is executing a shell command. This could be triggered by indirect prompt injection in a code file."
+  IF tool EQUALS "AiderTool"
+  AND input.command STARTS_WITH "/run"
+  severity warning
+  priority 90
+  LOG execution
+}
+
+rule block-aider-config-edit {
+  MESSAGE "Blocked Aider from modifying its own configuration or global .aider.conf.yml."
+  IF path GLOB "**/.aider.conf.yml"
+  OR path GLOB "**/aider.conf.yml"
+  severity error
+  priority 100
+  DENY write
+}

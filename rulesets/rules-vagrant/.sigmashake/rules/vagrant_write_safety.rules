@@ -1,0 +1,20 @@
+# vagrant_write_safety.rules
+# Technology: vagrant | Capability: write
+
+rule vagrant-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "config.vm.provision "shell""
+  MESSAGE "Blocked an unsafe pattern in vagrant. Use the recommended best practices for 2025/2026."
+}
+
+rule vagrant-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "Vagrant::Config.run"
+  MESSAGE "You are using an outdated API for vagrant. Please upgrade to the newer API."
+}

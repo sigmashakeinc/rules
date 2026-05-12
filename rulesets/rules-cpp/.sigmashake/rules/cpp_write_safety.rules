@@ -1,0 +1,85 @@
+# cpp_write_safety.rules — C++ write-time security enforcement.
+# Technology: cpp | Capability: write
+# Covers: buffer overflow functions, raw memory management, unsafe casts, command injection, format strings, exceptions.
+
+rule no-gets-cpp {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/*.cpp" AND content CONTAINS "gets("
+  OR path GLOB "**/*.cc" AND content CONTAINS "gets("
+  OR path GLOB "**/*.cxx" AND content CONTAINS "gets("
+  OR path GLOB "**/*.hpp" AND content CONTAINS "gets("
+  MESSAGE "gets() has no bounds checking and causes buffer overflows — removed from C11 and deprecated in C++11. Use std::getline(std::cin, str) or fgets() instead."
+}
+
+rule no-sprintf-cpp {
+  enabled true
+  priority 95
+  severity error
+  LOG write
+  IF path GLOB "**/*.cpp" AND content LINE_REGEX "\\bsprintf\\s*\\("
+  OR path GLOB "**/*.cc" AND content LINE_REGEX "\\bsprintf\\s*\\("
+  MESSAGE "sprintf() does not check buffer bounds. Use snprintf() with an explicit limit, or preferably std::to_string(), std::format() (C++20), or ostringstream."
+}
+
+rule no-raw-new-delete {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.cpp" AND content LINE_REGEX "\\bnew\\s+[A-Z]" AND content NOT CONTAINS "make_unique" AND content NOT CONTAINS "make_shared"
+  OR path GLOB "**/*.cc" AND content LINE_REGEX "\\bnew\\s+[A-Z]" AND content NOT CONTAINS "make_unique" AND content NOT CONTAINS "make_shared"
+  MESSAGE "Raw new/delete is error-prone — use-after-free, double-free, and leaks are common. Prefer std::make_unique<T>() or std::make_shared<T>() to enforce RAII ownership."
+}
+
+rule no-reinterpret-cast {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.cpp" AND content CONTAINS "reinterpret_cast"
+  OR path GLOB "**/*.cc" AND content CONTAINS "reinterpret_cast"
+  MESSAGE "reinterpret_cast bypasses type safety and can produce undefined behavior if the types are incompatible. Use static_cast where possible, or redesign to avoid the cast."
+}
+
+rule no-c-style-cast-cpp {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.cpp" AND content LINE_REGEX "\\(\\s*(int|char|unsigned|void\\s*\\*|float|double)\\s*\\)\\s*[a-zA-Z_]"
+  OR path GLOB "**/*.cc" AND content LINE_REGEX "\\(\\s*(int|char|unsigned|void\\s*\\*|float|double)\\s*\\)\\s*[a-zA-Z_]"
+  MESSAGE "C-style casts are dangerous in C++ — they silently perform reinterpret_cast when no other cast works. Use explicit C++ casts: static_cast, dynamic_cast, const_cast."
+}
+
+rule no-system-cpp {
+  enabled true
+  priority 95
+  severity error
+  LOG write
+  IF path GLOB "**/*.cpp" AND content LINE_REGEX "\\bstd::system\\s*\\("
+  OR path GLOB "**/*.cpp" AND content LINE_REGEX "\\bsystem\\s*\\(.*\\+"
+  OR path GLOB "**/*.cc" AND content LINE_REGEX "\\bsystem\\s*\\(.*\\+"
+  MESSAGE "std::system() with user-controlled input enables command injection. Use POSIX exec*() functions with an argv array, or a cross-platform subprocess library."
+}
+
+rule no-strcpy-cpp {
+  enabled true
+  priority 90
+  severity error
+  LOG write
+  IF path GLOB "**/*.cpp" AND content LINE_REGEX "\\bstrcpy\\s*\\("
+  OR path GLOB "**/*.cpp" AND content LINE_REGEX "\\bstrcat\\s*\\("
+  MESSAGE "strcpy() and strcat() cause buffer overflows. Use std::string for string operations in C++, or strlcpy/strlcat if you must use C strings."
+}
+
+rule no-uncaught-exception-spec {
+  enabled true
+  priority 65
+  severity warning
+  LOG write
+  IF path GLOB "**/*.cpp" AND content LINE_REGEX "throw.*\\(" AND content NOT CONTAINS "try" AND content NOT CONTAINS "noexcept"
+  MESSAGE "Uncaught exceptions call std::terminate(). Ensure throwing code is wrapped in try/catch at appropriate boundaries, or mark functions noexcept if they should not throw."
+}

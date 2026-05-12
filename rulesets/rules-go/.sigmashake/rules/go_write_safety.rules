@@ -1,0 +1,51 @@
+# go_write_safety.rules — Go language safety and correctness rules.
+# Technology: go | Capability: write
+# Covers: error handling, unsafe package, goroutine leaks, SQL injection.
+
+rule no-ignored-errors {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.go" AND content LINE_REGEX "^\\s*[a-zA-Z_][a-zA-Z0-9_]*\\s*:?=\\s*[a-zA-Z_][a-zA-Z0-9_\\.]+\\([^)]*\\)\\s*$"
+  MESSAGE "Function return value discarded — errors should never be silently dropped in Go. Use '_' explicitly if intentional: _, err = f(); if err != nil { ... }"
+}
+
+rule no-panic-in-library {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*.go" AND content LINE_REGEX "\\bpanic\\s*\\(" AND path NOT GLOB "**/main.go" AND path NOT GLOB "*_test.go"
+  MESSAGE "panic() in library code crashes the entire program. Return an error instead and let the caller decide how to handle it."
+}
+
+rule no-unsafe-package {
+  enabled true
+  priority 90
+  severity warning
+  LOG write
+  IF path GLOB "**/*.go" AND content LINE_REGEX "\"unsafe\""
+  OR path GLOB "**/*.go" AND content LINE_REGEX "import\\s+.*\"unsafe\""
+  MESSAGE "The 'unsafe' package bypasses Go's type system and memory safety guarantees. Verify this is truly necessary — most use cases have safe alternatives."
+}
+
+rule no-sql-sprintf {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.go" AND content LINE_REGEX "(?:db|tx|conn)\\.(?:Query|Exec|QueryRow)\\s*\\(\\s*fmt\\.Sprintf"
+  OR path GLOB "**/*.go" AND content LINE_REGEX "(?:db|tx|conn)\\.(?:Query|Exec|QueryRow)\\s*\\(\\s*fmt\\.Fprintf"
+  MESSAGE "SQL query built with fmt.Sprintf() enables SQL injection. Use parameterized queries: db.Query('SELECT * FROM t WHERE id = ?', id)"
+}
+
+rule no-goroutine-without-wg {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/*.go" AND content LINE_REGEX "go\\s+func\\s*\\("
+  OR path GLOB "**/*.go" AND content LINE_REGEX "go\\s+[a-zA-Z_][a-zA-Z0-9_]+\\("
+  MESSAGE "Goroutine spawned. Ensure it is tracked with a sync.WaitGroup or context for clean shutdown — goroutine leaks are a common source of memory issues in long-running services."
+}

@@ -1,0 +1,20 @@
+# relay_write_safety.rules
+# Technology: relay | Capability: write
+
+rule relay-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "commitLocalUpdate"
+  MESSAGE "Blocked an unsafe pattern in relay. Use the recommended best practices for 2025/2026."
+}
+
+rule relay-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "Relay.createContainer"
+  MESSAGE "You are using an outdated API for relay. Please upgrade to the newer API."
+}

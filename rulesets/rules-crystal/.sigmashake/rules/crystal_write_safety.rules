@@ -1,0 +1,20 @@
+# crystal_write_safety.rules
+# Technology: crystal | Capability: write
+
+rule crystal-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "Pointer(Void)"
+  MESSAGE "Blocked an unsafe pattern in crystal. Use the recommended best practices for 2025/2026."
+}
+
+rule crystal-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "HTTP::Server.new"
+  MESSAGE "You are using an outdated API for crystal. Please upgrade to the newer API."
+}

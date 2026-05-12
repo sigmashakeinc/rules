@@ -1,0 +1,37 @@
+# openhands_maintenance_safety.rules
+
+rule audit-openhands-maintenance {
+  MESSAGE "OpenHands 'Enterprise Maintenance' mode activated. It will perform dependency updates and tech debt reduction."
+  IF tool EQUALS "OpenHandsAgent"
+  OR input.task CONTAINS "maintenance"
+  severity info
+  priority 50
+  LOG any
+}
+
+rule warn-openhands-dependency-upgrade {
+  MESSAGE "OpenHands is attempting to upgrade project dependencies. This could result in hallucinated or malicious libraries."
+  IF tool EQUALS "OpenHandsAgent"
+  AND (input.command CONTAINS "npm update" OR input.command CONTAINS "pip install --upgrade")
+  severity warning
+  priority 80
+  LOG execution
+}
+
+rule block-openhands-system-patch {
+  MESSAGE "Blocked OpenHands from attempting to patch system-level binaries."
+  IF path STARTS_WITH "/usr/"
+  OR path STARTS_WITH "/bin/"
+  severity error
+  priority 100
+  DENY write
+}
+
+rule audit-openhands-mcp-access {
+  MESSAGE "OpenHands is accessing external systems (Jira, Slack) via MCP."
+  IF tool STARTS_WITH "jira_"
+  OR tool STARTS_WITH "slack_"
+  severity info
+  priority 50
+  LOG any
+}

@@ -1,0 +1,99 @@
+# playwright_write_safety.rules
+# Technology: playwright | Capability: write
+
+rule playwright-warn-ignore-https-errors {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/playwright.config.ts" AND content CONTAINS "ignoreHTTPSErrors: true"
+  OR path GLOB "**/*.spec.ts" AND content CONTAINS "ignoreHTTPSErrors: true"
+  MESSAGE "RISK: ignoreHTTPSErrors: true disables TLS validation and exposes tests to MitM/credential theft. FIX: remove the option and trust the test CA via NODE_EXTRA_CA_CERTS or a proper cert."
+}
+
+rule playwright-warn-evaluate-injection {
+  enabled true
+  priority 85
+  severity warning
+  LOG write
+  IF path GLOB "**/*.spec.ts" AND content LINE_REGEX "\\.evaluate\\(.*`.*\\$\\{.*\\}.*`"
+  OR path GLOB "**/*.ts" AND content LINE_REGEX "\\.evaluate\\(.*`.*\\$\\{.*\\}.*`"
+  MESSAGE "RISK: string-interpolated template literals in page.evaluate() allow arbitrary JS execution in page context if any value is attacker-influenced. FIX: pass values as the second arg to evaluate(fn, arg) so they are serialized, not concatenated."
+}
+
+rule playwright-vulnerable-version-cve-2025-59288 {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/package.json" AND content LINE_REGEX "\"playwright(-core|-test|/test)?\"\\s*:\\s*\"\\^?[01]\\.([0-9]|[0-4][0-9]|5[0-4])\\."
+  MESSAGE "RISK: Playwright < 1.55.1 is affected by CVE-2025-59288 — the browser installer used curl -k and skipped TLS verification, enabling MitM RCE. FIX: upgrade to playwright >= 1.55.1."
+}
+
+rule playwright-mcp-vulnerable-cve-2025-9611 {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/package.json" AND content LINE_REGEX "\"@?playwright[/-]mcp[^\"]*\"\\s*:\\s*\"\\^?0\\.0\\.(3[0-9]|[12]?[0-9])\""
+  MESSAGE "RISK: Playwright MCP Server < 0.0.40 is vulnerable to CVE-2025-9611 (DNS rebinding via unvalidated Origin). FIX: upgrade to >= 0.0.40 and set allowedHosts."
+}
+
+rule playwright-hardcoded-credentials {
+  enabled true
+  priority 88
+  severity error
+  DENY write
+  IF path GLOB "**/*.spec.ts" AND content LINE_REGEX "(password|token|apiKey|api_key|secret)\\s*[:=]\\s*['\"][^'\"${}]{6,}['\"]"
+  OR path GLOB "**/tests/**/*.ts" AND content LINE_REGEX "(password|token|apiKey|api_key|secret)\\s*[:=]\\s*['\"][^'\"${}]{6,}['\"]"
+  MESSAGE "RISK: hardcoded credentials in spec files leak through git history and shared repos. FIX: read from process.env / CI secret store and reference via env vars in playwright.config."
+}
+
+rule playwright-storagestate-not-gitignored {
+  enabled true
+  priority 80
+  severity warning
+  ASK write
+  IF path GLOB "**/playwright/.auth/**" AND content CONTAINS "cookies"
+  OR path GLOB "**/.auth/*.json" AND content CONTAINS "cookies"
+  MESSAGE "RISK: storageState files contain live session cookies/tokens and must never be committed. FIX: add playwright/.auth/ to .gitignore and regenerate the state via a global setup."
+  PROMPT "About to write a storageState auth file. Confirm this path is gitignored and not shipped in the repo."
+}
+
+rule playwright-no-wait-for-timeout {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/*.spec.ts" AND content LINE_REGEX "page\\.waitForTimeout\\s*\\("
+  OR path GLOB "**/tests/**/*.ts" AND content LINE_REGEX "page\\.waitForTimeout\\s*\\("
+  MESSAGE "RISK: page.waitForTimeout() is a flaky anti-pattern (too short on slow CI, too slow on fast machines) and is deprecated for production tests. FIX: use web-first assertions (expect(locator).toBeVisible()), waitForResponse, or waitForLoadState."
+}
+
+rule playwright-unsanitized-route-fulfill {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/*.spec.ts" AND content LINE_REGEX "route\\.fulfill\\(\\s*\\{[^}]*body\\s*:\\s*`[^`]*\\$\\{"
+  MESSAGE "RISK: interpolating request-controlled values into route.fulfill() body can inject HTML/JS into the page under test, masking real XSS. FIX: JSON.stringify structured bodies or escape untrusted fields before fulfilling."
+}
+
+rule playwright-exposefunction-shell {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "exposeFunction\\([^)]*,\\s*[^)]*(exec|execSync|spawn|spawnSync)\\b"
+  MESSAGE "RISK: exposing a Node function that shells out gives the page-under-test RCE on the test host via any compromised script. FIX: never bridge child_process through exposeFunction; use a narrowly typed helper with fixed args."
+}
+
+rule playwright-launch-no-sandbox {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/playwright.config.ts" AND content CONTAINS "--no-sandbox"
+  OR path GLOB "**/*.spec.ts" AND content CONTAINS "--no-sandbox"
+  MESSAGE "RISK: launching Chromium with --no-sandbox disables the OS-level renderer sandbox and lets a compromised page escalate to the host. FIX: run tests as a non-root user in CI so the sandbox works, or use the official mcr.microsoft.com/playwright image."
+}

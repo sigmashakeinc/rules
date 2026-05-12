@@ -1,0 +1,56 @@
+# fsharp_write_safety.rules
+# Technology: fsharp | Capability: write
+
+rule fsharp-sql-command-injection {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/*.fs" AND (content CONTAINS "System.Data.SqlClient.SqlCommand(" AND content CONTAINS "sprintf") OR (content CONTAINS "System.Diagnostics.Process.Start(" AND content CONTAINS "sprintf")
+  MESSAGE "Potential SQL or Command Injection vulnerability detected. Using 'sprintf' or string concatenation directly within 'SqlCommand' or 'Process.Start' can allow untrusted input to modify queries or execute arbitrary commands. Always use parameterized queries for database access (e.g., 'SqlCommand.Parameters.AddWithValue') and 'ProcessStartInfo' with 'UseShellExecute = false' and arguments passed as a list, not a single formatted string, to prevent injection."
+}
+
+rule fsharp-insecure-deserialization-binaryformatter {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*.fs" AND content CONTAINS "new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter().Deserialize"
+  MESSAGE "Insecure Deserialization detected. Using 'BinaryFormatter' to deserialize untrusted data can lead to arbitrary code execution (Remote Code Execution). This API is considered highly insecure. Prefer safer serialization formats like JSON (e.g., 'System.Text.Json' or Newtonsoft.Json) or Protocol Buffers, and ensure deserialization only occurs from trusted sources with strict type constraints."
+}
+
+rule fsharp-weak-cryptography-md5-sha1 {
+  enabled true
+  priority 80
+  severity error
+  DENY write
+  IF path GLOB "**/*.fs" AND (content CONTAINS "System.Security.Cryptography.MD5.Create()" OR content CONTAINS "System.Security.Cryptography.SHA1.Create()")
+  MESSAGE "Weak Cryptographic Hash Algorithm detected. MD5 and SHA1 are cryptographically broken and should not be used for security-sensitive operations like password hashing, digital signatures, or integrity checks. Use stronger algorithms like SHA256 or SHA512 (e.g., 'System.Security.Cryptography.SHA256.Create()'). For password hashing, use 'Rfc2898DeriveBytes' or Argon2."
+}
+
+rule fsharp-path-traversal-sprintf {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/*.fs" AND (content CONTAINS "System.IO.File.ReadAllText(" AND content CONTAINS "sprintf") OR (content CONTAINS "System.IO.File.WriteAllText(" AND content CONTAINS "sprintf") OR (content CONTAINS "System.IO.File.Open(" AND content CONTAINS "sprintf")
+  MESSAGE "Potential Path Traversal vulnerability detected. Using 'sprintf' or string concatenation to construct file paths for 'System.IO.File' operations without proper sanitization or validation can allow an attacker to access or modify arbitrary files outside the intended directory. Always validate and sanitize user-supplied path components, or use 'Path.GetFullPath' combined with strict directory checks, or whitelist allowed file names."
+}
+
+rule fsharp-deprecated-webclient {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/*.fs" AND content CONTAINS "new System.Net.WebClient()"
+  MESSAGE "Usage of deprecated 'System.Net.WebClient' detected. 'WebClient' is an older API and is not recommended for new development due to its limited features and potential security implications (e.g., default TLS versions). Consider using 'System.Net.Http.HttpClient' for modern, more secure, and flexible HTTP communication."
+}
+
+rule fsharp-insecure-encoding-ascii {
+  enabled true
+  priority 50
+  severity warning
+  LOG write
+  IF path GLOB "**/*.fs" AND content CONTAINS "System.Text.Encoding.ASCII"
+  MESSAGE "Usage of 'System.Text.Encoding.ASCII' detected. ASCII encoding can lead to data loss or incorrect interpretation for non-ASCII characters, which are common in internationalized applications. It's generally safer and more robust to use 'System.Text.Encoding.UTF8' for text encoding, as it supports a much wider range of characters and is the de-facto standard for web and modern applications."
+}

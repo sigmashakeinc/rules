@@ -1,0 +1,3 @@
+{
+  "description": "MySQL is an open-source relational database management system. These rules provide governance for MySQL interactions, focusing on SQL injection prevention, secure credential management, and optimized database schema design."
+}

@@ -1,0 +1,32 @@
+# ts_write_imports.rules — TypeScript import hygiene.
+# Technology: ts | Capability: write
+# Covers: wildcard imports, deep relative paths.
+
+rule no-wildcard-imports {
+  enabled true
+  priority 50
+  severity warning
+  LOG write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "import \\* as\\s+"
+  OR path GLOB "**/*.tsx" AND content LINE_REGEX "import \\* as\\s+"
+  MESSAGE "Wildcard imports ('import * as X') import the entire module and prevent tree-shaking. Use named imports instead."
+}
+
+rule no-deep-relative-imports {
+  enabled true
+  priority 40
+  severity info
+  LOG write
+  IF path GLOB "**/*.ts" AND content LINE_REGEX "from ['\"]\\.\\.[\\/]\\.\\.[\\/]\\.\\."
+  OR path GLOB "**/*.tsx" AND content LINE_REGEX "from ['\"]\\.\\.[\\/]\\.\\.[\\/]\\.\\."
+  MESSAGE "Deep relative import (3+ levels) detected. Consider using path aliases (e.g., @/src/...) configured in tsconfig.json for cleaner imports."
+}
+
+rule no-axios-compromised-versions {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/package.json" AND content LINE_REGEX "\"axios\"\\s*:\\s*\"(1\\.14\\.1|0\\.30\\.4)\""
+  MESSAGE "axios 1.14.1 and 0.30.4 are malicious supply-chain releases published 2026-03-31 via a compromised maintainer account (Snyk/Microsoft advisory). Both versions install a cross-platform Remote Access Trojan. Upgrade to axios >=1.8.4, re-run 'npm ci', and rotate any credentials that may have been exposed in affected environments."
+}

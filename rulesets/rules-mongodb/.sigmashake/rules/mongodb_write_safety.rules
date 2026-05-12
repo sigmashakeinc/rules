@@ -1,0 +1,20 @@
+# mongodb_write_safety.rules
+# Technology: mongodb | Capability: write
+
+rule mongodb-block-unsafe-patterns {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/*" AND content CONTAINS "$where"
+  MESSAGE "Blocked an unsafe pattern in mongodb. Use the recommended best practices for 2025/2026."
+}
+
+rule mongodb-force-updated-api {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/*" AND content CONTAINS "db.collection.insert("
+  MESSAGE "You are using an outdated API for mongodb. Please upgrade to the newer API."
+}

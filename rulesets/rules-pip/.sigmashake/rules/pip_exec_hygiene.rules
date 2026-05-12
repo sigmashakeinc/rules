@@ -1,0 +1,47 @@
+# pip_exec_hygiene.rules — Guard pip/uv installs and publishing operations.
+# Technology: pip/uv | Capability: exec
+# Covers: publish, --extra-index-url (dependency confusion), --trusted-host, --upgrade.
+
+rule no-pip-trusted-host {
+  enabled true
+  priority 90
+  severity error
+  DENY execution
+  IF command CONTAINS "--trusted-host"
+  MESSAGE "--trusted-host disables TLS certificate verification for that host, exposing all package downloads on that host to man-in-the-middle attacks. Fix the underlying SSL/certificate issue instead of bypassing verification."
+}
+
+rule ask-pip-extra-index {
+  enabled true
+  priority 90
+  severity warning
+  ASK execution
+  IF command CONTAINS "--extra-index-url"
+  OR command CONTAINS "--index-url"
+  OR command REGEX "pip install.*\\s-i\\s"
+  MESSAGE "Custom PyPI index URL detected. Using multiple or non-official index sources enables dependency confusion attacks: a public package with the same name as a private one and a higher version number will be installed instead."
+  PROMPT "Is this index trusted and protected against dependency confusion? Consider --no-index with --find-links for internal packages, or verify your private index blocks public package shadowing."
+}
+
+rule ask-uv-publish {
+  enabled true
+  priority 90
+  severity warning
+  ASK execution
+  IF command STARTS_WITH "uv publish"
+  OR command REGEX "^uv publish\\b"
+  MESSAGE "Publishing to PyPI via uv is permanent. Once a version is published it cannot be overwritten — only yanked. Verify the version, build artifacts, and metadata before publishing."
+  PROMPT "Have you verified: (1) correct version in pyproject.toml, (2) clean build artifacts in dist/, (3) correct target index (TestPyPI vs PyPI)?"
+}
+
+rule ask-pip-upgrade-unpinned {
+  enabled true
+  priority 80
+  severity warning
+  ASK execution
+  IF command REGEX "pip install.*--upgrade\\s+[a-zA-Z]"
+  OR command REGEX "pip install.*-U\\s+[a-zA-Z]"
+  OR command REGEX "pip install.*\\s-U$"
+  MESSAGE "'pip install --upgrade' without a pinned version installs the latest available release. In CI or production this can introduce breaking changes or pull in a malicious update."
+  PROMPT "Have you pinned a target version? Prefer: pip install <package>==<version> after reviewing the changelog for breaking changes."
+}

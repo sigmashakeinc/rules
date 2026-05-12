@@ -1,0 +1,42 @@
+# py_write_style.rules — Python code quality and style guidance.
+# Technology: py | Capability: write
+# Covers: bare except, mutable defaults, print debugging, broad exceptions.
+
+rule no-bare-except {
+  enabled true
+  priority 80
+  severity error
+  DENY write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "except\\s*:"
+  OR path GLOB "**/*.py" AND content LINE_REGEX "except\\s+Exception\\s*:"
+  MESSAGE "Bare 'except:' or 'except Exception:' swallows all errors including KeyboardInterrupt and SystemExit. Catch specific exception types."
+}
+
+rule no-mutable-default-arg {
+  enabled true
+  priority 75
+  severity warning
+  LOG write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "def\\s+\\w+\\s*\\([^)]*=\\s*\\["
+  OR path GLOB "**/*.py" AND content LINE_REGEX "def\\s+\\w+\\s*\\([^)]*=\\s*\\{"
+  MESSAGE "Mutable default arguments (lists, dicts) are shared across all calls. Use None as default and initialize inside the function body."
+}
+
+rule no-print-in-src {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "src/**/*.py" AND content CONTAINS "print("
+  OR path GLOB "app/**/*.py" AND content CONTAINS "print("
+  MESSAGE "print() detected in source code. Use the logging module for structured output that can be controlled in production."
+}
+
+rule no-wildcard-import {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/*.py" AND content LINE_REGEX "from \\w+ import \\*"
+  MESSAGE "Wildcard imports pollute the namespace and make it hard to trace where names come from. Use explicit imports."
+}
