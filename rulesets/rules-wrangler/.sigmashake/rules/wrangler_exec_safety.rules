@@ -1,0 +1,115 @@
+# wrangler_exec_safety.rules
+# Technology: wrangler | Capability: execution
+
+rule wrangler-d1-remote-destructive {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "wrangler\\s+d1\\s+execute.*--remote" AND command REGEX "(DROP\\s+(TABLE|DATABASE|INDEX)|drop\\s+(table|database|index)|TRUNCATE|truncate)"
+  OR command REGEX "wrangler\\s+d1\\s+execute.*--remote.*DELETE\\s+FROM"
+  OR command REGEX "wrangler\\s+d1\\s+execute.*--remote.*delete\\s+from"
+  MESSAGE "Destructive SQL (DROP / TRUNCATE / unbounded DELETE) against --remote D1 is irreversible — D1 has no native point-in-time recovery on lower tiers. Run against --preview or a named preview database first, and always include a WHERE clause on mutations."
+}
+
+rule wrangler-d1-execute-remote-raw {
+  enabled true
+  priority 85
+  severity warning
+  ASK execution
+  IF command REGEX "wrangler\\s+d1\\s+execute.*--remote"
+  AND command REGEX "--command"
+  MESSAGE "Running ad-hoc SQL directly against remote D1 skips review and leaves no migration trail."
+  PROMPT "Can this be moved into a committed migration file and applied via `wrangler d1 migrations apply`? If yes, prefer that. Confirm only if this is a one-off investigation query."
+}
+
+rule wrangler-d1-migrations-apply-remote {
+  enabled true
+  priority 90
+  severity warning
+  ASK execution
+  IF command REGEX "wrangler\\s+d1\\s+migrations\\s+apply.*--remote"
+  MESSAGE "Applying migrations to a remote (production) D1 database."
+  PROMPT "Confirm: (1) migration tested against --local or --preview, (2) backward-compatible with currently-deployed Worker code, (3) snapshot taken via `wrangler d1 export` first."
+}
+
+rule wrangler-kv-bulk-delete {
+  enabled true
+  priority 95
+  severity error
+  DENY execution
+  IF command REGEX "wrangler\\s+kv(:namespace|\\s+namespace)?\\s+delete.*--remote"
+  OR command REGEX "wrangler\\s+kv:bulk\\s+delete"
+  OR command REGEX "wrangler\\s+kv\\s+bulk\\s+delete"
+  MESSAGE "KV deletions are immediate and non-recoverable. Confirm the namespace ID, scope deletion with a prefix, and list keys first via `wrangler kv key list`."
+}
+
+rule wrangler-r2-bucket-delete {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "wrangler\\s+r2\\s+bucket\\s+delete"
+  MESSAGE "`wrangler r2 bucket delete` permanently destroys the bucket and all objects. There is no undo. Use object-level deletion (`wrangler r2 object delete`) if clearing contents, and verify the bucket name."
+}
+
+rule wrangler-deploy-no-env {
+  enabled true
+  priority 80
+  severity warning
+  ASK execution
+  IF command REGEX "wrangler\\s+(deploy|publish)(\\s|$)"
+  AND command NOT REGEX "--env\\s+\\w+"
+  AND command NOT REGEX "--dry-run"
+  MESSAGE "`wrangler deploy` without `--env` targets the top-level (production) worker."
+  PROMPT "If staging/preview environments are defined in wrangler.toml, confirm you intend to deploy production. Consider `--env staging` or `--dry-run` first."
+}
+
+rule wrangler-login-interactive {
+  enabled true
+  priority 70
+  severity warning
+  LOG execution
+  IF command REGEX "wrangler\\s+login"
+  MESSAGE "`wrangler login` uses OAuth and requires a browser — it cannot complete in CI. Use CLOUDFLARE_API_TOKEN (scoped to the account/zone/workers) set as a secret environment variable."
+}
+
+rule wrangler-secret-put-echo {
+  enabled true
+  priority 90
+  severity error
+  DENY execution
+  IF command REGEX "echo\\s+\\S+\\s*\\|\\s*wrangler\\s+secret\\s+put"
+  OR command REGEX "printf\\s+\\S+\\s*\\|\\s*wrangler\\s+secret\\s+put"
+  MESSAGE "Piping secrets via `echo | wrangler secret put` writes them to shell history and may appear in `ps` output. Pipe from a file (`wrangler secret put NAME < file`) or use interactive mode, then clear the file."
+}
+
+rule wrangler-tail-prod {
+  enabled true
+  priority 50
+  severity info
+  LOG execution
+  IF command REGEX "wrangler\\s+tail" AND command REGEX "--env\\s+(prod|production)"
+  MESSAGE "`wrangler tail` on production streams live request data including headers and URLs — may expose user PII or auth tokens to the terminal and any tee'd logs. Use `--format=json --filter` to scope."
+}
+
+rule wrangler-pages-deploy-commit-hash-injection {
+  enabled true
+  priority 100
+  severity error
+  DENY execution
+  IF command REGEX "wrangler\\s+pages\\s+deploy.*--commit-hash[=\\s]+[^A-Za-z0-9_\\-]"
+  OR command REGEX "wrangler\\s+pages\\s+deploy.*--commit-hash[=\\s]+\\$\\("
+  OR command REGEX "wrangler\\s+pages\\s+deploy.*--commit-hash[=\\s]+`"
+  MESSAGE "CVE-2026-0933 (GHSA-36p8-mvp6-cv38): `--commit-hash` on `wrangler pages deploy` is passed to a shell and allows OS command injection in wrangler <=3.114.16 and 4.x <=4.59.0. Upgrade wrangler and restrict the value to `[A-Fa-f0-9]+` before passing it."
+}
+
+rule wrangler-rollback-force {
+  enabled true
+  priority 85
+  severity warning
+  ASK execution
+  IF command REGEX "wrangler\\s+rollback"
+  MESSAGE "`wrangler rollback` reverts the active deployment but does NOT roll back D1 migrations, KV writes, or R2 objects made by the newer version."
+  PROMPT "Confirm that rolling back the Worker alone is safe given any schema or data changes shipped with the newer deployment."
+}

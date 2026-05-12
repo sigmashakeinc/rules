@@ -1,0 +1,94 @@
+# wrangler_write_workers.rules
+# Technology: wrangler | Capability: write
+
+rule worker-fetch-unbounded-subrequest {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/src/**/*.{ts,js,mjs}" AND content LINE_REGEX "for\\s*\\([^)]*\\)\\s*\\{[^}]*await\\s+fetch\\("
+  MESSAGE "Workers have a 50-subrequest limit on Free and 1000 on Paid plans — unbounded loops issuing `await fetch()` will throw `Too many subrequests` mid-execution. Batch, parallelize with Promise.all up to the limit, or offload to a Queue."
+}
+
+rule worker-env-log {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/src/**/*.{ts,js,mjs}" AND content LINE_REGEX "console\\.(log|info|warn|error|debug)\\s*\\(\\s*[^)]*\\benv\\b(\\s*\\)|[,.])"
+  MESSAGE "Logging the entire `env` object exposes every bound secret (from `wrangler secret put`) to `wrangler tail`, Logpush, and any connected Logs-to-SIEM pipeline. Log specific non-secret fields only."
+}
+
+rule worker-crypto-weak-random {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/src/**/*.{ts,js,mjs}" AND content LINE_REGEX "Math\\.random\\(\\)" AND content LINE_REGEX "(token|secret|session|nonce|salt|key|password)"
+  MESSAGE "`Math.random()` is not cryptographically secure — it's predictable. Use `crypto.randomUUID()` or `crypto.getRandomValues()` (Web Crypto is available on Workers without import)."
+}
+
+rule worker-durable-object-no-blockconcurrency {
+  enabled true
+  priority 55
+  severity info
+  LOG write
+  IF path GLOB "**/src/**/*.{ts,js,mjs}" AND content LINE_REGEX "class\\s+\\w+[^{]*\\{" AND content LINE_REGEX "this\\.state\\.storage\\." AND content NOT LINE_REGEX "blockConcurrencyWhile"
+  MESSAGE "Durable Object handlers that initialize state from storage should wrap the load in `this.state.blockConcurrencyWhile(async () => {...})` in the constructor to prevent request handlers from observing partially-loaded state."
+}
+
+rule worker-cache-personalized-response {
+  enabled true
+  priority 80
+  severity warning
+  ASK write
+  IF path GLOB "**/src/**/*.{ts,js,mjs}" AND content LINE_REGEX "caches\\.default\\.put\\(" AND content LINE_REGEX "(Authorization|Cookie|Set-Cookie)"
+  MESSAGE "Caching responses that depend on Authorization/Cookie headers without varying cache key leaks one user's response to another."
+  PROMPT "Confirm the cache key incorporates auth identity, or that `Vary` headers are set so the edge cache segments per-user. Otherwise switch to no-cache for authenticated responses."
+}
+
+rule worker-fetch-no-timeout {
+  enabled true
+  priority 50
+  severity info
+  LOG write
+  IF path GLOB "**/src/**/*.{ts,js,mjs}" AND content LINE_REGEX "await\\s+fetch\\(" AND content NOT LINE_REGEX "AbortSignal\\.timeout|AbortController"
+  MESSAGE "`fetch()` without `AbortSignal.timeout()` relies on Workers' 30s CPU-time ceiling (or subrequest ceiling) — a slow upstream can consume the whole request budget. Add an explicit timeout appropriate to the call."
+}
+
+rule worker-secret-compare-timing-unsafe {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/src/**/*.{ts,js,mjs}" AND content LINE_REGEX "(env\\.[A-Z_]*(SECRET|TOKEN|KEY|PASSWORD)[A-Z_]*|apiKey|authToken|sessionToken)\\s*(===|==|!==|!=)\\s*"
+  MESSAGE "Comparing a secret/token with `===` leaks length and prefix via timing side-channel (attacker can brute-force byte-by-byte). Use `crypto.subtle.timingSafeEqual(enc(a), enc(b))` (Web Crypto on Workers) after length-checking."
+}
+
+rule worker-opennext-ssrf-cve-2026-3125 {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/package.json" AND content LINE_REGEX "\"@opennextjs/cloudflare\"\\s*:\\s*\"[\\^~]?(0\\.|1\\.[0-5]\\.|1\\.6\\.[0-2])"
+  MESSAGE "CVE-2026-3125: @opennextjs/cloudflare <1.6.3 has an SSRF via path normalization in the /cdn-cgi/image/ handler, letting attackers fetch arbitrary remote URLs through your Worker. Upgrade to the patched release."
+}
+
+rule worker-vite-plugin-secret-leak-ghsa-4pfg {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/package.json" AND content LINE_REGEX "\"@cloudflare/vite-plugin\"\\s*:\\s*\"[\\^~]?(0\\.0\\.|0\\.1\\.[0-5])"
+  MESSAGE "GHSA-4pfg-2mw5-f8jx: @cloudflare/vite-plugin <0.1.6 exposes Worker secrets over the dev-server without authentication, so any local process can read them. Upgrade and avoid binding production secrets in `vite dev`."
+}
+
+rule worker-d1-string-concat-query {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/src/**/*.{ts,js,mjs}" AND content LINE_REGEX "\\.(prepare|exec)\\s*\\(\\s*`[^`]*\\$\\{"
+  OR path GLOB "**/src/**/*.{ts,js,mjs}" AND content LINE_REGEX "\\.(prepare|exec)\\s*\\([^)]*\\+\\s*\\w+"
+  MESSAGE "D1 SQL injection: template-literal interpolation or `+` concatenation in `.prepare()`/`.exec()` is injectable. Use parameterized queries: `db.prepare('SELECT * FROM t WHERE id = ?').bind(id)`."
+}

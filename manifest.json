@@ -1,0 +1,3588 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-12T21:04:13.665Z",
+  "repo": "sigmashakeinc/rules",
+  "ref": "main",
+  "signing_key": {
+    "fingerprint": "sha256:c62cd7f452fed9cd5657dcad37bddb80ac012671a18e494e73bcdc5ec789b53f",
+    "alg": "ed25519",
+    "public_key_hex": "302a300506032b6570032100fa27b2eba3b238546c2c6bb48358f6e376cf31c80ab23d4215cacfabfc6dbd55"
+  },
+  "rulesets": [
+    {
+      "id": "rules-agent",
+      "path": "rulesets/rules-agent",
+      "rules_path": "rulesets/rules-agent/.sigmashake/rules",
+      "title": "rules-agent",
+      "description": "AI agent efficiency and cost-reduction rules. These rules prevent context-bloat and redirect shell commands to native agent tools to reduce token costs by 30-50%.",
+      "technologies": [
+        "agent"
+      ],
+      "rule_count": 24,
+      "content_hash": "9e85cd3dfa125dcf335a337b5f62bfc2bf4ce34a75ab9f0af4616aac0e347d6d",
+      "content_signature": "e88a562c0276c360819b6757fa42065947c617fcf3653d20480597abed3dcd24b6d3566fd82526af00996e4ffec1f4b571932bc563ad515f491505f5fba65704",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.077Z"
+    },
+    {
+      "id": "rules-ai-ml",
+      "path": "rulesets/rules-ai-ml",
+      "rules_path": "rulesets/rules-ai-ml/.sigmashake/rules",
+      "title": "rules-ai-ml",
+      "description": "",
+      "technologies": [
+        "vector"
+      ],
+      "rule_count": 4,
+      "content_hash": "0231e33d61cf0718a585c82a3dda32da1292cb9b26467b78ed0d99e54d66ff32",
+      "content_signature": "d774bf4ba73051e8f67920324b142bd25125a72305d6a31df59eeca8b0d32a39aa102c8e841417d842980b87bc49fbf0b68b61b5476473e01c147d2f0d389e0e",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-10T00:44:03.779Z"
+    },
+    {
+      "id": "rules-aider",
+      "path": "rulesets/rules-aider",
+      "rules_path": "rulesets/rules-aider/.sigmashake/rules",
+      "title": "rules-aider",
+      "description": "",
+      "technologies": [
+        "aider"
+      ],
+      "rule_count": 3,
+      "content_hash": "e3f120b5e41d9b349319000934395029cdc311b41cda3009fd4a79f87fb4385f",
+      "content_signature": "79c82238dc602d6ac92be8f19cae3c6cbc967cb7f434ed668c816e43eaaedbca4fe3b51b823862ee62e1b10a23840708bb3f029e8553a2be7e758fe06fd18908",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-10T00:44:03.778Z"
+    },
+    {
+      "id": "rules-alpinejs",
+      "path": "rulesets/rules-alpinejs",
+      "rules_path": "rulesets/rules-alpinejs/.sigmashake/rules",
+      "title": "rules-alpinejs",
+      "description": "Alpine.js is a rugged, minimal tool for composing behavior directly in your markup. These rules govern reactive patterns, directive usage, and security best practices for AI-assisted Alpine.js development.",
+      "technologies": [
+        "alpinejs"
+      ],
+      "rule_count": 6,
+      "content_hash": "d1cb0e6dd603dc8044e036832bc6c7f96cd3a6622ba68fbdf3a441039ec3744e",
+      "content_signature": "d07cee17d110d3bf49bdcdf6bdec6374e1469fe7c1e5dab928c732c53c323edb012226b6befc348ded1e635dd9f495c864c94bdddb6bbef9cdc9492635123b09",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.543Z"
+    },
+    {
+      "id": "rules-amp",
+      "path": "rulesets/rules-amp",
+      "rules_path": "rulesets/rules-amp/.sigmashake/rules",
+      "title": "rules-amp",
+      "description": "",
+      "technologies": [
+        "amp"
+      ],
+      "rule_count": 3,
+      "content_hash": "36822a4580d9450d23bef376f5b78491994bc9d4de211f7688ddd9ccc7ca2f23",
+      "content_signature": "5b70a57dffde41073740b89431600f79e5809b9fdeaac9da3585398da462262a3a5b66b140781200ff07f2f88bef715fd1ace9caa3be74c5ea6d9bf3db03c209",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-10T00:44:03.772Z"
+    },
+    {
+      "id": "rules-angular",
+      "path": "rulesets/rules-angular",
+      "rules_path": "rulesets/rules-angular/.sigmashake/rules",
+      "title": "rules-angular",
+      "description": "Angular is a web development framework for building single-page applications. These rules govern component structure, dependency injection, and best practices for AI-assisted Angular development.",
+      "technologies": [
+        "angular"
+      ],
+      "rule_count": 6,
+      "content_hash": "332b5d188cea137f6e6938e59f0cd5db81f33a4448f26e9659b60ed269dd763a",
+      "content_signature": "2abe24cf4eeb50d0e863e0c5e66fefff0cfaef508eebb9c76480c170df604b1e6d9426c0f0b5b3428a0a8ae377357edc025706bc0421832b4813042c3f82f30d",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.528Z"
+    },
+    {
+      "id": "rules-ansible",
+      "path": "rulesets/rules-ansible",
+      "rules_path": "rulesets/rules-ansible/.sigmashake/rules",
+      "title": "rules-ansible",
+      "description": "Ansible is an IT automation tool that automates configuration management, application deployment, and intra-service orchestration. These rules govern playbook structure, module usage, and security for AI-assisted Ansible automation.",
+      "technologies": [
+        "ansible"
+      ],
+      "rule_count": 7,
+      "content_hash": "5cf9ee6a2b820dff77532da580b5c3b938a893504336395b377fe4f4d98b0b2b",
+      "content_signature": "755abdbd3fe367626ed1fc94be3cb74cf36a243ceeccb932ed366c2d168cf2a37dfc29a7f9c0d6d8082122c9222de43c19d3f9e868a45f3b0270808443239c04",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.033Z"
+    },
+    {
+      "id": "rules-ant-design",
+      "path": "rulesets/rules-ant-design",
+      "rules_path": "rulesets/rules-ant-design/.sigmashake/rules",
+      "title": "rules-ant-design",
+      "description": "Ant Design is a React UI framework that contains a set of high-quality components and demos for building rich, interactive user interfaces. These rules govern component usage, design system alignment, and accessibility for AI-assisted development.",
+      "technologies": [
+        "ant-design"
+      ],
+      "rule_count": 6,
+      "content_hash": "1d7223fa5d1e235412991afa423ed33464c186d64faee6fab61af219eab6b4ea",
+      "content_signature": "b58b10ebcd416ca77f7a743696c55bb0083cb0409f212c4b02ce72fb8f3dab2204d4089c63e5fec45d549c05bd92d0ae1f1355cfafedcd14a8d0aa08f261df04",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.025Z"
+    },
+    {
+      "id": "rules-anthropic",
+      "path": "rulesets/rules-anthropic",
+      "rules_path": "rulesets/rules-anthropic/.sigmashake/rules",
+      "title": "rules-anthropic",
+      "description": "Strict safety and best-practice governance for AI agents working with Anthropic models and APIs. These rules block destructive operations and enforce modern security standards.",
+      "technologies": [
+        "anthropic"
+      ],
+      "rule_count": 7,
+      "content_hash": "39465a11a1827d0e21413d8e3a9bc1e1cb461abc4dae81f6f52f8c3c49b1a8e0",
+      "content_signature": "0475f8bf404f1f5b4cde490dfcc9f6337910e449d13600eca32afa56328906c18af5acd2b8f2d16c9887bbdb105be797ec32090ffbb84c1cf66ad40a6051690f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.540Z"
+    },
+    {
+      "id": "rules-apache",
+      "path": "rulesets/rules-apache",
+      "rules_path": "rulesets/rules-apache/.sigmashake/rules",
+      "title": "rules-apache",
+      "description": "The Apache HTTP Server is a widely-used web server software. These rules govern configuration best practices, security hardening, and module management for AI-assisted Apache server administration.",
+      "technologies": [
+        "apache"
+      ],
+      "rule_count": 4,
+      "content_hash": "cccd5f222a1b600c47127df2c304db2b6b529c7064bcecbe28d19183dc8d49c5",
+      "content_signature": "ad00adbceee920e1ad2381d1b512d0ebf15e413237f821492d278c7f2375528e556a2e2fabcda7aed65b56ad2b8b37e18cb7da4ee49fa84c181d0ee1ba94f903",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-08T03:24:11.727Z"
+    },
+    {
+      "id": "rules-apollo",
+      "path": "rulesets/rules-apollo",
+      "rules_path": "rulesets/rules-apollo/.sigmashake/rules",
+      "title": "rules-apollo",
+      "description": "Apollo GraphQL is a comprehensive platform for building a data graph with GraphQL. These rules govern schema design, query optimization, and client-side integration for AI-assisted Apollo development.",
+      "technologies": [
+        "apollo"
+      ],
+      "rule_count": 7,
+      "content_hash": "ac2b4518f74a9b81a8fba75d479cd4165bce5fac788337b8cc51de01c59f0d98",
+      "content_signature": "92b5a65fd24de8ae9dd298c9555f9627fbab6fc310b807de8aa6f00fe7915b329914a14fb08114dcdcae0461ecc208930421411a66eb7d4ef0d3bd7c6ac1f50d",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.016Z"
+    },
+    {
+      "id": "rules-argocd",
+      "path": "rulesets/rules-argocd",
+      "rules_path": "rulesets/rules-argocd/.sigmashake/rules",
+      "title": "rules-argocd",
+      "description": "Argo CD is a declarative, GitOps continuous delivery tool for Kubernetes. These rules govern application manifests, sync policies, and security best practices for AI-assisted Argo CD management.",
+      "technologies": [
+        "argocd"
+      ],
+      "rule_count": 6,
+      "content_hash": "b13ceb40e7db11034867c20c75944478428e6f3dc404555aa1050ea0fd001f23",
+      "content_signature": "712ba9f054489f085fb7bcb15829d3ade0b309eaec2cb6582445eb2c14dbd0f034d5bd91e697a842d17e2f82409769354938c7f5fff17f7aac862ac40d546d0e",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.549Z"
+    },
+    {
+      "id": "rules-astro",
+      "path": "rulesets/rules-astro",
+      "rules_path": "rulesets/rules-astro/.sigmashake/rules",
+      "title": "rules-astro",
+      "description": "Astro is a modern web framework for building fast, content-focused websites. These rules govern component islands, static site generation, and performance optimization for AI-assisted Astro development.",
+      "technologies": [
+        "astro"
+      ],
+      "rule_count": 6,
+      "content_hash": "40073657a73574de903780e3ba9e7a7f960e6305c77622e2d07031e67b40e3d3",
+      "content_signature": "773a096f22841aa999e381c58b8bd2beed7e664b6c2b415d08637272c74b71b1157fb07081dc4c05bed77c9e8896991f8d61535e3e770ceed03daa6dec1cf902",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.039Z"
+    },
+    {
+      "id": "rules-aws",
+      "path": "rulesets/rules-aws",
+      "rules_path": "rulesets/rules-aws/.sigmashake/rules",
+      "title": "rules-aws",
+      "description": "Amazon Web Services (AWS) is a comprehensive, evolving cloud computing platform. These rules govern IAM policies, resource provisioning, and security best practices for AI-assisted AWS infrastructure management.",
+      "technologies": [
+        "aws"
+      ],
+      "rule_count": 22,
+      "content_hash": "a1dc80e61f89c9b40e5be94531aef32ba3f44615e55e526e51ee8783be048a38",
+      "content_signature": "fdaaf56b55931256effb07cd01ca274ebed82ffe5583c759e06cf5c9b9206d09e537a9b11707453794a21a0f2334ac3eb9148e5f0156611fc9db8048366f4504",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.077Z"
+    },
+    {
+      "id": "rules-azure",
+      "path": "rulesets/rules-azure",
+      "rules_path": "rulesets/rules-azure/.sigmashake/rules",
+      "title": "rules-azure",
+      "description": "Microsoft Azure is a cloud computing service for building, testing, deploying, and managing applications. These rules govern resource management, security compliance, and best practices for AI-assisted Azure administration.",
+      "technologies": [
+        "azure"
+      ],
+      "rule_count": 22,
+      "content_hash": "0c471265da01cb095dfc89b04d47e4b56d30b944233c43db54e830cf3a4dd506",
+      "content_signature": "887a414e5523245c0190ae8843641370b0eca5f9826d881767e80bc2fd2b47dfa9a58fd29047b6f54828b7e00b0cf5fdd5c7dcce26e31e4c6c12c854068cb008",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.077Z"
+    },
+    {
+      "id": "rules-backend",
+      "path": "rulesets/rules-backend",
+      "rules_path": "rulesets/rules-backend/.sigmashake/rules",
+      "title": "rules-backend",
+      "description": "",
+      "technologies": [
+        "api"
+      ],
+      "rule_count": 4,
+      "content_hash": "e9a57d3a434b1e2af7dfef19997ed33b9e2bb81c6f772a5dba605cd41ea0a635",
+      "content_signature": "8ea5948cf65226be408492a9051b6f9061c75fd36f2c13c4b4977e17b698cd428936c942e96f326dc8e5edbdef369df8ba8eec4aeb81c737ddd5b41b4636bc03",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-10T00:44:03.757Z"
+    },
+    {
+      "id": "rules-bash",
+      "path": "rulesets/rules-bash",
+      "rules_path": "rulesets/rules-bash/.sigmashake/rules",
+      "title": "rules-bash",
+      "description": "Bash is a Unix shell and command language. These rules govern script structure, error handling, and security best practices for AI-assisted Bash scripting.",
+      "technologies": [
+        "bash"
+      ],
+      "rule_count": 24,
+      "content_hash": "7244be81a322cea7319e5f5184e48dc2536a25c677170b51a22b005c1d2c7894",
+      "content_signature": "1cdabae20e0a040d42f5b1e117da40ca6dc395c7eb39c8f7b0e3a0907730bcbcbf88ae7d05adf07ee742e3d046a6af2be737219575756be1675ee954d0a95c0d",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.077Z"
+    },
+    {
+      "id": "rules-bitbucket-actions",
+      "path": "rulesets/rules-bitbucket-actions",
+      "rules_path": "rulesets/rules-bitbucket-actions/.sigmashake/rules",
+      "title": "rules-bitbucket-actions",
+      "description": "Bitbucket Pipelines/Actions is a CI/CD service built into Bitbucket. These rules govern pipeline configurations, step definitions, and security for AI-assisted Bitbucket automation.",
+      "technologies": [
+        "bitbucket-actions"
+      ],
+      "rule_count": 7,
+      "content_hash": "183ecfa2bb955d643f2394f6215bdbcbc1280253dbf1a223515c50a1a849b340",
+      "content_signature": "8eed0ee788bb824142f089f1ffa931a9bc9de8994b246c4dd803c48dac6ce8ab793e232adf5b4868f12ab60c32c53c97b54558d48a280f00480d4ba30d78e00b",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.036Z"
+    },
+    {
+      "id": "rules-bootstrap",
+      "path": "rulesets/rules-bootstrap",
+      "rules_path": "rulesets/rules-bootstrap/.sigmashake/rules",
+      "title": "rules-bootstrap",
+      "description": "Bootstrap is a powerful, feature-packed frontend toolkit. These rules govern grid layout, component usage, and responsive design best practices for AI-assisted Bootstrap development.",
+      "technologies": [
+        "bootstrap"
+      ],
+      "rule_count": 7,
+      "content_hash": "38618d56fcac5afc5b19828b9a42ff98eff890b39f93af493ad7a84077b38736",
+      "content_signature": "5ba4f29291c808f3fe06b55dde6765f7833c6cbc7daf21bbcc4839ae057715f27e82f311172c9d01880a0cbde187bf2e6f7b9ca63acd7b98e5fe04ed8ee34907",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.014Z"
+    },
+    {
+      "id": "rules-boundary",
+      "path": "rulesets/rules-boundary",
+      "rules_path": "rulesets/rules-boundary/.sigmashake/rules",
+      "title": "rules-boundary",
+      "description": "HashiCorp Boundary provides identity-aware, least-privileged access to infrastructure. These rules govern target definitions, session management, and security policies for AI-assisted Boundary administration.",
+      "technologies": [
+        "boundary"
+      ],
+      "rule_count": 6,
+      "content_hash": "287e405d934f68f533d234a2b6cb5b2e82689f3676c645b05a42c32edc156895",
+      "content_signature": "fe5127c8fd61b7b12761b7e152172c2f7958eae71ea479476196dfd8293de6c5c29e91d1c1297c12568dffd35f027ae1a9425430bcbee189efb1dbaa7e956703",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.031Z"
+    },
+    {
+      "id": "rules-bun",
+      "path": "rulesets/rules-bun",
+      "rules_path": "rulesets/rules-bun/.sigmashake/rules",
+      "title": "rules-bun",
+      "description": "Bun is a fast, all-in-one JavaScript runtime. These rules govern package management, script execution, and performance optimization for AI-assisted Bun development.",
+      "technologies": [
+        "bun"
+      ],
+      "rule_count": 20,
+      "content_hash": "f4c57f4aa381f7670f30df467edea86baa1d931c99c72792272e774ad6f2bb39",
+      "content_signature": "5fea5902f8e6ef27e475391be7fd130e3f285d6288ccb547be5ceb2d3ab5423356a2e3ae64465de44a7bec0caed1d932f1bb6f01a219d7ac8dcc3660856df604",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T08:01:39.321Z"
+    },
+    {
+      "id": "rules-c",
+      "path": "rulesets/rules-c",
+      "rules_path": "rulesets/rules-c/.sigmashake/rules",
+      "title": "rules-c",
+      "description": "C is a general-purpose, procedural computer programming language. These rules govern memory management, pointer usage, and security best practices for AI-assisted C development.",
+      "technologies": [
+        "c"
+      ],
+      "rule_count": 7,
+      "content_hash": "0202ac8694c7e9a539160e1daf6c9eb825b3bbb7dd36fbceb9a7304b5d4b81ff",
+      "content_signature": "d345ab6bcb56877d92ae8aa7e839fddd0451207080c47ea17df4a2cb90247207135a81aac6a24e08fbdd5a1a078104f2b45f0d4a47909ea5a73df40b202ea703",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-05T23:05:58.224Z"
+    },
+    {
+      "id": "rules-capacitor",
+      "path": "rulesets/rules-capacitor",
+      "rules_path": "rulesets/rules-capacitor/.sigmashake/rules",
+      "title": "rules-capacitor",
+      "description": "Capacitor is an open-source native runtime for building Web Native apps. These rules govern plugin usage, native platform integration, and build processes for AI-assisted Capacitor development.",
+      "technologies": [
+        "capacitor"
+      ],
+      "rule_count": 7,
+      "content_hash": "3f6332364bd670d6a861c92ede8239c63f216866d83d6d1abaeffd1b2b5ea31e",
+      "content_signature": "72e1ecde60f3cdd8c7bf179125519f64c9781b7d1d2f8ab321d4ea49fe3c7639d56afd434b0434a7a94a41e48c6d935ee1261d0a8d117846776466aa788fd406",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.545Z"
+    },
+    {
+      "id": "rules-cassandra",
+      "path": "rulesets/rules-cassandra",
+      "rules_path": "rulesets/rules-cassandra/.sigmashake/rules",
+      "title": "rules-cassandra",
+      "description": "Apache Cassandra is a free and open-source, distributed, wide-column store, NoSQL database management system. These rules govern data modeling, query optimization, and cluster configuration for AI-assisted Cassandra management.",
+      "technologies": [
+        "cassandra"
+      ],
+      "rule_count": 9,
+      "content_hash": "233b301f2987e95c174777db1f6b7de1b31a5b6367e82ff4c20bac22d9605c64",
+      "content_signature": "9681ded916567e798737439385c53764f4424cc23e8c170847f5eee3504972c0ee51acaece6cc57c7d24c74487ef55a1e039c58aa4e99d12d8f41797c6b6d204",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.013Z"
+    },
+    {
+      "id": "rules-catboost",
+      "path": "rulesets/rules-catboost",
+      "rules_path": "rulesets/rules-catboost/.sigmashake/rules",
+      "title": "rules-catboost",
+      "description": "CatBoost is an open-source gradient boosting on decision trees library. These rules govern model training, hyperparameter tuning, and data preprocessing for AI-assisted CatBoost development.",
+      "technologies": [
+        "catboost"
+      ],
+      "rule_count": 6,
+      "content_hash": "8be3d9676baa281d6398481c071521f4c6ca367d2f6b0c188644987e43db2cf9",
+      "content_signature": "2e85cfcf579f2e1cdb35036c3832ac90d5d4688cea8987d82ccac184c7100afab7ccf398932a6552cebbed3534643fc49feed2ccce15a9f31a6f91cf587a6a0d",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.021Z"
+    },
+    {
+      "id": "rules-chakra-ui",
+      "path": "rulesets/rules-chakra-ui",
+      "rules_path": "rulesets/rules-chakra-ui/.sigmashake/rules",
+      "title": "rules-chakra-ui",
+      "description": "Chakra UI is a simple, modular, and accessible component library for React. These rules govern theme customization, component usage, and accessibility for AI-assisted Chakra UI development.",
+      "technologies": [
+        "chakra-ui"
+      ],
+      "rule_count": 6,
+      "content_hash": "05180d504f8b93c02c4ffd061b8bd61ef74b139f3dcc7ec9a9c7d68ce9df1119",
+      "content_signature": "c91c1b36ed7614fe2a1cef9744af6bb049732d85a91c6f2549f581d59fa9cc17044891bba0b8a036ebaa28a54a78a111a525cf1ab6e65ba135b3a9092b948400",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.027Z"
+    },
+    {
+      "id": "rules-chef",
+      "path": "rulesets/rules-chef",
+      "rules_path": "rulesets/rules-chef/.sigmashake/rules",
+      "title": "rules-chef",
+      "description": "Chef is an infrastructure automation platform. These rules govern cookbook structure, recipe definitions, and security best practices for AI-assisted Chef automation.",
+      "technologies": [
+        "chef"
+      ],
+      "rule_count": 7,
+      "content_hash": "1fc1df166baf2c78c923905ba1f09940931c11192c939f0d8ae9c52d82ecf207",
+      "content_signature": "0fac4b8da7cf27252231748eb83e02b0cf2567e471b4ee44bb53a58c391a09ba90c93075a2b639ae136523d1ced06cf0039a1e8a45d1765dcd0e9f8032691009",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.531Z"
+    },
+    {
+      "id": "rules-chroma",
+      "path": "rulesets/rules-chroma",
+      "rules_path": "rulesets/rules-chroma/.sigmashake/rules",
+      "title": "rules-chroma",
+      "description": "Chroma is an open-source embedding database. These rules govern collection management, embedding storage, and retrieval optimization for AI-assisted ChromaDB development.",
+      "technologies": [
+        "chroma"
+      ],
+      "rule_count": 2,
+      "content_hash": "98f235e05e0dd095fa614c45fb775866a077fb38c5197769222b7422ab35fc14",
+      "content_signature": "e718b31c52f40c928e7efb47cafb0f95ba7aacc8924faa6a04cdae1ccfa3aa37d7ffb83530d04cfae8ab104a881d84d3d0525230e35269dcbcd8196cce35010b",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.536Z"
+    },
+    {
+      "id": "rules-cicd",
+      "path": "rulesets/rules-cicd",
+      "rules_path": "rulesets/rules-cicd/.sigmashake/rules",
+      "title": "rules-cicd",
+      "description": "",
+      "technologies": [
+        "github"
+      ],
+      "rule_count": 4,
+      "content_hash": "881bab6b58b7fcc5c033c0435ea13b7b57954d2ef1a3608bb33670c0fd8d40ec",
+      "content_signature": "ce83529ef3bcd0d33505a5edccd0a1e0dc7470c47b5e4add9b8c1d29a0f0ab15fd9466e8ce90de61cc5a0c27842d017d7092f3230ffd0b020532e06567b36b07",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-10T00:44:03.762Z"
+    },
+    {
+      "id": "rules-circleci",
+      "path": "rulesets/rules-circleci",
+      "rules_path": "rulesets/rules-circleci/.sigmashake/rules",
+      "title": "rules-circleci",
+      "description": "CircleCI is a modern continuous integration and delivery platform. These rules govern config.yml structure, job definitions, and security for AI-assisted CircleCI automation.",
+      "technologies": [
+        "circleci"
+      ],
+      "rule_count": 7,
+      "content_hash": "5d7dcdfae61b9fa06de8fa30eb801517288281f255bd909aba264016411a7d07",
+      "content_signature": "059f838e26ec0d5c34aaa3673312992802e1ada33927f10b2b77d48e1146fe64bafe65ab6660fc79264920262280ae53ea7910173530cb3dfab135d3a5af0704",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.009Z"
+    },
+    {
+      "id": "rules-claude-4.6",
+      "path": "rulesets/rules-claude-4.6",
+      "rules_path": "rulesets/rules-claude-4.6/.sigmashake/rules",
+      "title": "rules-claude-4.6",
+      "description": "Governance rules designed to protect against agentic vulnerabilities in Claude 4.6 workflows. These rules prevent approval fatigue, context pollution loops, and common AI-driven security risks.",
+      "technologies": [
+        "claude-4.6"
+      ],
+      "rule_count": 2,
+      "content_hash": "0e5e5ddb9d4c8296b1a722855a4adf87de45ee3889468fa6875cbdd63f4c9364",
+      "content_signature": "f502c65103f5ecca98cc14bfe5d5aa5402dfa2f00cb827c64b2d68c10cdc34bb1a8fb7e2e8673e01b924371cc3801aee2173cf7bcfb9b1bc318e126adc3b1602",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-08T08:49:29.993Z"
+    },
+    {
+      "id": "rules-claude-code",
+      "path": "rulesets/rules-claude-code",
+      "rules_path": "rulesets/rules-claude-code/.sigmashake/rules",
+      "title": "rules-claude-code",
+      "description": "Governance rules for the Claude Code CLI that protect against CVEs and security incidents. These rules block malicious hook execution, credential theft, and command injection bypasses.",
+      "technologies": [
+        "agent",
+        "claude-code",
+        "claudecode"
+      ],
+      "rule_count": 25,
+      "content_hash": "8310f298184e354d66c53f4f9a596a7c2a9fa547248f145103b9a49b400f553c",
+      "content_signature": "edb4429ad39a6206f2e2e5ee93a920a67da980917df400469cbd103ca23ae90be057ec952ba7efaba545f4e52cd1c79f089e3e5d5ff4992499c79a1ea1303d0e",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-05-08T20:57:34.156Z"
+    },
+    {
+      "id": "rules-claude-code-fixes",
+      "path": "rulesets/rules-claude-code-fixes",
+      "rules_path": "rulesets/rules-claude-code-fixes/.sigmashake/rules",
+      "title": "rules-claude-code-fixes",
+      "description": "Guardrails that resolve common Claude Code pain points like infinite loops and accidental code deletion. These rules save API costs and protect codebases from autonomous mistakes.",
+      "technologies": [
+        "claude-code"
+      ],
+      "rule_count": 6,
+      "content_hash": "8e35aa4ed31db8d3dd3b253902c3f92c170d24ff9a264ffc002279d839f8c413",
+      "content_signature": "4591f2780b9750d837826a8354817d51bae8f1c5bb782ade9f6527c624a9e1c3cfa787ae019db2abc9d759f68d9df6a423de05815657fd397bc0a04528625f0b",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-08T09:12:26.529Z"
+    },
+    {
+      "id": "rules-claude-mythos",
+      "path": "rulesets/rules-claude-mythos",
+      "rules_path": "rulesets/rules-claude-mythos/.sigmashake/rules",
+      "title": "rules-claude-mythos",
+      "description": "Advanced security hardening rules for sophisticated AI agent capabilities. These rules defend against memory exploitation, network egress threats, and Living off the Land abuse.",
+      "technologies": [
+        "00-sensitive-paths",
+        "01-anti-concealment",
+        "02-network-egress",
+        "03-destructive-ops-hitl",
+        "04-custom-exploit-compilation",
+        "05-lotl-abuse",
+        "06-kernel-and-injection",
+        "07-advanced-memory-threats",
+        "08-advanced-network-threats"
+      ],
+      "rule_count": 31,
+      "content_hash": "1f3731c8cdda07cf0f7b2ce4054ce4430d5cde00928c396f536320ccd7e3c93a",
+      "content_signature": "29e266917ea541ca874650a76238b12e096a49714d2812c77cc8c7c0ee45277df738c96521ed15114c05431756daaa62f54fadcacd478923ecf884c633683908",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-08T05:57:44.532Z"
+    },
+    {
+      "id": "rules-clojure",
+      "path": "rulesets/rules-clojure",
+      "rules_path": "rulesets/rules-clojure/.sigmashake/rules",
+      "title": "rules-clojure",
+      "description": "Clojure is a dynamic, general-purpose functional programming language. These rules govern functional patterns, concurrency, and REPL-driven development for AI-assisted Clojure.",
+      "technologies": [
+        "clojure"
+      ],
+      "rule_count": 6,
+      "content_hash": "b2fa05b302626e5331320c1bf83336cb615eca91bf9e2050a47cb14cb8633ab4",
+      "content_signature": "38470ea1b8a628fb3f918f0d615145318bd2c2df042eb0682a1b5e9695cad2a2614a01ee1a2c690b4bc6f9e54c17a0deb39fcddba14072b884f6ad1ae481c804",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.548Z"
+    },
+    {
+      "id": "rules-cloud",
+      "path": "rulesets/rules-cloud",
+      "rules_path": "rulesets/rules-cloud/.sigmashake/rules",
+      "title": "rules-cloud",
+      "description": "",
+      "technologies": [
+        "k8s",
+        "terraform"
+      ],
+      "rule_count": 8,
+      "content_hash": "4ed5c79dc4a333691d749463e26335892fd7e81073568c3c05f5c7939a6ed647",
+      "content_signature": "fe324fe666548f5d0d1c4430fec2ac9264c08f0b37eec8175f82dcc61629dd5a14b9fd5f398674221e1d699cadd8b6fdce98c8736083f2423d6b23b44c967308",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-10T00:44:03.762Z"
+    },
+    {
+      "id": "rules-cloudflare",
+      "path": "rulesets/rules-cloudflare",
+      "rules_path": "rulesets/rules-cloudflare/.sigmashake/rules",
+      "title": "rules-cloudflare",
+      "description": "Cloudflare is a global cloud platform providing security, performance, and reliability for web applications. These rules govern the configuration of Workers, WAF, and global traffic routing for AI agents.",
+      "technologies": [
+        "cloudflare"
+      ],
+      "rule_count": 4,
+      "content_hash": "5ac6725e311b99a5121aef462c075fb6840b6afe1769756cfc3fe4b134aae7ce",
+      "content_signature": "0d124c755844fc7dd305dc78e4d04e40060ba088c22f9a8d7eda4e66197b90c4bff57faabd80e348a2764a90eea581ca08ae204575a1bf42bcd63d727660f102",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-08T03:23:22.300Z"
+    },
+    {
+      "id": "rules-cloudformation",
+      "path": "rulesets/rules-cloudformation",
+      "rules_path": "rulesets/rules-cloudformation/.sigmashake/rules",
+      "title": "rules-cloudformation",
+      "description": "AWS CloudFormation is an Infrastructure as Code (IaC) service for provisioning and managing AWS resources using templates. These rules guide AI agents in defining, deploying, and managing complex AWS stacks and resource dependencies.",
+      "technologies": [
+        "cloudformation"
+      ],
+      "rule_count": 2,
+      "content_hash": "01ac96687a43014a8cb8a899af212c15962d04229f941d45ed8e20a9230e9fb0",
+      "content_signature": "545a0b270a8723f9d419751a0257dbe9ae60f3a2b0941aee0e78f66e0849310c0a24cda6e91a1464c47fc66a5f563a6ab3529f80379d98a5a8c6813b31fda109",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.550Z"
+    },
+    {
+      "id": "rules-codex",
+      "path": "rulesets/rules-codex",
+      "rules_path": "rulesets/rules-codex/.sigmashake/rules",
+      "title": "rules-codex",
+      "description": "",
+      "technologies": [
+        "codex"
+      ],
+      "rule_count": 4,
+      "content_hash": "7a83710c3b17e01d6b01a25632bc86f465127e1af88d7df88c798c17e128db6d",
+      "content_signature": "3a0d00cc9a584391263be126bc2b9fc9946504ac64e88adb7a0f8400cc062eef850f1199e424bf08271744e8d96b1a3cc0223fa621da3d7d6d2edb8a81a7a107",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-10T00:44:03.775Z"
+    },
+    {
+      "id": "rules-cohere",
+      "path": "rulesets/rules-cohere",
+      "rules_path": "rulesets/rules-cohere/.sigmashake/rules",
+      "title": "rules-cohere",
+      "description": "Cohere provides enterprise-grade AI models for natural language processing, embeddings, and reranking. These rules govern the integration of Cohere's API for high-performance text generation and semantic search tasks.",
+      "technologies": [
+        "cohere"
+      ],
+      "rule_count": 6,
+      "content_hash": "75411e26fd185357bbf272ecce6421b4a35043a61a2498719f33307b4393e21c",
+      "content_signature": "5c2eff960254cfa3e1324c4cdac212b428ce322bf08c52cc838b470d765845c007b991b6c6398c51ad744e2e5d33371413ce051c1b732880ee2a1038f3662e04",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.525Z"
+    },
+    {
+      "id": "rules-common",
+      "path": "rulesets/rules-common",
+      "rules_path": "rulesets/rules-common/.sigmashake/rules",
+      "title": "rules-common",
+      "description": "",
+      "technologies": [
+        "bash",
+        "fs",
+        "mcp"
+      ],
+      "rule_count": 28,
+      "content_hash": "17b0ab3f6324bf65ecc704f444902a7f0f4cbd30e577db1e2fc348ad585cc988",
+      "content_signature": "4a6817035f6259116ae671e3ef6431ee11d1cf2425403714941d05b8c178fbb59fdcfa43e1970a73bd8b2fce9c3bc67fde9bde222f45f47f598d2969ea76da09",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-10T00:44:03.789Z"
+    },
+    {
+      "id": "rules-compose-multiplatform",
+      "path": "rulesets/rules-compose-multiplatform",
+      "rules_path": "rulesets/rules-compose-multiplatform/.sigmashake/rules",
+      "title": "rules-compose-multiplatform",
+      "description": "Compose Multiplatform is a declarative UI framework for sharing Kotlin-based UI code across Android, iOS, Desktop, and Web. These rules assist AI agents in building consistent, reactive cross-platform user interfaces.",
+      "technologies": [
+        "compose-multiplatform"
+      ],
+      "rule_count": 2,
+      "content_hash": "48c871537c46a5be73cbb4dc149e1ca407a5d7e5a1217d8dc82ae4cb385427d4",
+      "content_signature": "e3bbd81740cdedd7c80d61a13b619f777e64ba51620c6e77a28bd20d8bc42bb9dfd63f96cbed9ac2ad7a4c9c59a1504e24fc6958c5ce085e9003abd128645106",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.015Z"
+    },
+    {
+      "id": "rules-consul",
+      "path": "rulesets/rules-consul",
+      "rules_path": "rulesets/rules-consul/.sigmashake/rules",
+      "title": "rules-consul",
+      "description": "HashiCorp Consul is a service networking solution for service discovery, configuration, and segmentation. These rules govern service mesh implementation, health monitoring, and dynamic configuration for distributed AI systems.",
+      "technologies": [
+        "consul"
+      ],
+      "rule_count": 2,
+      "content_hash": "6bd95537fff4ab2d07754cd5a2c8df122f205c240710644fd2bcee1631810165",
+      "content_signature": "d1e5de8b0f44b98c932c71b2b6e8912f18bf6bbb4fc424ce354e50e65e394e80149b6fceb1195590ce6617d82b0fb35bf52c30053653b6fa148388cc834a790a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.030Z"
+    },
+    {
+      "id": "rules-cordova",
+      "path": "rulesets/rules-cordova",
+      "rules_path": "rulesets/rules-cordova/.sigmashake/rules",
+      "title": "rules-cordova",
+      "description": "Apache Cordova is a mobile development framework for building cross-platform apps using web technologies. These rules assist AI agents in plugin management, build configurations, and native platform integration.",
+      "technologies": [
+        "cordova"
+      ],
+      "rule_count": 2,
+      "content_hash": "be3317150f470b87070cff3b9b3e5ff9ca05078359ff077e6fd6ca1687a0ee29",
+      "content_signature": "2affdc8b586f1cda74fae7759c46e1c709ac1df174948ae363fc77cf1459f5f0868afd67d897bfba4285ec1e6ad27b0c516a18913bcb3e1a6d2a75db0e132c0c",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.037Z"
+    },
+    {
+      "id": "rules-cosmosdb",
+      "path": "rulesets/rules-cosmosdb",
+      "rules_path": "rulesets/rules-cosmosdb/.sigmashake/rules",
+      "title": "rules-cosmosdb",
+      "description": "Azure Cosmos DB is a globally distributed, multi-model NoSQL database service for high-performance applications. These rules govern database provisioning, data modeling, and consistency management for AI-driven Azure applications.",
+      "technologies": [
+        "cosmosdb"
+      ],
+      "rule_count": 2,
+      "content_hash": "3126c90399b5b5b38afeabbf467edc15fa234d7b726f2d93826266c5820772f8",
+      "content_signature": "2c02f83ec8dfed9fadbd56b64e48a18ddc3eb7cffc39a850fefbf96e5fd29ae25162b06bfc8f73beb1d03aee7d472e84b74418507838ef7d3eb4ab8857742a0e",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.555Z"
+    },
+    {
+      "id": "rules-couchdb",
+      "path": "rulesets/rules-couchdb",
+      "rules_path": "rulesets/rules-couchdb/.sigmashake/rules",
+      "title": "rules-couchdb",
+      "description": "Apache CouchDB is a document-oriented NoSQL database that uses JSON for storage and HTTP for its API. These rules guide AI agents in database replication, view creation, and conflict resolution using MVCC.",
+      "technologies": [
+        "couchdb"
+      ],
+      "rule_count": 2,
+      "content_hash": "633050ae564c3afc9d2d57c4d67b397f4ad9542be5c52442592b855b331e20c3",
+      "content_signature": "16ce1a8744c5c6673c8b16ad35b11a374bbfb81d9caf8cbabc5d2b89c88476d5ead1d25a37d10660570feee9fd1daed84da391ddfbb3279d1268a9c91379230c",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.517Z"
+    },
+    {
+      "id": "rules-cpp",
+      "path": "rulesets/rules-cpp",
+      "rules_path": "rulesets/rules-cpp/.sigmashake/rules",
+      "title": "rules-cpp",
+      "description": "C++ is a high-performance, systems-level programming language. These rules govern memory safety, RAII, modern standards (C++17/20/23), and performance optimization for AI-driven C++ projects.",
+      "technologies": [
+        "cpp"
+      ],
+      "rule_count": 8,
+      "content_hash": "cf85db3c68f49521ce697adaa45979d10f43daa19b5b073aa45b40f079750900",
+      "content_signature": "4822965e6207736ccc7bfa09aa841c0522e1bcbe7591e28dbffe54a9c8ef7f5aa9ffd0309a6d7dee6eef48f61a0c9fbf887b23237bfeaa289aa8ed1169648a02",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-05T23:05:58.225Z"
+    },
+    {
+      "id": "rules-crystal",
+      "path": "rulesets/rules-crystal",
+      "rules_path": "rulesets/rules-crystal/.sigmashake/rules",
+      "title": "rules-crystal",
+      "description": "Crystal is a type-safe, compiled language with Ruby-like syntax designed for performance. These rules assist AI agents in type inference, concurrency using fibers, and high-performance systems development.",
+      "technologies": [
+        "crystal"
+      ],
+      "rule_count": 2,
+      "content_hash": "477eb36cfe06d3d2bb53fa3187ca677571d129b230c7f0cd6fba042349a99410",
+      "content_signature": "8a1f394441173b28ebea857aaae749472fab1edddc1b01c60b63c35c18690ffe2952c0d72ee00825f34cf9ab61e9e41e04cbac2749f92a2cee8e4fab2ca92302",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.012Z"
+    },
+    {
+      "id": "rules-csharp",
+      "path": "rulesets/rules-csharp",
+      "rules_path": "rulesets/rules-csharp/.sigmashake/rules",
+      "title": "rules-csharp",
+      "description": "C# is a multi-paradigm programming language for the .NET ecosystem. These rules govern the development of robust applications with emphasis on asynchronous programming, LINQ, and modern .NET standards.",
+      "technologies": [
+        "cs"
+      ],
+      "rule_count": 8,
+      "content_hash": "2e64153f1647454c56ba86de07fc0da431e2e729ece008198a4387678b8e0a9a",
+      "content_signature": "de32e7d01098977a87d26198ff45a573d581019375cc5aaf988d467084b3bcfcdb9b2b0bccf25118ac37e0bd687e0582ab785250b1d2927a258892b2d2cf5d0c",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-05T23:05:58.225Z"
+    },
+    {
+      "id": "rules-cursor",
+      "path": "rulesets/rules-cursor",
+      "rules_path": "rulesets/rules-cursor/.sigmashake/rules",
+      "title": "rules-cursor",
+      "description": "Cursor is an AI-powered code editor built on VS Code. These rules guide AI agents in leveraging Cursor's unique features, such as indexed symbols and context-aware code generation, for seamless human-AI collaboration.",
+      "technologies": [
+        "cursor"
+      ],
+      "rule_count": 14,
+      "content_hash": "6822d15b3fb51e9c113b9d8a6469ab939e79d9982aef2c3533779bafca7a4f36",
+      "content_signature": "c75798007f742f6c33fc7fab54da2949ec5132dc99e4c514e555b41dd878b308faa34ae3c7b99f55eb5fa2325066366de6672bddb4c89f9a7b4680f70809a50a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-06T01:55:04.206Z"
+    },
+    {
+      "id": "rules-cypress",
+      "path": "rulesets/rules-cypress",
+      "rules_path": "rulesets/rules-cypress/.sigmashake/rules",
+      "title": "rules-cypress",
+      "description": "Cypress is a modern end-to-end testing framework for web applications. These rules govern the creation of robust integration and E2E tests, emphasizing best practices for assertions, network intercepting, and test isolation.",
+      "technologies": [
+        "cypress"
+      ],
+      "rule_count": 2,
+      "content_hash": "bc5937739590e36ddc92ba6f8f45ad74e4cbf0c7d65bdd6443c6931ac4cc9dbe",
+      "content_signature": "4af2d33f8f7defcd2bb7a3cb52a9ca0484a0a76877f831b997749905388c0a73a9663d0f038e959afad1fa104ba5f0e6f0ca33a0a5e620653a2e499802fb840d",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.537Z"
+    },
+    {
+      "id": "rules-d",
+      "path": "rulesets/rules-d",
+      "rules_path": "rulesets/rules-d/.sigmashake/rules",
+      "title": "rules-d",
+      "description": "D is a systems programming language combining performance with expressive syntax. These rules assist AI agents in memory management, template metaprogramming, and concurrency using D's unique safety and efficiency features.",
+      "technologies": [
+        "d"
+      ],
+      "rule_count": 2,
+      "content_hash": "253875a7af5f9a04ff197ef27481ce57ce23cdce703849a3cecff569493d71e0",
+      "content_signature": "907172b838ed44b57a2df6da23a2022a30546e107ec260cf006736a12a406ab866885a107ad337482973dbf8cde121d5f0b0d60dc772373a0740a81e72add20e",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.559Z"
+    },
+    {
+      "id": "rules-dart",
+      "path": "rulesets/rules-dart",
+      "rules_path": "rulesets/rules-dart/.sigmashake/rules",
+      "title": "rules-dart",
+      "description": "Dart is a client-optimized language for fast apps on any platform, primarily used with Flutter. These rules govern sound null safety, performance optimization, and cross-platform application development.",
+      "technologies": [
+        "dart"
+      ],
+      "rule_count": 7,
+      "content_hash": "ffd3cadb24de07306f64fe09bf9232b131b460db74dd82972f962f534718df5e",
+      "content_signature": "64c98196e48019c37e226200adb5756e6745d24a37f52c388415f535e4a0430c375c0227bfe1a2755b42c1226cb560addd9d9286c87a8c7e9937640b63f6fa0a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-05T23:05:58.226Z"
+    },
+    {
+      "id": "rules-datadog",
+      "path": "rulesets/rules-datadog",
+      "rules_path": "rulesets/rules-datadog/.sigmashake/rules",
+      "title": "rules-datadog",
+      "description": "Datadog is a monitoring and security platform for cloud-scale applications. These rules govern the integration of Datadog's observability tools, including tracing, logging, and infrastructure monitoring for AI-driven systems.",
+      "technologies": [
+        "datadog"
+      ],
+      "rule_count": 2,
+      "content_hash": "2c6eeaaa0b11471a0fc6086fb6be4aeabe994a4813aec06cc31f5eb2bfe913c8",
+      "content_signature": "50b897ec73926771f1d2d68d1f6e89a1d3d092b09e53c098b19e877ae4a658f41164cb52e19edc05c85a36043dd685e93a689f12f6ebf76a4a44df82d737f900",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.039Z"
+    },
+    {
+      "id": "rules-deno",
+      "path": "rulesets/rules-deno",
+      "rules_path": "rulesets/rules-deno/.sigmashake/rules",
+      "title": "rules-deno",
+      "description": "Deno is a modern, secure runtime for JavaScript and TypeScript built in Rust. These rules assist AI agents in module management, security permissions, and building high-performance server-side applications.",
+      "technologies": [
+        "deno"
+      ],
+      "rule_count": 2,
+      "content_hash": "4f7084da2ff7699adaf931cbd2bfe1b134e0b273856b5ade35289a91d52b74eb",
+      "content_signature": "d43b0dacf6e976c4c99907aa2521ad2536a596eb0646df1a403089318500fe79d1eec0a06768c21019fbabeaf067f2e085fc1727dd32af08d5c581aa380c9003",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.537Z"
+    },
+    {
+      "id": "rules-diffusers",
+      "path": "rulesets/rules-diffusers",
+      "rules_path": "rulesets/rules-diffusers/.sigmashake/rules",
+      "title": "rules-diffusers",
+      "description": "Hugging Face Diffusers is a library for state-of-the-art pretrained diffusion models. These rules govern the configuration and optimization of diffusion pipelines for AI-driven creative and generative image/audio tasks.",
+      "technologies": [
+        "diffusers"
+      ],
+      "rule_count": 2,
+      "content_hash": "2bcc4f987bbdc10afcfc9a5f9bcb83700f3b5d5e9868a7a0c20a75b5e65bd26d",
+      "content_signature": "16e79fb42813a6dd37715e7e35748e64d11625d710687bda57d6dbe7ce255354b88ea6769f722e9f02476307fd5aa8b55596992700daefaeca7880a5524dde07",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.036Z"
+    },
+    {
+      "id": "rules-docker",
+      "path": "rulesets/rules-docker",
+      "rules_path": "rulesets/rules-docker/.sigmashake/rules",
+      "title": "rules-docker",
+      "description": "Docker is a platform for developing and running applications in containers. These rules guide AI agents in containerizing applications, managing Dockerfiles, and optimizing multi-stage builds and Docker Compose configurations.",
+      "technologies": [
+        "docker"
+      ],
+      "rule_count": 14,
+      "content_hash": "12cc787962b31a134bea1fee69936f7f63c65d5a852e3d430213a932e8e4b297",
+      "content_signature": "0045049797cd8eed3000a13963312eb0b6383eb74489d0c55b3149d41ab042c63ddbf229dd0e6896f9e64fd8db5851507a760418bc77bd46cfc5d42ae88b2809",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.078Z"
+    },
+    {
+      "id": "rules-drizzle",
+      "path": "rulesets/rules-drizzle",
+      "rules_path": "rulesets/rules-drizzle/.sigmashake/rules",
+      "title": "rules-drizzle",
+      "description": "Drizzle ORM is a lightweight, type-safe TypeScript ORM with SQL-like syntax. These rules govern schema definition, migrations, and efficient database querying for modern TypeScript projects.",
+      "technologies": [
+        "drizzle"
+      ],
+      "rule_count": 2,
+      "content_hash": "8c124be46c64ba541a6c87d1f17e22bc69eb8a3fa0df94091195a15678d2fe3d",
+      "content_signature": "31c30247dabd369f96434c175e0d9f5431632b36370f95dd52f40bf91df25e5339148be95a2dbe4a86dc5a6025543f090af3b57a438ac8aafce83bee9b28600f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.034Z"
+    },
+    {
+      "id": "rules-droneci",
+      "path": "rulesets/rules-droneci",
+      "rules_path": "rulesets/rules-droneci/.sigmashake/rules",
+      "title": "rules-droneci",
+      "description": "Drone CI is a container-native continuous integration platform using YAML-based configuration. These rules govern the definition of pipelines, secret management, and automated testing in ephemeral CI environments.",
+      "technologies": [
+        "droneci"
+      ],
+      "rule_count": 2,
+      "content_hash": "8507f599dfe0981ae87bd50966853713b560bec0ea7ddc945112435ce2159f46",
+      "content_signature": "e249d2e4a4cc8a49eabf5b61ff326cb7fe29237fbfe285d5e25593a9563ccbcededd9b88ed4801a60bfe4b4de9ff43aae8e8d57e2f609e64620acc2aeafc7606",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.017Z"
+    },
+    {
+      "id": "rules-dynamodb",
+      "path": "rulesets/rules-dynamodb",
+      "rules_path": "rulesets/rules-dynamodb/.sigmashake/rules",
+      "title": "rules-dynamodb",
+      "description": "AWS DynamoDB is a fully managed NoSQL database service providing fast and predictable performance. These rules guide AI agents in schema design, partition key selection, and efficient querying for serverless applications.",
+      "technologies": [
+        "dynamodb"
+      ],
+      "rule_count": 2,
+      "content_hash": "156f7402b73c065afcdb31930e8b8b47a428210c54d7f7268872cf8ea12664e8",
+      "content_signature": "3de24b49443fad184325b1903157870790c7c36322d4df75f9cad8528b89a88eac846c11026c906ead52ca1f9915462955e4000b11d69f9baf14228de4ba2900",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.040Z"
+    },
+    {
+      "id": "rules-electron",
+      "path": "rulesets/rules-electron",
+      "rules_path": "rulesets/rules-electron/.sigmashake/rules",
+      "title": "rules-electron",
+      "description": "Electron is a framework for building cross-platform desktop applications using web technologies. These rules assist AI agents in multi-process architecture, secure IPC communication, and native API integration.",
+      "technologies": [
+        "electron"
+      ],
+      "rule_count": 2,
+      "content_hash": "25ebceb17830f9a6a82211f00eaf48e5c5240b89a6aef051e5b213b51f1b1034",
+      "content_signature": "929087a7972af7b0297b632cffc6a35a9ccd626839a57556a171f345eb95cb7867a5ab1abc7184bfd653500138a36c8bd9a6675ef84b5d40a5861639b7ffcb05",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.527Z"
+    },
+    {
+      "id": "rules-elixir",
+      "path": "rulesets/rules-elixir",
+      "rules_path": "rulesets/rules-elixir/.sigmashake/rules",
+      "title": "rules-elixir",
+      "description": "Elixir is a functional language for building scalable applications on the Erlang VM (BEAM). These rules govern high-concurrency, fault-tolerant systems development using OTP and Phoenix.",
+      "technologies": [
+        "elixir"
+      ],
+      "rule_count": 6,
+      "content_hash": "f46eddefb6d3bf2a1e76d1ead1820336830b421150df10886358f2ffb3566616",
+      "content_signature": "62fd25b4b07ba1b13f3121405b7dad83ad5a71a983d5146dde2e95506556eb973b50c96cdac0375e805e778f5e260d0d63943868c39046d91c92286cce68560d",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-05T23:05:58.226Z"
+    },
+    {
+      "id": "rules-elk",
+      "path": "rulesets/rules-elk",
+      "rules_path": "rulesets/rules-elk/.sigmashake/rules",
+      "title": "rules-elk",
+      "description": "The ELK Stack (Elasticsearch, Logstash, Kibana) is a toolset for log searching and visualization. These rules govern log aggregation, index management, and dashboard creation for observability and security analytics.",
+      "technologies": [
+        "elk"
+      ],
+      "rule_count": 2,
+      "content_hash": "b8fbff2f87e5377b1b7b6a08c56f3b0c647faeb26931609e468d57dc79247fbb",
+      "content_signature": "e2d40d0aa196f0a10620f743937182487e12cb5cd3d315bdaeee3978a78a851f3f53bebca3694423fa5f8f83b496d245de97e6fc22d0e7e3375085b3d2fc4902",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.039Z"
+    },
+    {
+      "id": "rules-erlang",
+      "path": "rulesets/rules-erlang",
+      "rules_path": "rulesets/rules-erlang/.sigmashake/rules",
+      "title": "rules-erlang",
+      "description": "Erlang is a functional language used for massively scalable systems with high availability. These rules guide AI agents in process isolation, message passing, and hot code reloading within the OTP framework.",
+      "technologies": [
+        "erlang"
+      ],
+      "rule_count": 2,
+      "content_hash": "66e016fb038520f5375df35c6373ed098663e87a816f4c70b72d11cd9982a89e",
+      "content_signature": "0afce2ecc3ecc90b7b3b8352d424170afc7e57f66982222b676c3cc521c8388dffb00ad3ad3fd78f9182adce51f4f59e7647dda776aa76b203faec951cc26301",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.527Z"
+    },
+    {
+      "id": "rules-esbuild",
+      "path": "rulesets/rules-esbuild",
+      "rules_path": "rulesets/rules-esbuild/.sigmashake/rules",
+      "title": "rules-esbuild",
+      "description": "esbuild is an extremely fast JavaScript bundler and minifier written in Go. These rules govern the configuration of high-performance build pipelines, code splitting, and optimization for modern web development.",
+      "technologies": [
+        "esbuild"
+      ],
+      "rule_count": 2,
+      "content_hash": "f29f629ecc65f69cb9bcc136668b5d5afca01801f8315c2f2ef5863ab3b7ab05",
+      "content_signature": "49baea0b350cb7e0aec53442b017f4aefc5d474f79973488ccbaee67c047623f84e4b4f6a70fab6a3ce0fdacaf73eeb5658fc3fde5782d3c89b05ccc1712b503",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.033Z"
+    },
+    {
+      "id": "rules-firebase",
+      "path": "rulesets/rules-firebase",
+      "rules_path": "rulesets/rules-firebase/.sigmashake/rules",
+      "title": "rules-firebase",
+      "description": "Firebase is a comprehensive application development platform by Google. These rules assist AI agents in real-time data synchronization, cloud functions, and security rule enforcement for mobile and web apps.",
+      "technologies": [
+        "firebase"
+      ],
+      "rule_count": 2,
+      "content_hash": "3c096343380bdbaf9315d6466a5920755a466438d5cc184f4eed5792a5839465",
+      "content_signature": "c4b40cfecd4e4ef75556db23e4cde827d6d95b01dd8de4df8fd21fe959111e946a0eb455b835d4cb99796d2deb1a922d92b2b17eed30a6a39f2a9bb34e410a00",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.029Z"
+    },
+    {
+      "id": "rules-fluentd",
+      "path": "rulesets/rules-fluentd",
+      "rules_path": "rulesets/rules-fluentd/.sigmashake/rules",
+      "title": "rules-fluentd",
+      "description": "Fluentd is an open-source data collector for a unified logging layer. These rules govern the configuration of log routing, filtering, and transformation for complex infrastructure observability.",
+      "technologies": [
+        "fluentd"
+      ],
+      "rule_count": 2,
+      "content_hash": "a1c2c7dd7e60dcfc64de7ec32e7f3ade6e95aa0fa05380bd843e66c9e78bf82a",
+      "content_signature": "f271647f31965dac63a3fc8c0bccb079211cf9637b694c09cf382c614d356ca85866f2c98f13bddf316acf8a80dcb9911bd721ce565ad4cfa6753508154a4208",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.015Z"
+    },
+    {
+      "id": "rules-flutter",
+      "path": "rulesets/rules-flutter",
+      "rules_path": "rulesets/rules-flutter/.sigmashake/rules",
+      "title": "rules-flutter",
+      "description": "Flutter is Google's UI toolkit for building natively compiled applications from a single codebase. These rules govern widget management, state handling, and platform-specific interactions for AI-assisted development.",
+      "technologies": [
+        "flutter"
+      ],
+      "rule_count": 2,
+      "content_hash": "f02b4c71bcf3449ed006f7d2a731e4ce50802903c6d90d32cfeddbe4745e6e41",
+      "content_signature": "ff92c119aa6c3e94a71c54a40f8b1d34bb4ffa3bdbc04bad53c8fe1a52d6f1fe32c37b9e7b455cc709cd9c12763fab78c41ec3a14e2b7affde68760d05d58b03",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.524Z"
+    },
+    {
+      "id": "rules-fluxcd",
+      "path": "rulesets/rules-fluxcd",
+      "rules_path": "rulesets/rules-fluxcd/.sigmashake/rules",
+      "title": "rules-fluxcd",
+      "description": "Flux is a set of continuous and progressive delivery solutions for Kubernetes that are open and extensible. These rules govern GitOps workflows, cluster synchronization, and deployment automation for AI agents.",
+      "technologies": [
+        "fluxcd"
+      ],
+      "rule_count": 2,
+      "content_hash": "029c1bbcbf63bd4cc5f2a8fd8fb956a6f0417c7ac8fd73204e6d3f78584cab8a",
+      "content_signature": "dbc04767bc896db806eb4411d26b0da7f7718114eb6ddce150e8f1eaaf4821f588e11a8580ca30a26ffcfb081625f1f88339fd5111cb900698198a3f676b3f05",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.559Z"
+    },
+    {
+      "id": "rules-free-subscription",
+      "path": "rulesets/rules-free-subscription",
+      "rules_path": "rulesets/rules-free-subscription/.sigmashake/rules",
+      "title": "rules-free-subscription",
+      "description": "This ruleset provides basic protection against common developer 'footguns' and resource exhaustion for users on the free tier. These rules govern system safety, preventing accidental halts, freezes, or runaway processes.",
+      "technologies": [
+        "fs",
+        "git",
+        "linux",
+        "macos",
+        "npm",
+        "os",
+        "pwsh",
+        "systemd"
+      ],
+      "rule_count": 20,
+      "content_hash": "6171cef11ad31adea4063e205a02bb878ea9643f46e83ac4add9d7ec7477a848",
+      "content_signature": "d809771ae7ed6e8a3b62d1f533407110048ab20e230c3541c32e651ea7238828ea13829e13e47b29db316755888a25bbc7ec9f2977b2f5eef0fc784196a1b700",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-08T07:02:47.640Z"
+    },
+    {
+      "id": "rules-frontend",
+      "path": "rulesets/rules-frontend",
+      "rules_path": "rulesets/rules-frontend/.sigmashake/rules",
+      "title": "rules-frontend",
+      "description": "",
+      "technologies": [
+        "react"
+      ],
+      "rule_count": 4,
+      "content_hash": "4014d0b10acc87402b81850ebdd1f4e71ecae3f7bc9833add7755f30b26089cc",
+      "content_signature": "161fedc2a6a1d8aa38bd3a23acb1a0589c952321b56a43e8d9a44b05defd60e870b352ad740bba7861d3b8b00b6dabde5b12ef6fdd12d4d659540cbb1a6d0d0e",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-10T00:44:03.782Z"
+    },
+    {
+      "id": "rules-fsharp",
+      "path": "rulesets/rules-fsharp",
+      "rules_path": "rulesets/rules-fsharp/.sigmashake/rules",
+      "title": "rules-fsharp",
+      "description": "F# is a functional-first, general-purpose, strongly typed, multi-paradigm programming language. These rules govern F# development patterns, type safety, and idiomatic code generation for AI agents.",
+      "technologies": [
+        "fsharp"
+      ],
+      "rule_count": 6,
+      "content_hash": "89e34df47a88cdaa2f8a79f6c7e3537bb23a23ae2aa9863c2ccc055b0879cb9c",
+      "content_signature": "0afd7f73c4985c37a60d5bd65b70e260773a8c207a0603e44cb6ba0aff4afc92aada014ecde4a06a8480ffa54be4bf214e778cd4e68c2deb0dfd808fed266a0e",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.019Z"
+    },
+    {
+      "id": "rules-gcp",
+      "path": "rulesets/rules-gcp",
+      "rules_path": "rulesets/rules-gcp/.sigmashake/rules",
+      "title": "rules-gcp",
+      "description": "Google Cloud Platform (GCP) is a suite of cloud computing services that runs on the same infrastructure that Google uses internally. These rules govern resource management, authentication, and service deployment on GCP for AI agents.",
+      "technologies": [
+        "gcp"
+      ],
+      "rule_count": 15,
+      "content_hash": "7cd18dec8b4414b12c234c1857165d32e64c07ff7e44b605a7646c171a294cfe",
+      "content_signature": "170e518773134782e0fbd2b8ddf07bc68d253265b18dc2b7b4147b73211b8e6b80fcb5945400f962f162f5c9ea1d533d5ee6357a29ae690d32636c49e0265b03",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.078Z"
+    },
+    {
+      "id": "rules-gemini-3.1",
+      "path": "rulesets/rules-gemini-3.1",
+      "rules_path": "rulesets/rules-gemini-3.1/.sigmashake/rules",
+      "title": "rules-gemini-3.1",
+      "description": "Gemini 3.1 is a high-performance multimodal model from Google optimized for tool execution and long-context reasoning. These rules govern tool hijacking mitigation and prompt injection prevention for Gemini 3.1 agents.",
+      "technologies": [
+        "gemini-3.1"
+      ],
+      "rule_count": 2,
+      "content_hash": "686a4eb5e6840be37fbced8e5a6ec56cdd9f9bce0fada0a634c6f39fc7d0e6f2",
+      "content_signature": "0a7ba1df1b66d9f2f9cef27bfba4041ae9301ea04946ba3f43c9b8111d615aead8cd8bdab178185f98587d103badaf9dab684d6dc8c2695151e5cba346a3a100",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-08T08:49:29.993Z"
+    },
+    {
+      "id": "rules-gemini-cli",
+      "path": "rulesets/rules-gemini-cli",
+      "rules_path": "rulesets/rules-gemini-cli/.sigmashake/rules",
+      "title": "rules-gemini-cli",
+      "description": "Gemini CLI is a command-line interface for interacting with Google's Gemini models in a development environment. These rules govern execution safety, privacy, and prevention of prompt injection via markdown files.",
+      "technologies": [
+        "geminicli"
+      ],
+      "rule_count": 12,
+      "content_hash": "c2a77d35a98be05aec8456099613c934e912cd3f9bdf7a71fe21ec64779e5e5a",
+      "content_signature": "bf3d5c6b26db1fc71ee63bc1b5d2bde517d7a1237857d3b59ecb9cd886194d587eda6ca68f7122d876e6d2aad435e4ab0236308969585aaa4cdc00609acd3b0a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-06T01:55:04.207Z"
+    },
+    {
+      "id": "rules-gemma-4",
+      "path": "rulesets/rules-gemma-4",
+      "rules_path": "rulesets/rules-gemma-4/.sigmashake/rules",
+      "title": "rules-gemma-4",
+      "description": "Gemma 4 is a lightweight, state-of-the-art open model built from the same research and technology used to create Gemini. These rules govern sandbox escape prevention and recursive loop management for Gemma 4 agents.",
+      "technologies": [
+        "gemma-4"
+      ],
+      "rule_count": 2,
+      "content_hash": "9341874f368fdb9040a2cca0bedc62caa25ea315b8ab97fb0224c9915c3ccc5d",
+      "content_signature": "4018eacec55ce908711cef6f04c3910967630d217b1fdc24bb7d83197a59593adbd0893d1e0c37f2977e3e1ce340ef0795b67127b0602af027481cc7d2f1f104",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-08T08:49:29.993Z"
+    },
+    {
+      "id": "rules-git",
+      "path": "rulesets/rules-git",
+      "rules_path": "rulesets/rules-git/.sigmashake/rules",
+      "title": "rules-git",
+      "description": "Git is a distributed version control system for tracking changes in source code during software development. These rules govern repository management, commit standards, and branching strategies for AI agents.",
+      "technologies": [
+        "git"
+      ],
+      "rule_count": 21,
+      "content_hash": "77e9882d95b71f5c475e3a4d4fa004184ebc6f5c5e22ba61933dfa41806e219a",
+      "content_signature": "e9ab60bd8643feeae900f460610f5a4f6ed6302ad0c945ffa225065327d4e8599e5af201814c2c556949c12b1410f0a0160e4c6686805defaa1047fdc7c25a0f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T07:28:31.049Z"
+    },
+    {
+      "id": "rules-github-actions",
+      "path": "rulesets/rules-github-actions",
+      "rules_path": "rulesets/rules-github-actions/.sigmashake/rules",
+      "title": "rules-github-actions",
+      "description": "GitHub Actions is a CI/CD platform that allows you to automate your build, test, and deployment pipeline. These rules govern workflow security, secret management, and action configuration for AI agents.",
+      "technologies": [
+        "gha"
+      ],
+      "rule_count": 6,
+      "content_hash": "48b9361ed31163176af6f0657674e0eb134d8a13ffc010f267f1f7cb22498631",
+      "content_signature": "6654dbdbd24ba2f79faa7652174cdcf970b7266cb7a1d6a2b749bfd9bb1d47e7e34763690d6c54fc9adc448cf15135f5b32f3d17bcfeb5d97fbf0bf0ef4e120e",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-05T23:05:58.227Z"
+    },
+    {
+      "id": "rules-github-copilot",
+      "path": "rulesets/rules-github-copilot",
+      "rules_path": "rulesets/rules-github-copilot/.sigmashake/rules",
+      "title": "rules-github-copilot",
+      "description": "GitHub Copilot is an AI-powered code completion tool that provides suggestions as you type. These rules govern Copilot configuration, telemetry settings, and safe interaction patterns for AI agents.",
+      "technologies": [
+        "copilot"
+      ],
+      "rule_count": 13,
+      "content_hash": "95df9871e08acefaf08c34685bac4107745142ba59fd3cb21ed4a1b7ba37ddca",
+      "content_signature": "cadd43db2a3ac560ccef72c1933932bdc848520a61fdb308382c424ea4e0c39734cf821328645a943786fe0d1278f9c90a4620127868de8f407cffd820491807",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-06T01:55:04.208Z"
+    },
+    {
+      "id": "rules-gitlab-ci",
+      "path": "rulesets/rules-gitlab-ci",
+      "rules_path": "rulesets/rules-gitlab-ci/.sigmashake/rules",
+      "title": "rules-gitlab-ci",
+      "description": "GitLab CI/CD is a tool built into GitLab for software development using the continuous methodologies. These rules govern pipeline definitions, runner configurations, and secure deployment workflows for AI agents.",
+      "technologies": [
+        "gitlab-ci"
+      ],
+      "rule_count": 2,
+      "content_hash": "4db55d52dba6de71b0d42ab436d6ef46ef300b80466b0c5229ccca6c785125da",
+      "content_signature": "55ba68280cc67bb1b4043af5a2c1c4915a8f4cbba92d002f2da07821ba82039bdb879dfaa4c874d47a4ac9e7b1f19db4d9bd22efc6d7a62c6a4a110fcfeb760b",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.032Z"
+    },
+    {
+      "id": "rules-go",
+      "path": "rulesets/rules-go",
+      "rules_path": "rulesets/rules-go/.sigmashake/rules",
+      "title": "rules-go",
+      "description": "Go is an open-source programming language that makes it easy to build simple, reliable, and efficient software. These rules govern Go development, concurrency patterns, and idiomatic code structure for AI agents.",
+      "technologies": [
+        "go"
+      ],
+      "rule_count": 15,
+      "content_hash": "b2994029fdeee50ca7b92d3763448eea63b5862e9cf043d81ab738c5aaeb7d31",
+      "content_signature": "bd502d9a92bc58d39d5c056c783161e25875b7bcbda8b83739b8136ad704cf2ee6b38639c1dcc10cdb44b8bbf328f5d23c50580d62a0644f67d7ed26d4196002",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-04T23:28:05.160Z"
+    },
+    {
+      "id": "rules-gpt-5",
+      "path": "rulesets/rules-gpt-5",
+      "rules_path": "rulesets/rules-gpt-5/.sigmashake/rules",
+      "title": "rules-gpt-5",
+      "description": "GPT-5 is a highly capable large language model designed for advanced reasoning and autonomous tool usage. These rules govern governance and guardrails against indirect prompt injection and unsandboxed execution for GPT-5 agents.",
+      "technologies": [
+        "gpt-5"
+      ],
+      "rule_count": 4,
+      "content_hash": "e9fb44a36e7fcdf8e9ef74c7e51db140fb0e9e7c6091f5118c3068137de86dfe",
+      "content_signature": "f6d033d46628df71be66100b49c6937797472467c1e65bdd864dc0e1471e61c698d126574344c08a1c773a43a387fa4708cc46d24f4f218c57b7ce03f6f4250a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-08T07:49:00.434Z"
+    },
+    {
+      "id": "rules-grafana",
+      "path": "rulesets/rules-grafana",
+      "rules_path": "rulesets/rules-grafana/.sigmashake/rules",
+      "title": "rules-grafana",
+      "description": "Grafana is an open-source platform for query, visualization, alerting, and understanding of metrics. These rules govern dashboard creation, data source configuration, and alert management for AI agents.",
+      "technologies": [
+        "grafana"
+      ],
+      "rule_count": 2,
+      "content_hash": "058f2c599db0e19f52285cfbf36eb7dffa2bd243b82a6780ce35ad6bf7111b76",
+      "content_signature": "7668ff134987cdbc53a1bfa1338c22eb34c84e2c3317685521648fe5f5aa0c8fa2f6feb9cea8c2908db6d2f8db097c74439e6268a0fb992da3eaaadc3e058405",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.017Z"
+    },
+    {
+      "id": "rules-graphql",
+      "path": "rulesets/rules-graphql",
+      "rules_path": "rulesets/rules-graphql/.sigmashake/rules",
+      "title": "rules-graphql",
+      "description": "GraphQL is a query language for APIs and a runtime for fulfilling those queries with your existing data. These rules govern schema design, query optimization, and secure API interaction for AI agents.",
+      "technologies": [
+        "graphql"
+      ],
+      "rule_count": 2,
+      "content_hash": "8ae73347779a8e2c2bac9d7bd393baeaa4f70b27a86641070e8c4ae7a1d5a602",
+      "content_signature": "f84d523defb29dba5910ff8a557b16f1c5689b31436b8025e2d303948816e7b3b9b942e12250eb6ee750ce487de38ad749a096e045c860cf85d69a6fecdba201",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.014Z"
+    },
+    {
+      "id": "rules-groovy",
+      "path": "rulesets/rules-groovy",
+      "rules_path": "rulesets/rules-groovy/.sigmashake/rules",
+      "title": "rules-groovy",
+      "description": "Apache Groovy is a powerful, optionally typed and dynamic language with static-typing and static-compilation capabilities. These rules govern Groovy scripting, Jenkinsfile development, and dynamic code execution for AI agents.",
+      "technologies": [
+        "groovy"
+      ],
+      "rule_count": 2,
+      "content_hash": "8f36f78a6bfbc8dc394ccc2b9dd1ae7aa8b5d7e331fd8459ec8b4c2a44536231",
+      "content_signature": "f79b3746bfe2c7d79506f10691283287a1a3024ec48f21033622afee3521ac12322972355fb383893f51af5ffbdfc6b0779b38499775d8cec3c2e2a325107509",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.540Z"
+    },
+    {
+      "id": "rules-grpc",
+      "path": "rulesets/rules-grpc",
+      "rules_path": "rulesets/rules-grpc/.sigmashake/rules",
+      "title": "rules-grpc",
+      "description": "gRPC is a modern open-source high-performance Remote Procedure Call (RPC) framework that can run in any environment. These rules govern service definition, protocol buffer usage, and client-server interaction for AI agents.",
+      "technologies": [
+        "grpc"
+      ],
+      "rule_count": 2,
+      "content_hash": "fa283aa7dfcb479dc1b4bb5cd8c49ace5a28bee303ebb67e3c080807f6387924",
+      "content_signature": "e5f6945ccf0c870998ec93a788665c2f02a35842277d7e505e24af5cf2ea533f5ac39162ff552e2c4dfd9f460a875573e9910ba7631460c8aecccc764a9a4902",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.023Z"
+    },
+    {
+      "id": "rules-haskell",
+      "path": "rulesets/rules-haskell",
+      "rules_path": "rulesets/rules-haskell/.sigmashake/rules",
+      "title": "rules-haskell",
+      "description": "Haskell is an advanced, purely functional programming language with a strong static type system. These rules govern Haskell development, type safety, and purely functional idioms for AI agents.",
+      "technologies": [
+        "haskell"
+      ],
+      "rule_count": 2,
+      "content_hash": "5b9447a0e71b91acb1ed200809242ac9116b1b4a1f50e0615a4cd139ea2ba1c1",
+      "content_signature": "bca5d90ecb928d851a1b99bb4079218ad41b36e1932498674ee097f0dd39a8608c1e4c2f8ec882b0ae75c8acfe36a5e0679a8ecbc4ea85981f4fb62ec3a32502",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.523Z"
+    },
+    {
+      "id": "rules-htmx",
+      "path": "rulesets/rules-htmx",
+      "rules_path": "rulesets/rules-htmx/.sigmashake/rules",
+      "title": "rules-htmx",
+      "description": "htmx allows you to access AJAX, CSS Transitions, WebSockets and Server Sent Events directly in HTML, using attributes. These rules govern HTMX usage, attribute-driven interactivity, and secure server communication for AI agents.",
+      "technologies": [
+        "htmx"
+      ],
+      "rule_count": 2,
+      "content_hash": "43665491f0e2a5e731868fb5f4ecaf503d3db47af58ad399136c6c12b745d297",
+      "content_signature": "28a6edb039be74abaf5577533cd5f0054ebd943de2277a8765594cdde8f5ac7a7681b55088431fdbadccb561c6c8bdb44c4d20b0fe6c27f559b26835ba213508",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.553Z"
+    },
+    {
+      "id": "rules-huggingface",
+      "path": "rulesets/rules-huggingface",
+      "rules_path": "rulesets/rules-huggingface/.sigmashake/rules",
+      "title": "rules-huggingface",
+      "description": "Hugging Face is a platform for building, training, and deploying state-of-the-art machine learning models. These rules govern model hosting, dataset management, and API interaction on the Hugging Face Hub for AI agents.",
+      "technologies": [
+        "huggingface"
+      ],
+      "rule_count": 2,
+      "content_hash": "e2741584daf4f55f351d7bc923589975d12ca3936a7894c432bb6188225eb7df",
+      "content_signature": "296ac86857184a4960945a8c4e4b71859ed985c3dc145985e25edd0f722a7b6da06ce449500998a1ffd45186f31d811ce097284b2b605ada80a95d763557d907",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.554Z"
+    },
+    {
+      "id": "rules-ionic",
+      "path": "rulesets/rules-ionic",
+      "rules_path": "rulesets/rules-ionic/.sigmashake/rules",
+      "title": "rules-ionic",
+      "description": "Ionic is an open-source mobile UI toolkit for building high-quality cross-platform apps for native iOS, Android, and the web. These rules govern Ionic/Capacitor development, UI patterns, and hybrid app architecture for AI agents.",
+      "technologies": [
+        "ionic"
+      ],
+      "rule_count": 2,
+      "content_hash": "1af5c08aa59d97ef3b2ac4b30d8abe59a70064eeae20f93cda9eda412f0b0964",
+      "content_signature": "3f143cd51f0588ff0dcf8262f1f4b03f17b3008ecd2b89946541fb943db6f3f21297dcfad2c43cece097d3ab3ff5e5851d61775486ec3e235bea5eaf9fa8c406",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.526Z"
+    },
+    {
+      "id": "rules-java",
+      "path": "rulesets/rules-java",
+      "rules_path": "rulesets/rules-java/.sigmashake/rules",
+      "title": "rules-java",
+      "description": "Java is a high-level, class-based, object-oriented programming language designed to have as few implementation dependencies as possible. These rules govern Java development, JVM tuning, and enterprise application patterns for AI agents.",
+      "technologies": [
+        "java"
+      ],
+      "rule_count": 5,
+      "content_hash": "4c0c6a5269cc57aac63ad806a188fbdbd00b20674c2d5043b59f9c3b933b7fc6",
+      "content_signature": "96a443991b68e6f6d4e2333b0dc6ffa75b3cf81c95d9f96c26b292dc89b74712dc3be5a3ef5414ae9adb406da93cae1895018182daaa2e1148c64cd1f8003b02",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-04T05:38:42.419Z"
+    },
+    {
+      "id": "rules-javascript",
+      "path": "rulesets/rules-javascript",
+      "rules_path": "rulesets/rules-javascript/.sigmashake/rules",
+      "title": "rules-javascript",
+      "description": "JavaScript is a lightweight, interpreted, or just-in-time compiled programming language with first-class functions. These rules govern modern JavaScript development, ecosystem usage, and asynchronous patterns for AI agents.",
+      "technologies": [
+        "js"
+      ],
+      "rule_count": 22,
+      "content_hash": "c3383d8248313f7acc589c58bca095c8bb1463761e6946ba908ed7c00d76e1fe",
+      "content_signature": "0f244418f058f51473f0b825f95dd748b2049aafb94dcab29b228a4de8282af24bd0c9b0febbc91a7cc8d33bf76d6639ffe394ab73a674291119885a86c75f01",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.078Z"
+    },
+    {
+      "id": "rules-jax",
+      "path": "rulesets/rules-jax",
+      "rules_path": "rulesets/rules-jax/.sigmashake/rules",
+      "title": "rules-jax",
+      "description": "JAX is Autograd and XLA, brought together for high-performance numerical computing and machine learning research. These rules govern JAX development, array transformations, and device-accelerated computing for AI agents.",
+      "technologies": [
+        "jax"
+      ],
+      "rule_count": 2,
+      "content_hash": "90e653233fdc9b28c9dd71af375b5bafa3c24aa41795d8174446a96626317bde",
+      "content_signature": "d19f6e49e61c1daf6ed09934400bfa58ae11150ad05fafb5c0639a997b2dec38be227f3ebd1f55566e9de3b6893b08241b44962a26b7e0d9cd0436ed6c7e4505",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.012Z"
+    },
+    {
+      "id": "rules-jenkins",
+      "path": "rulesets/rules-jenkins",
+      "rules_path": "rulesets/rules-jenkins/.sigmashake/rules",
+      "title": "rules-jenkins",
+      "description": "Jenkins is an open-source automation server that helps automate the parts of software development related to building, testing, and deploying. These rules govern pipeline configuration, plugin management, and CI/CD security for AI agents.",
+      "technologies": [
+        "jenkins"
+      ],
+      "rule_count": 6,
+      "content_hash": "0d5b74982c8db820481890fcf68a199c0c444357a350d0519367e1e24dc6970f",
+      "content_signature": "ab4911103cc82120424f330dd638e6040a76a51d4919c08bc3150c8f0f29353e892c908dcc714957f4f99bd73f6ce5f868178990c3bb1e9c54f996ca78e8e70a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-05T23:05:58.228Z"
+    },
+    {
+      "id": "rules-jest",
+      "path": "rulesets/rules-jest",
+      "rules_path": "rulesets/rules-jest/.sigmashake/rules",
+      "title": "rules-jest",
+      "description": "Jest is a delightful JavaScript Testing Framework with a focus on simplicity, working with projects using Babel, TypeScript, Node, React, and more. These rules govern unit testing, mocking strategies, and test coverage for AI agents.",
+      "technologies": [
+        "jest"
+      ],
+      "rule_count": 2,
+      "content_hash": "92f1fd8bf3a7448c7f59b66016fa567bca2151806d00b50ec73c02ea143dc105",
+      "content_signature": "b561d9d8029a6b6d0b47faafbffe169cdeb4bbaa02f21db3cca9d5c1a22789e7e7d6ec72b2ecb70fe0c6cc887a01bcd97601b28add20bd56ce7010b07517b60d",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.531Z"
+    },
+    {
+      "id": "rules-julia",
+      "path": "rulesets/rules-julia",
+      "rules_path": "rulesets/rules-julia/.sigmashake/rules",
+      "title": "rules-julia",
+      "description": "Julia is a high-level, high-performance, dynamic programming language for numerical computing. These rules govern Julia development, performance optimization, and scientific computing patterns for AI agents.",
+      "technologies": [
+        "julia"
+      ],
+      "rule_count": 2,
+      "content_hash": "c5a424a77e89ee8f452d94212be42741f37e2d7185951ad3636b78cd40665887",
+      "content_signature": "eae576987280550ed7639111e14f6505ff5db5f075170c62204f90d056d4de19853fe51ae345e80c6d07108c21fe1505d945b48e56ce9faabc7ffcf0ec135509",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.522Z"
+    },
+    {
+      "id": "rules-keras",
+      "path": "rulesets/rules-keras",
+      "rules_path": "rulesets/rules-keras/.sigmashake/rules",
+      "title": "rules-keras",
+      "description": "Keras is a deep learning API written in Python, running on top of the machine learning platform TensorFlow. These rules govern Keras model building, training workflows, and high-level ML abstractions for AI agents.",
+      "technologies": [
+        "keras"
+      ],
+      "rule_count": 2,
+      "content_hash": "907725471359494e2aaf86ca406f5fb17657d568b02f356e69f55a72be38d598",
+      "content_signature": "344abc064eed7f0993955695e6c3ec1ba9229c08b9897aa4a44d69b81d4f5926033e151d2f1f63cc526d651355b8fabb5177e415f83cd473692ad2f9b9fe8b06",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.029Z"
+    },
+    {
+      "id": "rules-kibana",
+      "path": "rulesets/rules-kibana",
+      "rules_path": "rulesets/rules-kibana/.sigmashake/rules",
+      "title": "rules-kibana",
+      "description": "Kibana is an open-source data visualization dashboard for Elasticsearch, used for log and time-series analytics. These rules govern data exploration, log analysis, and visualization dashboard management for AI agents.",
+      "technologies": [
+        "kibana"
+      ],
+      "rule_count": 2,
+      "content_hash": "5c8de9ac025a597ea6479cbf1fe5e67bc3977d512a98f1910ddfc357a47017f7",
+      "content_signature": "72c80a786afddc2d8d43065ef27d5ce363cabee7a9edd556a07b8492288fa3c5836a7f7407d967bb184589fa3c9e168ad05ba5472bdcc91a3443d0cdc3bd2603",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.036Z"
+    },
+    {
+      "id": "rules-kotlin",
+      "path": "rulesets/rules-kotlin",
+      "rules_path": "rulesets/rules-kotlin/.sigmashake/rules",
+      "title": "rules-kotlin",
+      "description": "Kotlin/Android security governance rules for AI coding agents. Blocks force non-null assertions that cause NPEs, SQL string interpolation, Java deserialization (RCE), command injection via Runtime.exec(), hardcoded credentials, unsafe unchecked casts, and cleartext HTTP in production.",
+      "technologies": [
+        "kotlin"
+      ],
+      "rule_count": 7,
+      "content_hash": "10352ee9ab218b5534d96c07194f2af177b559cf7e99dca727de99d8ef8898e3",
+      "content_signature": "ac5b1df7db1055bcb87397ae1d03f1c957ba8378941a3c10cd63f5cc297477c618f7691ba5d3dfd59101d2c779350f1355a0e42f5dbab64a512de599adc90804",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-05T23:05:58.229Z"
+    },
+    {
+      "id": "rules-kubernetes",
+      "path": "rulesets/rules-kubernetes",
+      "rules_path": "rulesets/rules-kubernetes/.sigmashake/rules",
+      "title": "rules-kubernetes",
+      "description": "Kubernetes manifest governance rules for AI coding agents. Prevents privileged containers, root user execution, hardcoded secrets in env vars, wildcard RBAC, missing health probes, and untagged images — enforcing Kubernetes security best practices at the agent tool-call boundary.",
+      "technologies": [
+        "k8s",
+        "kubernetes"
+      ],
+      "rule_count": 20,
+      "content_hash": "194549f564e1f71da6a8fa63ff64ff2a165b6e236023ba744abdc1d856bfa805",
+      "content_signature": "4582cbc4b284af6b0c696accd1d423ab235f171ecefb33fb52d42f7e56bf0da5396984cb37a4fe5abd939b1abdd81948f986d6757f56d1cf665e0730d41fa203",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-08T03:21:49.706Z"
+    },
+    {
+      "id": "rules-langchain",
+      "path": "rulesets/rules-langchain",
+      "rules_path": "rulesets/rules-langchain/.sigmashake/rules",
+      "title": "rules-langchain",
+      "description": "LangChain is a framework for building applications with LLMs through composable chains and agents. These rules govern LangChain configuration to prevent prompt injection, insecure tool use, and runaway inference costs.",
+      "technologies": [
+        "langchain"
+      ],
+      "rule_count": 2,
+      "content_hash": "4e4c82bf4ff51c21c2bd6ae5b1dc76f9e64d4b86fba9b76773a4eb3f7c064f13",
+      "content_signature": "9d6ed35f51666f11d3c832ca6112b9b2b9951fd34621695eea95f98b6bafa8705fdfc3f4be207c9aa374e65cc6be2a0a2c83375e78c919a015bf108080a7960f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.556Z"
+    },
+    {
+      "id": "rules-lightgbm",
+      "path": "rulesets/rules-lightgbm",
+      "rules_path": "rulesets/rules-lightgbm/.sigmashake/rules",
+      "title": "rules-lightgbm",
+      "description": "LightGBM is a high-performance gradient boosting framework for machine learning. These rules enforce best practices for model training, data handling, and hyperparameter optimization when agents interact with LightGBM.",
+      "technologies": [
+        "lightgbm"
+      ],
+      "rule_count": 2,
+      "content_hash": "c38b0b8d5d09d2ec27386486ffcd8ee04d686cc32903c17f9afe2f3a49a15e59",
+      "content_signature": "a3e03196ece52a0753dfb11b0171598999a9884b6ec89780e4afafa5347c611fbafc90569946906cc9d31c7287d903ba6db5a0395b6478e08f5be7213e723e0f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.016Z"
+    },
+    {
+      "id": "rules-lit",
+      "path": "rulesets/rules-lit",
+      "rules_path": "rulesets/rules-lit/.sigmashake/rules",
+      "title": "rules-lit",
+      "description": "Lit is a library for building fast, lightweight web components. These rules govern the development of Lit components, ensuring proper lifecycle management, reactive property handling, and accessibility compliance.",
+      "technologies": [
+        "lit"
+      ],
+      "rule_count": 2,
+      "content_hash": "8de32c351d5a62027cb6b88cc671afbfcb0e201fff78091d19771c6031e0629e",
+      "content_signature": "365494a1cc77e100df0b6fc0612a22adb0fa4221c638c92ec8bf5719fa69b50804b8a5680b90a14862949291a4154cc26bf1677115b3efb96cdc5e1bee595603",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.517Z"
+    },
+    {
+      "id": "rules-llama-4",
+      "path": "rulesets/rules-llama-4",
+      "rules_path": "rulesets/rules-llama-4/.sigmashake/rules",
+      "title": "rules-llama-4",
+      "description": "Llama 4 is Meta's next-generation large language model. These rules protect against architectural footguns like context poisoning and privilege escalation introduced by massive context windows and Mixture-of-Experts (MoE) routing.",
+      "technologies": [
+        "llama-4"
+      ],
+      "rule_count": 3,
+      "content_hash": "fbb32665ab05efd24fdfefabee57a596b683322859f3d21f0d75abea5ac27be0",
+      "content_signature": "1a8a62b2186da9b8af296e1761aa5493238a5e91f433efda88b6d325bed500f5dbb02db165f92b24e063d641b26f3e9645a538ab934f4c9f7b9db6f57b141705",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-08T07:49:00.434Z"
+    },
+    {
+      "id": "rules-llamaindex",
+      "path": "rulesets/rules-llamaindex",
+      "rules_path": "rulesets/rules-llamaindex/.sigmashake/rules",
+      "title": "rules-llamaindex",
+      "description": "LlamaIndex is a data framework for LLM applications that connects custom data to LLMs. These rules ensure secure and efficient data indexing, retrieval, and synthesis patterns to prevent data leakage and suboptimal query performance.",
+      "technologies": [
+        "llamaindex"
+      ],
+      "rule_count": 2,
+      "content_hash": "ece43e94de5295d77a0c6390456f3e7bdb07969462494b85a7e4dcfc5e8380e5",
+      "content_signature": "d57608239c7929538d06e0c732356044d634cc19b71489bd3a9970565c5930a748c02a6d9e88dd8137e2eb31a6fd4e9fecc95278ee6b28ed87307c7c60446206",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.538Z"
+    },
+    {
+      "id": "rules-llm",
+      "path": "rulesets/rules-llm",
+      "rules_path": "rulesets/rules-llm/.sigmashake/rules",
+      "title": "rules-llm",
+      "description": "LLM and AI API governance rules for AI coding agents. Prevents API key exposure in source code, prompt injection via system prompts, runaway inference costs from uncapped max_tokens, PII leakage in LLM response logs, and unsafe temperature settings in production AI applications.",
+      "technologies": [
+        "llm"
+      ],
+      "rule_count": 6,
+      "content_hash": "005d8a55d9a3c026c8293d91ace9245440ef27e89020165c4ba14af2ef56cdab",
+      "content_signature": "87c315f0155baeea1d87cf62c7b7e21b98faf7bc907029de636aef9b537a81c2e92998a449455102d61fa1ff778fb0b187940568a797da3a1eaa5d8a14f4f70d",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-04T05:37:06.257Z"
+    },
+    {
+      "id": "rules-logstash",
+      "path": "rulesets/rules-logstash",
+      "rules_path": "rulesets/rules-logstash/.sigmashake/rules",
+      "title": "rules-logstash",
+      "description": "Logstash is a server-side data processing pipeline that ingests, transforms, and sends data to various destinations. These rules govern Logstash configuration to prevent insecure input plugins, inefficient filter patterns, and sensitive data leakage.",
+      "technologies": [
+        "logstash"
+      ],
+      "rule_count": 2,
+      "content_hash": "e723c592ef8340bdea251cb8eb8369fbb07f0a69c474cdfd5dd2948e1891528c",
+      "content_signature": "8c9c90e77d53bdee969f5cc9317212a466d5f25ed9e3c9b937b8af00be06f5e0a5672f4e453d23961a8a1a12c1cafb33eb50e52d12739ff75002a22d5be08301",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.022Z"
+    },
+    {
+      "id": "rules-lua",
+      "path": "rulesets/rules-lua",
+      "rules_path": "rulesets/rules-lua/.sigmashake/rules",
+      "title": "rules-lua",
+      "description": "Lua is a powerful, efficient, lightweight, embeddable scripting language. These rules provide safety and best-practice governance for Lua scripting, focusing on secure integration within host applications and preventing common scripting errors.",
+      "technologies": [
+        "lua"
+      ],
+      "rule_count": 2,
+      "content_hash": "7ea211751d1dca2293d99e1cd7b9c8a41b300574de684a16c34d3584d29c2096",
+      "content_signature": "e3c4399f67161bd525313fd6884e2bf1845dca5f5d44b36ea1d470ea8fe10bd5310c58d0402db3d2ff60c683c579b3e43fb23b78eaa48f09c227a73dc2b39606",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.546Z"
+    },
+    {
+      "id": "rules-macos",
+      "path": "rulesets/rules-macos",
+      "rules_path": "rulesets/rules-macos/.sigmashake/rules",
+      "title": "rules-macos",
+      "description": "macOS security and safety governance rules for AI coding agents. Blocks disabling SIP, Gatekeeper bypass, TCC permission reset, osascript admin escalation, NVRAM security settings, Keychain dump, firewall disable, LaunchDaemon persistence, ATS bypass, and sandbox disabling.",
+      "technologies": [
+        "macos"
+      ],
+      "rule_count": 21,
+      "content_hash": "789a30eacd2480ef6e886cec2a86657b9645ba6e23ca65e8c7e0529bfb58f62f",
+      "content_signature": "dcb9d620ef0d7955f281ad0063432bf1232402ab456ba02902e5b4dfda7bd0e5319d960893d5c353fdd02fb0f4a3bc72fb49478fd49d51448af49cda14f01b01",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.078Z"
+    },
+    {
+      "id": "rules-mariadb",
+      "path": "rulesets/rules-mariadb",
+      "rules_path": "rulesets/rules-mariadb/.sigmashake/rules",
+      "title": "rules-mariadb",
+      "description": "MariaDB is a popular open-source relational database that is a community-developed fork of MySQL. These rules govern MariaDB interactions, preventing SQL injection, insecure connection settings, and unauthorized data access patterns.",
+      "technologies": [
+        "mariadb"
+      ],
+      "rule_count": 2,
+      "content_hash": "dafe84f1f6394a256cb4950adcc53dd5778fb587ae0eaf580507759247f6275e",
+      "content_signature": "23fe1bc0d60bbb4ddec82e3559ca5b71e8dc5c079fef6db08fba036a54b112220c5f1fd1084d0f553a6a86de03294d9f6241ef6f31396704a714b84418888e08",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.548Z"
+    },
+    {
+      "id": "rules-matplotlib",
+      "path": "rulesets/rules-matplotlib",
+      "rules_path": "rulesets/rules-matplotlib/.sigmashake/rules",
+      "title": "rules-matplotlib",
+      "description": "Matplotlib is a comprehensive library for creating static, animated, and interactive visualizations in Python. These rules ensure proper plot generation, resource management, and secure handling of data during visualization tasks.",
+      "technologies": [
+        "matplotlib"
+      ],
+      "rule_count": 2,
+      "content_hash": "00432e584d2fdb50242e142bff8b21e86239e5c33f2b378a8c7e95abf68f1732",
+      "content_signature": "c1064557b6a8629b939e569fad4c7fde4fd7440bf01da01c3ae8d44f87301320e9c605859b973ac93a8cf1bfa1619a84410076cd326809a13be2449437ce760d",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.035Z"
+    },
+    {
+      "id": "rules-maui",
+      "path": "rulesets/rules-maui",
+      "rules_path": "rulesets/rules-maui/.sigmashake/rules",
+      "title": "rules-maui",
+      "description": ".NET MAUI is a framework for building native cross-platform apps with C# and XAML. These rules govern MAUI development to ensure secure cross-platform data storage, proper platform-specific API usage, and consistent UI/UX patterns.",
+      "technologies": [
+        "maui"
+      ],
+      "rule_count": 2,
+      "content_hash": "996e3cc1693d120754a35e049356315033900f966ad635e5906b77a147c0ab22",
+      "content_signature": "d57f1e057cae67a3c81597e98a3acae7adc4e05aaa6f35257f7ef01ef0a003f70bbf14edeed13188c4376c387f5060ab41fa94d78e3ded121f73450211324f0f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.030Z"
+    },
+    {
+      "id": "rules-mcp",
+      "path": "rulesets/rules-mcp",
+      "rules_path": "rulesets/rules-mcp/.sigmashake/rules",
+      "title": "rules-mcp",
+      "description": "Security, safety, and efficiency rules for AI agents calling SigmaShake MCP (Model Context Protocol) server tools. Blocks rule injection attacks, API key exposure in audit logs, accidental hub publishing, and token-wasting query patterns.",
+      "technologies": [
+        "mcp"
+      ],
+      "rule_count": 18,
+      "content_hash": "4fb6cd444cef6c96403acb281ba0f423112621ad8f5ba176027b623373af6cec",
+      "content_signature": "275434bb827d5e533cf3ebf4561e6c04869634f671d0e3935a5c6ad37051f71911874575a3ee2ab48446a0e63ec692b9a64bb432752457dfc0e4eaeb63e94704",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.078Z"
+    },
+    {
+      "id": "rules-mikro-orm",
+      "path": "rulesets/rules-mikro-orm",
+      "rules_path": "rulesets/rules-mikro-orm/.sigmashake/rules",
+      "title": "rules-mikro-orm",
+      "description": "MikroORM is a TypeScript ORM based on Data Mapper and Unit of Work patterns. These rules govern entity definitions, relation handling, and database operations to prevent N+1 queries and insecure data mutations.",
+      "technologies": [
+        "mikro-orm"
+      ],
+      "rule_count": 2,
+      "content_hash": "965841c1f3f1253191d3535b0f5938e54f0460c46f42c49e4751e54b5884d7f8",
+      "content_signature": "d35e516e5ee84868cf85a4baf4a73a97f34ac15669692ca30de8d428094f1294801707704b26a39274692fbc3186c962111c856775ccae4f2ae08ea205be7709",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.523Z"
+    },
+    {
+      "id": "rules-milvus",
+      "path": "rulesets/rules-milvus",
+      "rules_path": "rulesets/rules-milvus/.sigmashake/rules",
+      "title": "rules-milvus",
+      "description": "Milvus is an open-source vector database built for AI applications and vector similarity search. These rules ensure efficient indexing, secure access control, and optimized search performance when agents work with high-dimensional vector data.",
+      "technologies": [
+        "milvus"
+      ],
+      "rule_count": 2,
+      "content_hash": "34b1b889b33e3b8b40676e4d8faf97dd36ef3abb31093edcc680bfb2ae9a24d0",
+      "content_signature": "56f844240feb9e44ea1a06e65ad6225bb5f4548eca4c31ddda8bf7912c6f1d5aeb4c109b6ed6edc71a195b490b29045701f81648b56a7907a92775506c597209",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.557Z"
+    },
+    {
+      "id": "rules-mistral",
+      "path": "rulesets/rules-mistral",
+      "rules_path": "rulesets/rules-mistral/.sigmashake/rules",
+      "title": "rules-mistral",
+      "description": "Mistral is a suite of high-performance LLMs developed by Mistral AI. These rules provide governance for applications using Mistral models, focusing on secure prompt engineering, efficient API usage, and adherence to safety guidelines.",
+      "technologies": [
+        "mistral"
+      ],
+      "rule_count": 2,
+      "content_hash": "78196ebac6c948f305183fea04c0b9e304dc5ef06a1c41694b8981f19e2ef033",
+      "content_signature": "aa205f08d8392b541a2deccbd93f55593d2e82b02d1f2f7208d5533dd3d2022f9c6edaef619c90eb24959c4b114b0692c09b27f45399c3d233668188fc3bb70a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.544Z"
+    },
+    {
+      "id": "rules-moltbook",
+      "path": "rulesets/rules-moltbook",
+      "rules_path": "rulesets/rules-moltbook/.sigmashake/rules",
+      "title": "rules-moltbook",
+      "description": "Moltbook governance rules — guards against API token breaches, agent-to-agent prompt injection via social posts, misconfigured Supabase credential exposure, and the risk of vibe-coded infrastructure with no security review.",
+      "technologies": [
+        "moltbook"
+      ],
+      "rule_count": 12,
+      "content_hash": "2497b51469055c929c4c04cb0bcaf20d1d35d54bb77d6aa9c441beca737ee795",
+      "content_signature": "60151187f5b76ac157441e40da15c3811d4b04b52f268a3160a58ed5c403df8a89853ffcd8d2acbf20257ac38544cbe50f32807727736797fc03715b96ed5b00",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-06T01:55:04.208Z"
+    },
+    {
+      "id": "rules-mongodb",
+      "path": "rulesets/rules-mongodb",
+      "rules_path": "rulesets/rules-mongodb/.sigmashake/rules",
+      "title": "rules-mongodb",
+      "description": "MongoDB is a source-available, cross-platform, document-oriented database program. These rules govern MongoDB operations to prevent insecure queries, misconfigured authentication, and accidental data exposure in NoSQL environments.",
+      "technologies": [
+        "mongodb"
+      ],
+      "rule_count": 2,
+      "content_hash": "be23fe375aa4c1579f4cd0ec3b90208193ebfa66be8b028c5844506612236f49",
+      "content_signature": "2ce1f2863ea9cd0c14c540a608a82ebead5664513ca260c93273143212cba4562829e9c353ef9fd01de484aa44d17657f7d071bfac0b529240228e7995797a03",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.024Z"
+    },
+    {
+      "id": "rules-mongoose",
+      "path": "rulesets/rules-mongoose",
+      "rules_path": "rulesets/rules-mongoose/.sigmashake/rules",
+      "title": "rules-mongoose",
+      "description": "Mongoose is a JavaScript object modeling tool designed to work in an asynchronous environment for MongoDB. These rules ensure proper schema validation, secure middleware usage, and efficient query patterns in Node.js applications using Mongoose.",
+      "technologies": [
+        "mongoose"
+      ],
+      "rule_count": 2,
+      "content_hash": "2318296f5519ad0fa89992cd828aa5e834b7137b6fd98df5fbe58fa7745ec1c9",
+      "content_signature": "c699b3f981642956fb8d3dfa4024df8166f58d73fff9187985bce5be4c46a754ad71ee7c016598680641af065f8672f57ebabe1edbaf0829dd96854e8c402b0f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.551Z"
+    },
+    {
+      "id": "rules-mui",
+      "path": "rulesets/rules-mui",
+      "rules_path": "rulesets/rules-mui/.sigmashake/rules",
+      "title": "rules-mui",
+      "description": "Material UI (MUI) is a comprehensive suite of UI tools to help you ship new features faster. These rules govern the use of MUI components, ensuring consistent styling, proper theme usage, and accessible UI patterns.",
+      "technologies": [
+        "mui"
+      ],
+      "rule_count": 2,
+      "content_hash": "d71f142c412cfc7fa97f41741d57f8db15d9fe9ab421705e4658237ce66dca17",
+      "content_signature": "e88b5eba03fda27f96f6ce449ea00403dd87fb4d8662ea85b17824a430b1b857c6abd785c9cd2870ef903218f75b29bc4b54b8e0f863e07ce3213fd81c815507",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.009Z"
+    },
+    {
+      "id": "rules-mysql",
+      "path": "rulesets/rules-mysql",
+      "rules_path": "rulesets/rules-mysql/.sigmashake/rules",
+      "title": "rules-mysql",
+      "description": "MySQL is an open-source relational database management system. These rules provide governance for MySQL interactions, focusing on SQL injection prevention, secure credential management, and optimized database schema design.",
+      "technologies": [
+        "mysql"
+      ],
+      "rule_count": 2,
+      "content_hash": "5f66a3ea97649e71f5529616781feb1ac9b08a926749b6d5b1b0e3a6a3698139",
+      "content_signature": "70e80fb5bb0cb52a01ca763fe7f772bfe28adeb4e2aee8c09ccd65c9f4d8649f874265e320e635de5ac12867096432e3ea4f00746cfc13f50d187d945520f80e",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.020Z"
+    },
+    {
+      "id": "rules-neo4j",
+      "path": "rulesets/rules-neo4j",
+      "rules_path": "rulesets/rules-neo4j/.sigmashake/rules",
+      "title": "rules-neo4j",
+      "description": "Neo4j is a graph database management system. These rules govern Cypher query generation and graph operations to prevent insecure traversals, unauthorized data access, and performance-heavy graph queries.",
+      "technologies": [
+        "neo4j"
+      ],
+      "rule_count": 2,
+      "content_hash": "c1ba6277d8f32f5fa8ee4818d1beae6ce5c1b99d36315cad2659a292019ccbae",
+      "content_signature": "15a6c5dbb8013cf8abb82b1873e606c48271bd7ebd1697c383cd4e06f5e70d9193840c998600a095d35ee95aa166dc6c3a43c552d2b41f9f84ac5afa2bb40004",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.028Z"
+    },
+    {
+      "id": "rules-newrelic",
+      "path": "rulesets/rules-newrelic",
+      "rules_path": "rulesets/rules-newrelic/.sigmashake/rules",
+      "title": "rules-newrelic",
+      "description": "New Relic is an observability platform that helps engineers monitor, debug, and improve their entire stack. These rules ensure proper instrumentation, secure handling of telemetry data, and efficient alert configuration when agents interact with New Relic.",
+      "technologies": [
+        "newrelic"
+      ],
+      "rule_count": 2,
+      "content_hash": "81fd94a00ea10b9ae7141886ff3e3954fa39157092fac08c86b1c1fcc08769c1",
+      "content_signature": "97a30e76484eb6e5bc5598998a8896a6dc96d62bf400a1758072f71f25ba54e59e1f2b8c78fd9fb26bfed83069f0ec59c62814d1cb441f24efe80bef8f46ee09",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.030Z"
+    },
+    {
+      "id": "rules-nextjs",
+      "path": "rulesets/rules-nextjs",
+      "rules_path": "rulesets/rules-nextjs/.sigmashake/rules",
+      "title": "rules-nextjs",
+      "description": "Next.js is a React framework for building full-stack web applications. These rules govern Next.js development, focusing on secure Server Side Rendering (SSR), proper API route implementation, and efficient static site generation patterns.",
+      "technologies": [
+        "nextjs"
+      ],
+      "rule_count": 19,
+      "content_hash": "93daf2688c3654ad553cfc062d7b14d41134b975945abf2aaf6be2df6155cea4",
+      "content_signature": "f8a89e3259e8bf78461838912d257a871671732c456b1b58919b1e88a9fa9a16478143ba29ee6db350f43179af058b3d1f6691efe167978d8c8621fe9383b20a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.079Z"
+    },
+    {
+      "id": "rules-nginx",
+      "path": "rulesets/rules-nginx",
+      "rules_path": "rulesets/rules-nginx/.sigmashake/rules",
+      "title": "rules-nginx",
+      "description": "Nginx is a high-performance web server and reverse proxy. These rules govern Nginx configuration to prevent insecure SSL/TLS settings, misconfigured proxy headers, and unauthorized directory listing.",
+      "technologies": [
+        "nginx"
+      ],
+      "rule_count": 4,
+      "content_hash": "512b82dd471ed96748d494fe5c26d129c04dc0a4592976b4a637f718f7f3f943",
+      "content_signature": "f54bbf6a3bb35ac23433e9dac63f566d56ad442bc00fe2e1834d44e99a892d4280a3ca32768b6bbaff3b06ac7d40bbea094a51d7d14c732f183a5afa84316002",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-08T03:23:46.373Z"
+    },
+    {
+      "id": "rules-nim",
+      "path": "rulesets/rules-nim",
+      "rules_path": "rulesets/rules-nim/.sigmashake/rules",
+      "title": "rules-nim",
+      "description": "Nim is a statically typed, imperative programming language that compiles to C, C++, or JavaScript. These rules provide safety and best-practice governance for Nim development, focusing on memory safety and secure systems programming.",
+      "technologies": [
+        "nim"
+      ],
+      "rule_count": 2,
+      "content_hash": "ff21b687c7c01e23ff2fe721ae05535ad61a69d6cf2889d0d180e343be843dfd",
+      "content_signature": "97e657f83b09ac30beeefaf531c2c28165b8d7824a052eb1f26bbfc42bcfcc30c0491064aecb70e87b8f24d977ff0dc1e8de5c374546f6274c9ede5873560808",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.011Z"
+    },
+    {
+      "id": "rules-nodejs",
+      "path": "rulesets/rules-nodejs",
+      "rules_path": "rulesets/rules-nodejs/.sigmashake/rules",
+      "title": "rules-nodejs",
+      "description": "Node.js is an open-source, cross-platform, JavaScript runtime environment. These rules govern Node.js application development, preventing common vulnerabilities like command injection, insecure file system access, and improper error handling.",
+      "technologies": [
+        "nodejs"
+      ],
+      "rule_count": 18,
+      "content_hash": "7209df4c721507479e0426a577270f90d5de466aa49b47d1a2a82837d4c07a17",
+      "content_signature": "796a96804eee6212af4e4eb021a1f3ddaa26dfa84608118473f36e2c7054b17d768b7f5a11fab8e284a15fd223f4d093ffc0874c4e9d31da8cdf346ae0200b05",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.079Z"
+    },
+    {
+      "id": "rules-nomad",
+      "path": "rulesets/rules-nomad",
+      "rules_path": "rulesets/rules-nomad/.sigmashake/rules",
+      "title": "rules-nomad",
+      "description": "Nomad is a highly flexible workload orchestrator that enables an organization to easily deploy and manage any containerized or legacy application. These rules govern Nomad job specifications to ensure secure task execution, proper resource allocation, and adherence to orchestration best practices.",
+      "technologies": [
+        "nomad"
+      ],
+      "rule_count": 2,
+      "content_hash": "63ba962d0c8dc4884918aa5cbba9c9d9f663844398cf09035fa94f12f2eee837",
+      "content_signature": "a854d577b77f83257fca88120c10e9f35e570ddac0253047c51a4e4dd9e6a1f5a7eaba7c3b17305817dd28c81d846fe22d16d3257886f437c3e277820a3bea0a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.553Z"
+    },
+    {
+      "id": "rules-npm",
+      "path": "rulesets/rules-npm",
+      "rules_path": "rulesets/rules-npm/.sigmashake/rules",
+      "title": "rules-npm",
+      "description": "npm is the default package manager for Node.js, enabling developers to share and reuse code. These rules govern dependency management, script execution, and secure package publishing for AI agents.",
+      "technologies": [
+        "npm"
+      ],
+      "rule_count": 14,
+      "content_hash": "e2a3bf046c93d01678d826a8439c0660e0fca9dfc48b8b3784c9030dfb609c3e",
+      "content_signature": "2b6317f4546e31f60fa727861166177ddb728be0f97e7de1b37e0771ba06a10e27dce70d4fc1aa883da6153fe0b969e18e283707f71374bdec79131ca28d0b0f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-06T02:15:56.903Z"
+    },
+    {
+      "id": "rules-numpy",
+      "path": "rulesets/rules-numpy",
+      "rules_path": "rulesets/rules-numpy/.sigmashake/rules",
+      "title": "rules-numpy",
+      "description": "NumPy is a fundamental library for scientific computing in Python, providing support for large, multi-dimensional arrays and matrices. These rules govern high-performance numerical operations, memory management, and data manipulation.",
+      "technologies": [
+        "numpy"
+      ],
+      "rule_count": 2,
+      "content_hash": "16be579d9563ab517b48bcedb845270eea065f2a6b7cbf6cfd98111a5f786b66",
+      "content_signature": "9e01973712489fdb7e70021834a69d3ceec45245a71905349a21eb17eb72868fa917cd9361c3c6b6602754182ae97e4ed1380c2f5b678f8219c0b87cb998180c",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.028Z"
+    },
+    {
+      "id": "rules-nuxtjs",
+      "path": "rulesets/rules-nuxtjs",
+      "rules_path": "rulesets/rules-nuxtjs/.sigmashake/rules",
+      "title": "rules-nuxtjs",
+      "description": "Nuxt.js is an open-source framework based on Vue.js for creating modern web applications. These rules govern server-side rendering, directory structure, and component lifecycle management.",
+      "technologies": [
+        "nuxtjs"
+      ],
+      "rule_count": 2,
+      "content_hash": "9a60fe41a38797e42e214fb13c2fa448aadaf558d39c8463256f0b488c08ebaa",
+      "content_signature": "f2daaaebd690840393f626ca8b238419ffae2051cb8815ec19a23d371835f52af27041b8e1c6c2c1c916b47cf36d9ed2c569fb974beb0225c271f2da5abadc0f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.022Z"
+    },
+    {
+      "id": "rules-ocaml",
+      "path": "rulesets/rules-ocaml",
+      "rules_path": "rulesets/rules-ocaml/.sigmashake/rules",
+      "title": "rules-ocaml",
+      "description": "OCaml is a general-purpose, industrial-strength functional programming language with an emphasis on expressiveness and safety. These rules govern type-safe development, module systems, and functional programming patterns.",
+      "technologies": [
+        "ocaml"
+      ],
+      "rule_count": 2,
+      "content_hash": "e4fbba3031abfc05685ac6163eaa2e2da6d21ea48ac279d191c6c58ff558c0cf",
+      "content_signature": "d7d4555f480a6d1f1222d9b5294ef249158efde3bad0c232c384104e276e62612cd7c4668239ee2785ae7d53ef5b189367d334b781529dd4713ba35105c4ca01",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.531Z"
+    },
+    {
+      "id": "rules-openai-codex",
+      "path": "rulesets/rules-openai-codex",
+      "rules_path": "rulesets/rules-openai-codex/.sigmashake/rules",
+      "title": "rules-openai-codex",
+      "description": "OpenAI Codex is an artificial intelligence model that parses natural language and generates code in response. These rules govern prompt engineering, code generation quality, and secure API integration.",
+      "technologies": [
+        "codex"
+      ],
+      "rule_count": 12,
+      "content_hash": "f6e3c76dc09db6a045a2eebdd42aa7e127b04430fce6ef82b02ba520243c7ce9",
+      "content_signature": "02a0702422ee73a118379d655d7f02163d9a757356fcd47ad3087a45e379c15e159cc7c58c25fe79a797c66cac07a4e380ed94b83668f6d10d77939dd4763006",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-06T01:55:04.209Z"
+    },
+    {
+      "id": "rules-openclaw",
+      "path": "rulesets/rules-openclaw",
+      "rules_path": "rulesets/rules-openclaw/.sigmashake/rules",
+      "title": "rules-openclaw",
+      "description": "OpenClaw is an autonomous AI agent framework designed for local orchestration and system interaction. These rules govern security boundaries, preventing remote code execution, sandbox escapes, and malicious skill execution.",
+      "technologies": [
+        "openclaw"
+      ],
+      "rule_count": 51,
+      "content_hash": "c806c4144f722b5d5339d229108adbad06ce8cea471e066875a6f24efa4dae9c",
+      "content_signature": "6fd17b0b57d5e7fba45f34fd8cbf47a312693debbbbc9f14b74c27653a3832311b651830e1e1e0000b5126c1ef0ca0a1a9b252a7f489b3a9b46c115476f7bf09",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-06T14:48:54.207Z"
+    },
+    {
+      "id": "rules-openhands",
+      "path": "rulesets/rules-openhands",
+      "rules_path": "rulesets/rules-openhands/.sigmashake/rules",
+      "title": "rules-openhands",
+      "description": "",
+      "technologies": [
+        "openhands"
+      ],
+      "rule_count": 4,
+      "content_hash": "1f1d952d7e717ac64c82a0fbb817c1530c9d17926f03e4eaa89d840fc2ccbeb5",
+      "content_signature": "77343931feace44e013a37a6ceec743788220c3ec2f6bda30ee6e3ac9ee85c31e557706a28e50654d7534fc132408f4e155e867dec3fb13f68322ecbed5af701",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-10T00:44:03.770Z"
+    },
+    {
+      "id": "rules-pandas",
+      "path": "rulesets/rules-pandas",
+      "rules_path": "rulesets/rules-pandas/.sigmashake/rules",
+      "title": "rules-pandas",
+      "description": "pandas is a powerful data analysis and manipulation library for Python. These rules govern data frame operations, indexing strategies, and efficient statistical analysis of structured data.",
+      "technologies": [
+        "pandas"
+      ],
+      "rule_count": 2,
+      "content_hash": "5d90ee130c0264e61624dfdd17484d4c4413e56840abf0a25f88238ef114b5d5",
+      "content_signature": "cb383e33dfc84b88c5e8e6f4596199745ebffc8cdbf10c51558b39e7ba62560df9827557184ef234a8bf50cc0715b6be54a14352163e1c1d3b252e1a9696a406",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.024Z"
+    },
+    {
+      "id": "rules-parcel",
+      "path": "rulesets/rules-parcel",
+      "rules_path": "rulesets/rules-parcel/.sigmashake/rules",
+      "title": "rules-parcel",
+      "description": "Parcel is a zero-configuration web application bundler that simplifies the build process. These rules govern asset management, build pipeline automation, and development server security.",
+      "technologies": [
+        "parcel"
+      ],
+      "rule_count": 2,
+      "content_hash": "377c526bb4d0a4cbcb34d3d31d0c6b7ab2706f717d3497af17b79ce7a4b57a58",
+      "content_signature": "11bfea59469f369912b5a4ebad698782b65824ab0d4b9cacac136ea43697ce19cf45f9de9fa4ebbfbbebfe42e8550f1c1a90a3b36dd9a2666e2f6d950763030f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.035Z"
+    },
+    {
+      "id": "rules-perl",
+      "path": "rulesets/rules-perl",
+      "rules_path": "rulesets/rules-perl/.sigmashake/rules",
+      "title": "rules-perl",
+      "description": "Perl is a highly capable, feature-rich programming language with over 30 years of development. These rules govern script execution, regular expression usage, and system administration tasks.",
+      "technologies": [
+        "perl"
+      ],
+      "rule_count": 2,
+      "content_hash": "3549b26d8965b2cb940e91973410c61b025488d7728401cdff9f7f0d9d55155e",
+      "content_signature": "b632cce31ef5c24890e307f4ea43ca5363eab4571ee54d1289feff9fc8e03d74d4c1c716f537e49214d68668d83f5696fe0fb9cd1274297ef8cba89b5deb1e0f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.517Z"
+    },
+    {
+      "id": "rules-php",
+      "path": "rulesets/rules-php",
+      "rules_path": "rulesets/rules-php/.sigmashake/rules",
+      "title": "rules-php",
+      "description": "PHP is a popular general-purpose scripting language that is especially suited to web development. These rules govern server-side logic, database interactions, and modern secure coding practices.",
+      "technologies": [
+        "php"
+      ],
+      "rule_count": 9,
+      "content_hash": "883e243b40e595bac14dd5c522232d93a48f43994549791e3888cd66bf2f2022",
+      "content_signature": "73644a42d650e3d9a723454a22b71491970eebaeed0c52e2040dfed8f096b5ce997a2000a89788e31c8188c5ff569eb691dcd329b1b62825e0329e35d454220b",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-05T23:05:58.230Z"
+    },
+    {
+      "id": "rules-pinecone",
+      "path": "rulesets/rules-pinecone",
+      "rules_path": "rulesets/rules-pinecone/.sigmashake/rules",
+      "title": "rules-pinecone",
+      "description": "Pinecone is a managed vector database designed for high-performance machine learning applications. These rules govern vector indexing, similarity search, and efficient data retrieval for AI-driven systems.",
+      "technologies": [
+        "pinecone"
+      ],
+      "rule_count": 2,
+      "content_hash": "db202e26ed8879a4b56298361b30a43d75e7d7c830373224b5edbcb14caf51fd",
+      "content_signature": "64cbb66e05a99ae55f9fcf42106ff3baa72b5acf3fc3f7f02873778ad59ca1fab336d41563d48a13f893bacf5d077a8563db788bfcf9312bc0601668d0e1780b",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.522Z"
+    },
+    {
+      "id": "rules-pip",
+      "path": "rulesets/rules-pip",
+      "rules_path": "rulesets/rules-pip/.sigmashake/rules",
+      "title": "rules-pip",
+      "description": "pip is the standard package installer for Python, used to install and manage software packages. These rules govern environment isolation, dependency resolution, and secure package installation.",
+      "technologies": [
+        "pip"
+      ],
+      "rule_count": 8,
+      "content_hash": "bb2ce6f9f611069ff6893d160db282059e6b1e7d04a9989d8dd703059579e521",
+      "content_signature": "8c688bc871e43115fe506c9773007396511036b86b44d795e9c9f3f3d44b9b411419208179f50948f82a545e195b4d0042b45e5acb3a236a116455ca12270508",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-06T02:15:56.904Z"
+    },
+    {
+      "id": "rules-plandex",
+      "path": "rulesets/rules-plandex",
+      "rules_path": "rulesets/rules-plandex/.sigmashake/rules",
+      "title": "rules-plandex",
+      "description": "",
+      "technologies": [
+        "plandex"
+      ],
+      "rule_count": 4,
+      "content_hash": "9787b0561eec7d6a6d4a14e6bbe3fbcfcdddcdebbebdddba21788bfa5092d902",
+      "content_signature": "1e3b10141eb5a8acecf8f0a6559ecd5e83aea1aa907c37761efa4b17fa12ce2338969d19c1df5267600e09f81f7abf71a7f8f47eb2c70ed3f8ea2a1d81f5cc0f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-10T00:44:03.764Z"
+    },
+    {
+      "id": "rules-playwright",
+      "path": "rulesets/rules-playwright",
+      "rules_path": "rulesets/rules-playwright/.sigmashake/rules",
+      "title": "rules-playwright",
+      "description": "Playwright is a framework for Web testing and automation that allows testing across all modern rendering engines. These rules govern browser automation, end-to-end testing, and cross-browser compatibility.",
+      "technologies": [
+        "playwright"
+      ],
+      "rule_count": 10,
+      "content_hash": "f84c79ebbbeaf8392b697952d02cd10865eea8546de9ed6104e2e2e29e13a2c5",
+      "content_signature": "e8d5c8f4b599fd141dfa59dbff79e01bbbf81c34c428a00d288f2ab03db3d5e05c0a81a3726711e0a697ecd21e1bc39e437c05bc7e0c39253c6ad3a0901b080d",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.079Z"
+    },
+    {
+      "id": "rules-pnpm",
+      "path": "rulesets/rules-pnpm",
+      "rules_path": "rulesets/rules-pnpm/.sigmashake/rules",
+      "title": "rules-pnpm",
+      "description": "pnpm is a fast, disk space efficient package manager for JavaScript that uses a content-addressable filesystem. These rules govern strict dependency management and monorepo optimization.",
+      "technologies": [
+        "pnpm"
+      ],
+      "rule_count": 9,
+      "content_hash": "8990709286cad2761e2c3473f6467caf1ab350c15d376451aa5be2868831ceea",
+      "content_signature": "b69d8bab42edb0541f084f7d8b482795e4d2f3bf154545800d780801e28ee626fa0624d840933b0737ae03ee1884b3f8acbcec219fb6544b2227855394397000",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-06T02:15:56.905Z"
+    },
+    {
+      "id": "rules-postgresql",
+      "path": "rulesets/rules-postgresql",
+      "rules_path": "rulesets/rules-postgresql/.sigmashake/rules",
+      "title": "rules-postgresql",
+      "description": "PostgreSQL is a powerful, open-source object-relational database system with a strong reputation for reliability and data integrity. These rules govern SQL optimization, schema design, and ACID-compliant data management.",
+      "technologies": [
+        "postgresql"
+      ],
+      "rule_count": 2,
+      "content_hash": "cb04fe3102dfd2a0ef0b8ed4b1765e11435de5301773ad77dd571caadfda89cd",
+      "content_signature": "88e89d006d236cb41b484e3cc5583e217fe1af7f86a4154bdce3692a3500ece5b7b8d0817bd337b100da9aa50a6501fc9b1c5950f1f33e779dd8141fbc2dce00",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.028Z"
+    },
+    {
+      "id": "rules-prisma",
+      "path": "rulesets/rules-prisma",
+      "rules_path": "rulesets/rules-prisma/.sigmashake/rules",
+      "title": "rules-prisma",
+      "description": "Prisma is a next-generation ORM that helps developers build faster and make fewer errors. These rules govern database modeling, migrations, and type-safe query generation for Node.js and TypeScript.",
+      "technologies": [
+        "prisma"
+      ],
+      "rule_count": 2,
+      "content_hash": "b525b0d88d78a7f33bad2434849ef2503e9203da99a5ef595b85c5e7d8a31b57",
+      "content_signature": "adc54941c87a87f0124559d96c4b86d4c80f775983c867dc6858f869cd49a7076f2de9f39d0e2e12a7d4268a303c2a9fc784355a83e8436d628bec47aa4d1b07",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.034Z"
+    },
+    {
+      "id": "rules-privacy",
+      "path": "rulesets/rules-privacy",
+      "rules_path": "rulesets/rules-privacy/.sigmashake/rules",
+      "title": "rules-privacy",
+      "description": "Privacy rules provide a foundation for data protection and user confidentiality. These rules govern the handling of sensitive information and ensure compliance with global privacy standards.",
+      "technologies": [
+        "privacy"
+      ],
+      "rule_count": 5,
+      "content_hash": "af14a9ba5f884daf942b92037fcf9d20a2e286341b48d1a57ecb61f2429ed50b",
+      "content_signature": "ff5e226c3fbf4631bef638cdfe7d384273b5ccfc28b85357ec69594ccdeaea79ec44604f86d98a5501f4c09b56d00fa4c8a908e907794a11ca82f3435371bd06",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-04T19:23:02.038Z"
+    },
+    {
+      "id": "rules-privacy-linux",
+      "path": "rulesets/rules-privacy-linux",
+      "rules_path": "rulesets/rules-privacy-linux/.sigmashake/rules",
+      "title": "rules-privacy-linux",
+      "description": "Privacy rules for Linux focus on system hardening and secure configuration of the Linux kernel and userland. These rules govern user data protection, permission management, and system auditing in Linux environments.",
+      "technologies": [
+        "linux"
+      ],
+      "rule_count": 7,
+      "content_hash": "710bea7264e4068bc18431a03c6c768de893d1f6737845ecd94eaae1fa9b599e",
+      "content_signature": "2447734a1daa868f7abc69a798f7d20e3a26adce110a95fbe738dd8bc4a46f086780dacfcb89b435d999d7539396cf753364b9c92c5a69d3a4fea4058c9bf201",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-05T23:05:58.231Z"
+    },
+    {
+      "id": "rules-privacy-macos",
+      "path": "rulesets/rules-privacy-macos",
+      "rules_path": "rulesets/rules-privacy-macos/.sigmashake/rules",
+      "title": "rules-privacy-macos",
+      "description": "Privacy rules for macOS address the specific security features and data protection mechanisms of Apple's operating system. These rules govern application permissions, system security settings, and hardware-level privacy controls.",
+      "technologies": [
+        "macos"
+      ],
+      "rule_count": 8,
+      "content_hash": "c06630b4a46017eeff200e25b133ed9f65346362f6206e5010611483210d9749",
+      "content_signature": "b34cc27909c9420d81bd86bbf54ea6e510fcd9d59d28f2d1bd6a0b3b9d02e3bd023d0a1d8525d9b23a68b7df91b0f94838141e83ff180d3916a8d2abd858570a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-05T23:05:58.232Z"
+    },
+    {
+      "id": "rules-privacy-windows",
+      "path": "rulesets/rules-privacy-windows",
+      "rules_path": "rulesets/rules-privacy-windows/.sigmashake/rules",
+      "title": "rules-privacy-windows",
+      "description": "Privacy rules for Windows manage telemetry, system permissions, and secure configuration for Microsoft's operating system. These rules govern data collection settings, user privacy controls, and secure OS environment management.",
+      "technologies": [
+        "windows"
+      ],
+      "rule_count": 7,
+      "content_hash": "9e8f9db3cf5713e5564f8e404cff47108543231ab4bea3a720874daf089318ac",
+      "content_signature": "d93e25a0a99f2900e4a65d8954bf63144577bf2785ecf5f00a7697250799e82b9d40b63023edd84a439b6998779829320dddc2ae0b8938ffb7defed73922d306",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-05T23:05:58.232Z"
+    },
+    {
+      "id": "rules-prolog",
+      "path": "rulesets/rules-prolog",
+      "rules_path": "rulesets/rules-prolog/.sigmashake/rules",
+      "title": "rules-prolog",
+      "description": "Prolog is a logic programming language associated with artificial intelligence and computational linguistics. These rules govern declarative logic, pattern matching, and the development of rule-based expert systems.",
+      "technologies": [
+        "prolog"
+      ],
+      "rule_count": 2,
+      "content_hash": "a155a317188d77d8921a8e4db4bf63042c127e6d03c8917cd1d62619e4d8e310",
+      "content_signature": "3d8245ed5e0c3f11972d387b0e54e57cc93231f4ad7854dfb6d216d5761e676ee174c51975068627e429360631bc2627a87aad65a38b7b65915d7c4a4eea3a0c",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.026Z"
+    },
+    {
+      "id": "rules-prometheus",
+      "path": "rulesets/rules-prometheus",
+      "rules_path": "rulesets/rules-prometheus/.sigmashake/rules",
+      "title": "rules-prometheus",
+      "description": "Prometheus is an open-source monitoring and alerting toolkit originally built at SoundCloud. These rules govern metrics collection, PromQL query optimization, and system observability for AI agents.",
+      "technologies": [
+        "prometheus"
+      ],
+      "rule_count": 2,
+      "content_hash": "afffa36365ec553bb2e8f5e11140039f50a7ecd79a6b65526579a1fc3eb65c80",
+      "content_signature": "67b1592ba7361e1793cdf31f068843c7c9d79a3a33fa3002bb8de0fcdf7c09efcd729b499b553a95383d6492c5b64753df497b93f57a91fd305184d94043330b",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.013Z"
+    },
+    {
+      "id": "rules-pulumi",
+      "path": "rulesets/rules-pulumi",
+      "rules_path": "rulesets/rules-pulumi/.sigmashake/rules",
+      "title": "rules-pulumi",
+      "description": "Pulumi is an infrastructure as code platform that allows you to use familiar programming languages to manage cloud resources. These rules govern resource provisioning, state management, and infrastructure automation.",
+      "technologies": [
+        "pulumi"
+      ],
+      "rule_count": 2,
+      "content_hash": "fc58f2d731ec99c5b5536f7b7bbceb128597caa376d742a2b5fe0a77125be952",
+      "content_signature": "ee8515884e1ddb6693667dc23b0716ba4360908032e3adf32edb2b1811349154ddc7bb1f31d7c8a9c3d3458c1aaaf835163689c4883f7672e47ae7c516f63b0a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.026Z"
+    },
+    {
+      "id": "rules-puppet",
+      "path": "rulesets/rules-puppet",
+      "rules_path": "rulesets/rules-puppet/.sigmashake/rules",
+      "title": "rules-puppet",
+      "description": "Puppet is an open-source software configuration management tool that automates infrastructure management. These rules govern system state enforcement, automated configuration, and infrastructure scalability.",
+      "technologies": [
+        "puppet"
+      ],
+      "rule_count": 2,
+      "content_hash": "11c80f4dcffdf7854db356ddba0447c7d13f1ee236544303f96f8ec8d1696145",
+      "content_signature": "face9ad5426af400d828c9eaa4f8a5c022049a37bd783d713c5346024f9b00b44f2ab192270a4f2286e9c4b725f6bf6df485b313ac535df22542ff03f63fb209",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.520Z"
+    },
+    {
+      "id": "rules-puppeteer",
+      "path": "rulesets/rules-puppeteer",
+      "rules_path": "rulesets/rules-puppeteer/.sigmashake/rules",
+      "title": "rules-puppeteer",
+      "description": "Puppeteer is a Node library which provides a high-level API to control Chrome or Chromium over the DevTools Protocol. These rules govern headless browser automation, web scraping, and automated UI testing.",
+      "technologies": [
+        "puppeteer"
+      ],
+      "rule_count": 2,
+      "content_hash": "763850f0b037efed01a64773431224fc8384ef61485cd2652b8bdb7708441600",
+      "content_signature": "f6af2c79094c3e7c7d54111551c9f0e5b2ffe2ba6af440d66d4ee8ac32380de99acc7661eaf43ed530bbc3c96c98f760af73859a6b80d6d77c3ca162b3f6d000",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.029Z"
+    },
+    {
+      "id": "rules-python",
+      "path": "rulesets/rules-python",
+      "rules_path": "rulesets/rules-python/.sigmashake/rules",
+      "title": "rules-python",
+      "description": "Python is an interpreted, high-level, general-purpose programming language known for its readability. These rules govern idiomatic coding practices, environment management, and core library usage.",
+      "technologies": [
+        "python"
+      ],
+      "rule_count": 24,
+      "content_hash": "86365da5d6d2ff1672b6b728644c44fe6eff797409e4a84b1c55c2b0d6298a5b",
+      "content_signature": "dcdfd4cef0b66f0b060bf732f747473aa3d04a2ecdf21ee279a93a93872f476c28cfa26fc8980ad045794b8425da9098c308de2226530de6715410d5bd603c0e",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.079Z"
+    },
+    {
+      "id": "rules-pytorch",
+      "path": "rulesets/rules-pytorch",
+      "rules_path": "rulesets/rules-pytorch/.sigmashake/rules",
+      "title": "rules-pytorch",
+      "description": "PyTorch is an open-source machine learning library based on the Torch library. These rules govern tensor computation, deep learning model architecture, and GPU-accelerated training.",
+      "technologies": [
+        "pytorch"
+      ],
+      "rule_count": 2,
+      "content_hash": "8539708fb65cebdef71c02b6de6796d83400dd0cd23341a8aa4f228aa5e88842",
+      "content_signature": "0119b90a86e57df8a4a0124f9091403b4eabe90ab52394c0191a28eda401211be9e2b0c9c714a51e7a144a4ea24e2ee013547c938c529726086da9516e49ec0d",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.516Z"
+    },
+    {
+      "id": "rules-qdrant",
+      "path": "rulesets/rules-qdrant",
+      "rules_path": "rulesets/rules-qdrant/.sigmashake/rules",
+      "title": "rules-qdrant",
+      "description": "Qdrant is a vector similarity search engine that provides a production-ready service with a convenient API. These rules govern vector storage, collection management, and high-performance neural search.",
+      "technologies": [
+        "qdrant"
+      ],
+      "rule_count": 2,
+      "content_hash": "3a12619364f20b4161147905eeb3ab101c02f994fcf5ac3e210284268a8220b9",
+      "content_signature": "5057100c7a6cfcd5a3d5e71fc29f945369d815f4c988aaa3b162f4a6c2a42c809b9ae4eed3e4fd106103bfe1d06f3fe8f4783bfdfccc701c6dc6e929cd6eea07",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.526Z"
+    },
+    {
+      "id": "rules-qt",
+      "path": "rulesets/rules-qt",
+      "rules_path": "rulesets/rules-qt/.sigmashake/rules",
+      "title": "rules-qt",
+      "description": "Qt is a cross-platform application development framework for creating graphical user interfaces and cross-platform applications. These rules govern GUI design, signal-slot communication, and C++ application structure.",
+      "technologies": [
+        "qt"
+      ],
+      "rule_count": 2,
+      "content_hash": "8f9a1355feec84d12dd79f8c3a1b73a53296e3f588292c0108da41d94fb02fd0",
+      "content_signature": "de73d27ae1ccb86518dbd53f2d4d8d6948d9a1cabb5d33fe4f29ff4abdec512dc17bf7cb2789383f1de3ebcabaf2808d58be97340f3e4a17996e582a7beb380b",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.030Z"
+    },
+    {
+      "id": "rules-qwik",
+      "path": "rulesets/rules-qwik",
+      "rules_path": "rulesets/rules-qwik/.sigmashake/rules",
+      "title": "rules-qwik",
+      "description": "Qwik is a web framework designed for building instant-loading applications with a focus on resumability. These rules govern performance optimizations and idiomatic component design for AI-assisted Qwik development.",
+      "technologies": [
+        "qwik"
+      ],
+      "rule_count": 2,
+      "content_hash": "8aa7a875bb0aa8bc1721228c792940eca672421c1f1a0928fe067a691669e656",
+      "content_signature": "26395e56119da0faea1884806663cac3482a60267ea2e4102d1e9594e23c60b9abfced5af7745156916119aa1ca5b83887be252a4ca47726c12e292dc1f70105",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.542Z"
+    },
+    {
+      "id": "rules-r",
+      "path": "rulesets/rules-r",
+      "rules_path": "rulesets/rules-r/.sigmashake/rules",
+      "title": "rules-r",
+      "description": "R is a programming language and environment for statistical computing and graphics. These rules govern data analysis workflows, package management, and statistical modeling best practices for AI agents.",
+      "technologies": [
+        "r"
+      ],
+      "rule_count": 2,
+      "content_hash": "3e19bb96ef7bd278c871468b379d88f0c68d458f19000692837aac43fb5e1de1",
+      "content_signature": "e56b51c30d787a6e7efd1a785a935b4bbce1770a759ef01916b18ca24e3ad994052435ec75036d97c7b66c2193f5e695dcfd0c1c2367646d5ffb07c7fdfc6f04",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.516Z"
+    },
+    {
+      "id": "rules-radix-ui",
+      "path": "rulesets/rules-radix-ui",
+      "rules_path": "rulesets/rules-radix-ui/.sigmashake/rules",
+      "title": "rules-radix-ui",
+      "description": "Radix UI is an open-source library of unstyled, accessible UI primitives for building design systems. These rules govern accessible component implementation and integration patterns for AI-assisted frontend development.",
+      "technologies": [
+        "radix-ui"
+      ],
+      "rule_count": 2,
+      "content_hash": "06395b6c31f8d8f1c823356ac225d2a6e20617aea91b0b3ea90c4756f04434ad",
+      "content_signature": "172b46ad7ea500b2299b973ef79647de44eb9e347da22edc535aa38c9b3dbe5bc504d25e1fddbde92a2f8a83fef41d0119573e8617db1bd630a54b083f92770c",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.024Z"
+    },
+    {
+      "id": "rules-react",
+      "path": "rulesets/rules-react",
+      "rules_path": "rulesets/rules-react/.sigmashake/rules",
+      "title": "rules-react",
+      "description": "React is a JavaScript library for building user interfaces based on components. These rules govern hook usage, state management, and component lifecycle best practices for AI agents.",
+      "technologies": [
+        "react"
+      ],
+      "rule_count": 19,
+      "content_hash": "2f2809266710888c6b6e8dded594ac0552f8b421f5dbb57ba943715769885c55",
+      "content_signature": "0183bd5de648c18703e79e0f395b942becdde728f7df72bc5c5a46bc7023780c7db0a014db32091a8e7744fb21d4bfafd6b45f378777d8398cdf97be3a412a0b",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.079Z"
+    },
+    {
+      "id": "rules-react-native",
+      "path": "rulesets/rules-react-native",
+      "rules_path": "rulesets/rules-react-native/.sigmashake/rules",
+      "title": "rules-react-native",
+      "description": "React Native is a framework for building native mobile applications using React. These rules govern mobile-specific patterns, bridge interactions, and cross-platform UI development for AI-assisted mobile engineering.",
+      "technologies": [
+        "react-native"
+      ],
+      "rule_count": 2,
+      "content_hash": "ce17ad9708e67f826279cd52d1ff70663ff4ada4ff6147c68ba1328b94db100d",
+      "content_signature": "25082f88d55a9da8f00e65708c52a1706e7b6fb0044833ba5e0ce847501169f6a707aed667bdc234345532d359af52eb76fe62fa6aafd87c3e72ffdf0f5bad0a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.520Z"
+    },
+    {
+      "id": "rules-redis",
+      "path": "rulesets/rules-redis",
+      "rules_path": "rulesets/rules-redis/.sigmashake/rules",
+      "title": "rules-redis",
+      "description": "Redis is an in-memory data structure store used as a database, cache, and message broker. These rules govern efficient data modeling, command usage, and performance tuning for AI agents interacting with Redis.",
+      "technologies": [
+        "redis"
+      ],
+      "rule_count": 2,
+      "content_hash": "99c07bd8e396835b770c7c8bfbdcd9263b316e26af856ed069c85a26d615ba24",
+      "content_signature": "a53765792271b191ee93ca913b5f91fc9cc251c67eae916687267a293f90760dbd9abefa97e73bbf061d771f0fd8bfc70a719c635d6cb6797dbee520f0ceb703",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.011Z"
+    },
+    {
+      "id": "rules-relay",
+      "path": "rulesets/rules-relay",
+      "rules_path": "rulesets/rules-relay/.sigmashake/rules",
+      "title": "rules-relay",
+      "description": "Relay is a production-ready GraphQL client for React designed for performance and scalability. These rules govern fragment-driven development and efficient data fetching patterns for AI-assisted Relay integration.",
+      "technologies": [
+        "relay"
+      ],
+      "rule_count": 2,
+      "content_hash": "4ca114a9408cc1563c2fcac74b1b0080aa9f2b835d8bd7a2b6e120a37f8683c3",
+      "content_signature": "d598f8e8fa1244aa622a6a1e2f4e300ae5cb37a7ec11b78c9e27f71450f969810a7bdf992fdf0ffb8688e5168af1245891bbb62bafa87b1fa6bbc58a7d168d01",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.015Z"
+    },
+    {
+      "id": "rules-remix",
+      "path": "rulesets/rules-remix",
+      "rules_path": "rulesets/rules-remix/.sigmashake/rules",
+      "title": "rules-remix",
+      "description": "Remix is a full-stack web framework focused on Web Standards and modern user experiences. These rules govern loader/action patterns, routing, and progressive enhancement best practices for AI agents.",
+      "technologies": [
+        "remix"
+      ],
+      "rule_count": 2,
+      "content_hash": "3ac77d175a489fdbbd8c4a422a9c04573abb0e5bc6cc15b62d71d955f4fb24d7",
+      "content_signature": "e538a88a927dd94c45325cd62eca59cbdc0ff5f5ffd60829a2d64a1079d05c7f1474aebd01d0d72640bb988fdc93f23ab68e17457e546f9de1a0073d8cdd5a0f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.016Z"
+    },
+    {
+      "id": "rules-rollup",
+      "path": "rulesets/rules-rollup",
+      "rules_path": "rulesets/rules-rollup/.sigmashake/rules",
+      "title": "rules-rollup",
+      "description": "Rollup is a module bundler for JavaScript that compiles small pieces of code into something larger and more complex. These rules govern plugin configuration and efficient bundling strategies for AI-assisted build processes.",
+      "technologies": [
+        "rollup"
+      ],
+      "rule_count": 2,
+      "content_hash": "8719d9b265c84c8d0b82cc3ffb5f9ed19e4b0a9ef339567695055b3245ecd0b1",
+      "content_signature": "43899e77d935a8def8215b88adb413ee032db50a32138c9fd75473e3a8cfe5cca52d19d6d11a16585e2e6fee986a326e2b4761bf50a55b878fb8195203d26901",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.034Z"
+    },
+    {
+      "id": "rules-rspack",
+      "path": "rulesets/rules-rspack",
+      "rules_path": "rulesets/rules-rspack/.sigmashake/rules",
+      "title": "rules-rspack",
+      "description": "Rspack is a high-performance JavaScript bundler written in Rust, compatible with the webpack ecosystem. These rules govern build optimizations and migration patterns for AI-assisted RSPack configuration.",
+      "technologies": [
+        "rspack"
+      ],
+      "rule_count": 2,
+      "content_hash": "63ff9cda86436fb2e2ddf2e4982ed1b18a8e796c2b44995ca3c1471394e564c1",
+      "content_signature": "d8c44affbe4bdc0cf20d4182586f88908facc298512544c4fbba4bf49f4fe2d23aa92479727f8ab8e0b0fb40be7b93cd5d7775732b773b1a66990ba7aeef6e08",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.013Z"
+    },
+    {
+      "id": "rules-ruby",
+      "path": "rulesets/rules-ruby",
+      "rules_path": "rulesets/rules-ruby/.sigmashake/rules",
+      "title": "rules-ruby",
+      "description": "Ruby is a dynamic, open-source programming language with a focus on simplicity and productivity. These rules govern idiomatic Ruby patterns and Rails integration best practices for AI agents.",
+      "technologies": [
+        "ruby"
+      ],
+      "rule_count": 5,
+      "content_hash": "d11279e9fdc0c1965eaadcfe8a3f794c7279fe3fb66fcd6349ef54df83d1060c",
+      "content_signature": "2a0c5831affb2477af4b66c944fa272ad0bfee945d6b6865ef17e89ee493089ee8ad7b744047559eb9635bd0666a3aeea41bdc2572e809bb2b008338f0638e07",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-04T05:38:59.448Z"
+    },
+    {
+      "id": "rules-rust",
+      "path": "rulesets/rules-rust",
+      "rules_path": "rulesets/rules-rust/.sigmashake/rules",
+      "title": "rules-rust",
+      "description": "Rust is a systems programming language focused on safety, speed, and concurrency. These rules govern memory management, ownership patterns, and idiomatic Rust development for AI agents — including filesystem-safety lessons learned from the Canonical/Zellic audit of rust-coreutils (CVE-2026-35338..35381).",
+      "technologies": [
+        "rust"
+      ],
+      "rule_count": 30,
+      "content_hash": "8451c15497794961a5aaf2d4fb1a9be88c772533919643712ada1f7d4edfdca7",
+      "content_signature": "92dab5f4ce27755b019d87dbf9041b3823281e1cd0abe20ccf5bf40f83b131760b47a27d8cb96bdda98ad03bbb0079f3a584806ae9a475e2b89c6202f58bda07",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-29T06:56:13.006Z"
+    },
+    {
+      "id": "rules-saltstack",
+      "path": "rulesets/rules-saltstack",
+      "rules_path": "rulesets/rules-saltstack/.sigmashake/rules",
+      "title": "rules-saltstack",
+      "description": "SaltStack is an IT automation and configuration management tool. These rules govern state management, orchestration, and infrastructure-as-code patterns for AI-assisted system administration.",
+      "technologies": [
+        "saltstack"
+      ],
+      "rule_count": 2,
+      "content_hash": "3b18c7d1c26b8674e6d9e5033c7c5ee46aab15fbe3fd83a473567b6c1c7c8089",
+      "content_signature": "750dd0533d96ae01f5556a06ed7eb18472d86277478053895040033e6793ccca2710dff6eb479df486396a117757e93dc5308a7b87c38d74a1f7b8156ee0880f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.547Z"
+    },
+    {
+      "id": "rules-scala",
+      "path": "rulesets/rules-scala",
+      "rules_path": "rulesets/rules-scala/.sigmashake/rules",
+      "title": "rules-scala",
+      "description": "Scala is a high-level language that combines object-oriented and functional programming. These rules govern type-safe development and functional programming patterns for AI-assisted Scala engineering.",
+      "technologies": [
+        "scala"
+      ],
+      "rule_count": 6,
+      "content_hash": "ffc0a7bc2b4ac52fbd92a79c2997dd5921943a74a7d4dd2ce7f8990ce1979563",
+      "content_signature": "8114b2339e8b425dab6c2ca76762a3c5847f7ce923a732008b4e7f3160eb833319b41e34aa20397dce62b7a4de9c392e369686c20f255abc9fa968a0ef177e07",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-05T23:05:58.233Z"
+    },
+    {
+      "id": "rules-scikit-learn",
+      "path": "rulesets/rules-scikit-learn",
+      "rules_path": "rulesets/rules-scikit-learn/.sigmashake/rules",
+      "title": "rules-scikit-learn",
+      "description": "scikit-learn is a Python library for machine learning providing simple and efficient tools for data analysis. These rules govern model selection, feature engineering, and pipeline construction for AI-assisted machine learning.",
+      "technologies": [
+        "scikit-learn"
+      ],
+      "rule_count": 2,
+      "content_hash": "9598fd173515a47cec23de46958e22c17683c7a600a0403a6b32a4e531ac6413",
+      "content_signature": "ca5fcedd2875465008d7310ccb01adac6a6412b5ad31375529dc3353a02f916f2a45ffe582145b42e49f2a61918afd587763f4cc37044a25d4dfbada4887d80f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.551Z"
+    },
+    {
+      "id": "rules-scipy",
+      "path": "rulesets/rules-scipy",
+      "rules_path": "rulesets/rules-scipy/.sigmashake/rules",
+      "title": "rules-scipy",
+      "description": "SciPy is a Python-based ecosystem of open-source software for mathematics, science, and engineering. These rules govern numerical integration, optimization, and scientific computing best practices for AI agents.",
+      "technologies": [
+        "scipy"
+      ],
+      "rule_count": 2,
+      "content_hash": "2a22545688618326c73ec8d5635ed1a67b4503ac804b97d4b332a471c81a38cb",
+      "content_signature": "05da43b4ee08661d63403dc7f5a916cbe8bb6ede3f650ff9d6ada81fe538097c1286f77e91a4bd20ce5af85e72c0051a86a9350486a4029898196f759487aa0f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.018Z"
+    },
+    {
+      "id": "rules-seaborn",
+      "path": "rulesets/rules-seaborn",
+      "rules_path": "rulesets/rules-seaborn/.sigmashake/rules",
+      "title": "rules-seaborn",
+      "description": "Seaborn is a Python data visualization library based on matplotlib that provides a high-level interface for drawing attractive statistical graphics. These rules govern idiomatic visualization patterns and statistical plotting for AI agents.",
+      "technologies": [
+        "seaborn"
+      ],
+      "rule_count": 2,
+      "content_hash": "2c9dc2d6f18e7d77eabf1d193e2e23c4bd57f55be5197a44e69eca8ff84ff0a7",
+      "content_signature": "2251efd3562582dfb0b697d2fc7fd95fc31cab57ed410e84837b0895505dea8605cde81ce5d32208c94ba5c02d06048ba623832ecf43cfdb1e2c86bee03e3c0a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.033Z"
+    },
+    {
+      "id": "rules-secrets",
+      "path": "rulesets/rules-secrets",
+      "rules_path": "rulesets/rules-secrets/.sigmashake/rules",
+      "title": "rules-secrets",
+      "description": "These rules govern the management, protection, and handling of sensitive information such as API keys and credentials. They ensure AI agents maintain high security standards and prevent accidental exposure of secrets.",
+      "technologies": [
+        "fs"
+      ],
+      "rule_count": 21,
+      "content_hash": "1e1cd196067851bfc5e47649846f05bd8b276b59d6e15c600e1db86aa77eddfc",
+      "content_signature": "92a4a62950aaccbd3850e47aa92db9f2420f17a10f5faf7a10e4adb6ce299372f992c77a6ef1a46cfc88a80cac27dc37c98d51bba6addffd153766f7f3832904",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.079Z"
+    },
+    {
+      "id": "rules-security",
+      "path": "rulesets/rules-security",
+      "rules_path": "rulesets/rules-security/.sigmashake/rules",
+      "title": "rules-security",
+      "description": "These rules govern general security best practices, vulnerability prevention, and secure coding standards. They provide a framework for AI agents to develop and maintain secure software systems.",
+      "technologies": [
+        "security"
+      ],
+      "rule_count": 8,
+      "content_hash": "01007c2388f41c53887c4f6608fe1873aec1eae4d9c51559133c47fa34f5eb6e",
+      "content_signature": "7574fcb08a8d7b3e971c6493f5a5c4a59db9ce831bbe729e8129f30b3e25e87edaf0e915ea8b700fce41d7726185e625cbd754e3b8fb2509d682f5adafce9e04",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-05T23:05:58.233Z"
+    },
+    {
+      "id": "rules-sequelize",
+      "path": "rulesets/rules-sequelize",
+      "rules_path": "rulesets/rules-sequelize/.sigmashake/rules",
+      "title": "rules-sequelize",
+      "description": "Sequelize is a promise-based Node.js ORM for various SQL databases. These rules govern data modeling, associations, and query optimization for AI-assisted database interactions.",
+      "technologies": [
+        "sequelize"
+      ],
+      "rule_count": 2,
+      "content_hash": "e6e1a22aabdc701aea3de688c7eebde0f4e0426912a193d420774fabed4b04d0",
+      "content_signature": "6d3737abd907e9cb4ed5d0ac9a1edff32ff62aea1612b8993ddce4cfb90936606e5fe11ec040ad260971af608d2ceb99ab2269d96cba264537effc124fd0980c",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.020Z"
+    },
+    {
+      "id": "rules-solidity",
+      "path": "rulesets/rules-solidity",
+      "rules_path": "rulesets/rules-solidity/.sigmashake/rules",
+      "title": "rules-solidity",
+      "description": "Solidity is an object-oriented, high-level language for implementing smart contracts on blockchain platforms. These rules govern security patterns and idiomatic contract development for AI-assisted blockchain engineering.",
+      "technologies": [
+        "solidity"
+      ],
+      "rule_count": 7,
+      "content_hash": "6562e01079b3ca25924d98314c7e37e223ea5b57e86eb3d95c2b45967e3b0435",
+      "content_signature": "01e4c94a47ced61490e05a6868061bf12017a4218308d0db4ee31d1ccbd164e3d0db5aa41f3c781dc3ebd8502682b225ec83b80f1c7645beac1cc2445c59ae0e",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-05T23:05:58.234Z"
+    },
+    {
+      "id": "rules-solidjs",
+      "path": "rulesets/rules-solidjs",
+      "rules_path": "rulesets/rules-solidjs/.sigmashake/rules",
+      "title": "rules-solidjs",
+      "description": "SolidJS is a declarative JavaScript library for building user interfaces with a focus on fine-grained reactivity. These rules govern reactive patterns and efficient component design for AI-assisted SolidJS development.",
+      "technologies": [
+        "solidjs"
+      ],
+      "rule_count": 2,
+      "content_hash": "b30075140ead2bb61186112f8786c6e590bea66cc7f2db1f518a47a3deeb5600",
+      "content_signature": "9d1f3b143d6962a9f8e425b2df50889752426082fc3a074859196e22812c2cc7d97cccff0f4d7d808e75b1875bf720c25033ef229bcf88bf285cab8a500e100a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.533Z"
+    },
+    {
+      "id": "rules-spinnaker",
+      "path": "rulesets/rules-spinnaker",
+      "rules_path": "rulesets/rules-spinnaker/.sigmashake/rules",
+      "title": "rules-spinnaker",
+      "description": "Spinnaker is an open-source, multi-cloud continuous delivery platform. These rules govern pipeline orchestration and deployment strategies for AI-assisted cloud operations.",
+      "technologies": [
+        "spinnaker"
+      ],
+      "rule_count": 2,
+      "content_hash": "4afe117089e4c666307953c2e069dc76be0c7589312909a77558bd962013bf39",
+      "content_signature": "fe23d988084e45580dd623df65bff352c519579667ab325bc1e7193d7c431f315d2e2e2d07492f123b7096488618d7c15b3fd68d04015e76cdb8c7b687fd8b08",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.020Z"
+    },
+    {
+      "id": "rules-splunk",
+      "path": "rulesets/rules-splunk",
+      "rules_path": "rulesets/rules-splunk/.sigmashake/rules",
+      "title": "rules-splunk",
+      "description": "Splunk is a platform for searching, monitoring, and analyzing machine-generated big data. These rules govern query optimization (SPL) and dashboarding best practices for AI-assisted data analysis.",
+      "technologies": [
+        "splunk"
+      ],
+      "rule_count": 2,
+      "content_hash": "483b41cc2a5ba8243e06f9db40add47011d955cc13a7e0cf750ad1745aa08570",
+      "content_signature": "869f2f3daed627331bc1cdcdd69b15067b49b6c792f973b3b51b92f8572abd00186e01b7390cee4d378df05def5651d1f7782f089ba08f0196284f00d25c0f05",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.039Z"
+    },
+    {
+      "id": "rules-sql",
+      "path": "rulesets/rules-sql",
+      "rules_path": "rulesets/rules-sql/.sigmashake/rules",
+      "title": "rules-sql",
+      "description": "SQL is the standard language for relational database management. These rules govern query design, indexing strategies, and relational data modeling for AI-assisted database management.",
+      "technologies": [
+        "sql"
+      ],
+      "rule_count": 5,
+      "content_hash": "8f98fae03dff35a13b2ec10470fe222665f0d0cd64ea6be0b8d32b434ed19aa8",
+      "content_signature": "c980469e22c50935f383735e8ec2ea127c432bafdb22c63d25f09d1a2c7a00413b01de95c9ea6793560c199c4842851704476ee55fdf3baa85072be04c12ed0c",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-04T05:35:01.018Z"
+    },
+    {
+      "id": "rules-sqlite",
+      "path": "rulesets/rules-sqlite",
+      "rules_path": "rulesets/rules-sqlite/.sigmashake/rules",
+      "title": "rules-sqlite",
+      "description": "SQLite is a lightweight, disk-based database engine. These rules govern efficient embedded database usage and SQL optimization for AI agents.",
+      "technologies": [
+        "sqlite"
+      ],
+      "rule_count": 18,
+      "content_hash": "840b5b5a4cb7b68a120b6ba1775ec2dd4035a8a082e49069c68ef484c4977e65",
+      "content_signature": "a363cbc188105697c0739d0e23005965146b70301dd21bf6af0165e20409c49fa2514fd151fd0be2972a42d532b7ee83a3285b50da965361d52deaf339562407",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.080Z"
+    },
+    {
+      "id": "rules-storybook",
+      "path": "rulesets/rules-storybook",
+      "rules_path": "rulesets/rules-storybook/.sigmashake/rules",
+      "title": "rules-storybook",
+      "description": "Storybook is a frontend workshop for building UI components in isolation. These rules govern component documentation and testing patterns for AI-assisted UI development.",
+      "technologies": [
+        "storybook"
+      ],
+      "rule_count": 2,
+      "content_hash": "a1d60958ef1efc63a6598ea1ecbb20b277ad89f8623ea28588a29da7c6d4301c",
+      "content_signature": "ac6b0c365d3e1d553ee03d9b0ece1c3d631f17c0cb5dfdfbba98ef8d98a81bf6a6691cb5ddde38cb1e831ac72072a2643268d1c99ec4a773e6457b5ce7a4210d",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.013Z"
+    },
+    {
+      "id": "rules-supabase",
+      "path": "rulesets/rules-supabase",
+      "rules_path": "rulesets/rules-supabase/.sigmashake/rules",
+      "title": "rules-supabase",
+      "description": "Supabase is an open-source Firebase alternative providing a suite of backend tools. These rules govern database configuration, authentication, and real-time integration for AI-assisted application development.",
+      "technologies": [
+        "supabase"
+      ],
+      "rule_count": 2,
+      "content_hash": "d00fc74211e2bc73fc8807af585bf986f10f13db9c2eb251fa91706054891976",
+      "content_signature": "d5ebae380b91b806f81e954d49ba6d1ef2b2133daa9df8428f85011fdb7ae1921bc1a2cc5f46de019cbfc2153abd1df94067bb777840def8915e14c6c9a87902",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.036Z"
+    },
+    {
+      "id": "rules-svelte",
+      "path": "rulesets/rules-svelte",
+      "rules_path": "rulesets/rules-svelte/.sigmashake/rules",
+      "title": "rules-svelte",
+      "description": "Svelte is a framework that compiles UI components into highly efficient imperative code. These rules govern store management and idiomatic Svelte patterns for AI-assisted development.",
+      "technologies": [
+        "svelte"
+      ],
+      "rule_count": 2,
+      "content_hash": "08993e2810a5a4376f37cfc045eacfb9f8b54786484eb4c6f56d578376ccb434",
+      "content_signature": "e618ffea32a818d20544d1fb16430a1a4e61e32f9652064d7353cd898d32d34b23dc00d6da362936c97febb2106b50dd72a689bd683b36016926945208dc490a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.539Z"
+    },
+    {
+      "id": "rules-swift",
+      "path": "rulesets/rules-swift",
+      "rules_path": "rulesets/rules-swift/.sigmashake/rules",
+      "title": "rules-swift",
+      "description": "Swift is a powerful and intuitive programming language for Apple platforms. These rules govern idiomatic Swift patterns and app architecture best practices for AI agents.",
+      "technologies": [
+        "swift"
+      ],
+      "rule_count": 7,
+      "content_hash": "5f1b95e3b5e7c3da42d964558a50d692cd93c49fc59792bc111c2d458047227f",
+      "content_signature": "b242b03b80f1460ae4e21769e4baa709bcde25e03304439cd58cdc0151371f100299628dd00fd3dc8029966bec9257c89bed8ec18c9d1ddeae566ce892f74a0b",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-05T23:05:58.234Z"
+    },
+    {
+      "id": "rules-tailwindcss",
+      "path": "rulesets/rules-tailwindcss",
+      "rules_path": "rulesets/rules-tailwindcss/.sigmashake/rules",
+      "title": "rules-tailwindcss",
+      "description": "Tailwind CSS is a utility-first CSS framework for rapid UI development. These rules govern dynamic class construction safety, configuration best practices, and purging optimization for AI agents.",
+      "technologies": [
+        "tailwindcss"
+      ],
+      "rule_count": 17,
+      "content_hash": "e48fb43459c4b61ee7a847287d087df0eb0a2d0b26e46b000aa702a1e3f0ac69",
+      "content_signature": "37bd19bb9c5cbfb529c26aed0006befa3500f4754e15daa36a3f6f67be8e43f0ea69cfb0cb023a879d2a936dd8b0aa084e7dd2132be96e4c61ba92dca0423605",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.080Z"
+    },
+    {
+      "id": "rules-tauri",
+      "path": "rulesets/rules-tauri",
+      "rules_path": "rulesets/rules-tauri/.sigmashake/rules",
+      "title": "rules-tauri",
+      "description": "Tauri is a framework for building small, fast, and secure desktop applications with web technologies and Rust. These rules govern security isolation, IPC communication, and system capability management for AI agents.",
+      "technologies": [
+        "tauri"
+      ],
+      "rule_count": 2,
+      "content_hash": "bedde63ba9e73c36825c1ea4368f28f7c755764702e3d0b490c4d21dfe30598c",
+      "content_signature": "0005584ebfc856a5b7b8d7e519fa85fd666c7fdaab8ede39d6a6c070a4769a9ee57403db45d6670ae482e843382c05331bee1506a71a2864f93847705b14d206",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.552Z"
+    },
+    {
+      "id": "rules-tekton",
+      "path": "rulesets/rules-tekton",
+      "rules_path": "rulesets/rules-tekton/.sigmashake/rules",
+      "title": "rules-tekton",
+      "description": "Tekton is a powerful and flexible open-source framework for creating CI/CD systems on Kubernetes. These rules govern pipeline security, task definition safety, and resource management for AI agents.",
+      "technologies": [
+        "tekton"
+      ],
+      "rule_count": 2,
+      "content_hash": "4f5f4efa7685795d634ece5e1fa189b1a173d6b1fcdb1e553aba9193a90a1e80",
+      "content_signature": "ab08ae53cac61f0f2e13ded97d90f88580b0618041070226edca053dec16cc4eeca696a5066ce6645d310336241fd602255db8f297edd51633f54144372cea05",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.532Z"
+    },
+    {
+      "id": "rules-tensorflow",
+      "path": "rulesets/rules-tensorflow",
+      "rules_path": "rulesets/rules-tensorflow/.sigmashake/rules",
+      "title": "rules-tensorflow",
+      "description": "TensorFlow is a comprehensive open-source platform for machine learning and artificial intelligence. These rules govern model loading safety, computational resource management, and API best practices for AI agents.",
+      "technologies": [
+        "tensorflow"
+      ],
+      "rule_count": 2,
+      "content_hash": "dbae7314ddd615bb65024def34707ec123cd1330e087c27db5e5467c60c98cc2",
+      "content_signature": "baf994ff09da7e8f8bb544e7d9220b4c989b7e4c10475fe070b254474e4cf57e10dd2a46294d93c08b60130fc43f4082cb76348509aedcdaa93b604a3421da04",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.538Z"
+    },
+    {
+      "id": "rules-terraform",
+      "path": "rulesets/rules-terraform",
+      "rules_path": "rulesets/rules-terraform/.sigmashake/rules",
+      "title": "rules-terraform",
+      "description": "Terraform is an infrastructure as code tool for building, changing, and versioning infrastructure safely and efficiently. These rules govern security configurations, credential safety, and infrastructure best practices for AI agents.",
+      "technologies": [
+        "terraform",
+        "tf"
+      ],
+      "rule_count": 14,
+      "content_hash": "d21bdd066f43b3ed951738b51213b45f745172c376b4b6cd905b1524e129f6e1",
+      "content_signature": "3d8fcb96c33aec1e0162c852b3d91072dc06afb6d5fe1ebcd267ff1c12da686c62e91ebe45b69fc62060447dc1fb55339125b0ec28429565fe4a9d4f0181980a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-08T03:22:55.906Z"
+    },
+    {
+      "id": "rules-testing",
+      "path": "rulesets/rules-testing",
+      "rules_path": "rulesets/rules-testing/.sigmashake/rules",
+      "title": "rules-testing",
+      "description": "A collection of general testing rules applicable across various frameworks and languages. These rules govern test suite reliability, blocking focused tests, and ensuring assertion integrity for AI agents.",
+      "technologies": [
+        "test"
+      ],
+      "rule_count": 5,
+      "content_hash": "830b944eac617d5c622aa359d378bd0b068e5a35bbf217b65d026fe14b8b3e5f",
+      "content_signature": "33f445c73fdc7043ea82d5df916e340b14c83fadae84642ae0256be77534a70f9ad425889bb05309e0c7e15cffbe45f8978d4d572f0c7b1e4c5a5a4088d1ba08",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-04T19:23:24.622Z"
+    },
+    {
+      "id": "rules-transformers",
+      "path": "rulesets/rules-transformers",
+      "rules_path": "rulesets/rules-transformers/.sigmashake/rules",
+      "title": "rules-transformers",
+      "description": "Transformers provides state-of-the-art machine learning models for natural language processing, computer vision, and audio. These rules govern model loading safety, tokenizer usage, and resource management for AI agents.",
+      "technologies": [
+        "transformers"
+      ],
+      "rule_count": 2,
+      "content_hash": "d8f2c466185976dda463f2070a54c0e86237c057d40daf4e4d9cd1549d99e3d4",
+      "content_signature": "d8419142aea0c1315eed0b6481b3ec2a430de88262f4abfcf3b94ddf6624b8b43d97372f50a493364885491fde9aa0b35c2fd448cd7ccff7a4d074614291b803",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.543Z"
+    },
+    {
+      "id": "rules-travisci",
+      "path": "rulesets/rules-travisci",
+      "rules_path": "rulesets/rules-travisci/.sigmashake/rules",
+      "title": "rules-travisci",
+      "description": "Travis CI is a continuous integration service used to build and test software projects hosted on GitHub and Bitbucket. These rules govern build configuration security and secret handling for AI agents.",
+      "technologies": [
+        "travisci"
+      ],
+      "rule_count": 2,
+      "content_hash": "5a2729dc8f86722e27e05d5f6151db154cf43e79d1b83b92fc7441ea695ec482",
+      "content_signature": "94f8db9bb8ba1450a428863ce5d526b796decfee1c46a944b942ec351a77a1c3423a5925370c9e85839b250e791ddf650b3a1cd7cb9404d9ad99a804f148290f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.017Z"
+    },
+    {
+      "id": "rules-trpc",
+      "path": "rulesets/rules-trpc",
+      "rules_path": "rulesets/rules-trpc/.sigmashake/rules",
+      "title": "rules-trpc",
+      "description": "tRPC is a framework for building end-to-end typesafe APIs without code generation. These rules govern procedure definition safety, input validation, and API best practices for AI agents.",
+      "technologies": [
+        "trpc"
+      ],
+      "rule_count": 2,
+      "content_hash": "27a3e7c0ab02e31f00be0a4013b4245499c25b9a3ae64c81e9819e4c10ce0bd9",
+      "content_signature": "81e7119b642bb033a11e1bd4214bf042f9bebf02c66700fc5884ea7ac4ad76a943642047be965eb2f75beb18feaabdfe45383e577eab8bb120664af4f45f730c",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.019Z"
+    },
+    {
+      "id": "rules-tsup",
+      "path": "rulesets/rules-tsup",
+      "rules_path": "rulesets/rules-tsup/.sigmashake/rules",
+      "title": "rules-tsup",
+      "description": "tsup is a zero-config TypeScript bundler powered by esbuild. These rules govern build configuration safety and bundle optimization best practices for AI agents.",
+      "technologies": [
+        "tsup"
+      ],
+      "rule_count": 2,
+      "content_hash": "c6eb7a8dc2c1440ba0833f9afdccda16c0f0f4fe20550b429b58c594a2689da6",
+      "content_signature": "d3c69a957b2dbda8a89769405a557afa8abe692e15925aad6c32cf46f36968104fdb0127ca27d28d8092ce66835455e5068611874dfbe507164162a1f1c79f0a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.026Z"
+    },
+    {
+      "id": "rules-typeorm",
+      "path": "rulesets/rules-typeorm",
+      "rules_path": "rulesets/rules-typeorm/.sigmashake/rules",
+      "title": "rules-typeorm",
+      "description": "TypeORM is an ORM that can run in NodeJS, Browser, and other platforms, supporting TypeScript and JavaScript. These rules govern query safety, migration integrity, and relationship best practices for AI agents.",
+      "technologies": [
+        "typeorm"
+      ],
+      "rule_count": 2,
+      "content_hash": "f68b03973f3c8dfd9d6548deac9c2361ec4432a29679fe412afc8195cbcb18d9",
+      "content_signature": "a4d718cf8d715c331d684f99319c7cf6257151c063daa9d6aaf5c1f3e7e67aa0c61e2552884a4037328eb213a4723e2edea9b3d97074285d4ec55b7a1e83a00d",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.018Z"
+    },
+    {
+      "id": "rules-typescript",
+      "path": "rulesets/rules-typescript",
+      "rules_path": "rulesets/rules-typescript/.sigmashake/rules",
+      "title": "rules-typescript",
+      "description": "TypeScript is a strongly typed programming language that builds on JavaScript. These rules govern type safety, vulnerability prevention, and idiomatic coding patterns for AI agents.",
+      "technologies": [
+        "ts"
+      ],
+      "rule_count": 32,
+      "content_hash": "04f09737c66e3bca9211a21646d5cb3e9b832630157065458e045eecdaec4af6",
+      "content_signature": "d3052d6791449b1882f7c8117c5c22d3bbc4b6769f792854fa7d81592abd6a8e3a3f66c0bd1856af7d9f81b7ac01541c8d517f3482ef23d3e6e4b07f2729bb07",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.080Z"
+    },
+    {
+      "id": "rules-ubuntu",
+      "path": "rulesets/rules-ubuntu",
+      "rules_path": "rulesets/rules-ubuntu/.sigmashake/rules",
+      "title": "rules-ubuntu",
+      "description": "Ubuntu is a popular Linux distribution based on Debian. These rules govern system security, administrative safety, and configuration best practices for AI agents.",
+      "technologies": [
+        "ubuntu"
+      ],
+      "rule_count": 24,
+      "content_hash": "8f6ee8c94f31b4cc2aa415a4d29a8be9bc7c93777d2a97f3764d3b1c337fd1ac",
+      "content_signature": "ba2e70468d67bf3e49a68172b614327bf7a44c2cfaf5cd2480e59c3a3ed8ca4d44699ad2c09d6a88428d8786db4b9ad2126abb31f83470e0bda7d124e081b00e",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.081Z"
+    },
+    {
+      "id": "rules-vagrant",
+      "path": "rulesets/rules-vagrant",
+      "rules_path": "rulesets/rules-vagrant/.sigmashake/rules",
+      "title": "rules-vagrant",
+      "description": "Vagrant is a tool for building and managing virtual machine environments in a single workflow. These rules govern VM configuration safety and provisioning best practices for AI agents.",
+      "technologies": [
+        "vagrant"
+      ],
+      "rule_count": 2,
+      "content_hash": "b4e64c8dcdf406cb8883b969592c3a497f0761bc5fb92633f657c0b5372bf418",
+      "content_signature": "865058cd68d61abb899f312f5552f7f89e00b8a62b478bbe804124a5e4340d40a186e47b6d4dc73304c44479c735dad55c79193f8c329d8cb949d2209161dc00",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.547Z"
+    },
+    {
+      "id": "rules-vault",
+      "path": "rulesets/rules-vault",
+      "rules_path": "rulesets/rules-vault/.sigmashake/rules",
+      "title": "rules-vault",
+      "description": "HashiCorp Vault is a tool for secrets management, encryption as a service, and privileged access management. These rules govern secret access, policy definitions, and token safety for AI agents.",
+      "technologies": [
+        "vault"
+      ],
+      "rule_count": 2,
+      "content_hash": "39cf3f176c6794a6d397d886f498236568421f9320f4652882f05b72798351db",
+      "content_signature": "f07374a45c3b7504f77b256daf56956186e0c585fc238205ddf8385d1f2b0e664348dc348d756b627a380284466630f33be2ec42e69456bc47d3862666a0eb02",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.539Z"
+    },
+    {
+      "id": "rules-vertexai",
+      "path": "rulesets/rules-vertexai",
+      "rules_path": "rulesets/rules-vertexai/.sigmashake/rules",
+      "title": "rules-vertexai",
+      "description": "Vertex AI is Google Cloud's unified machine learning platform. These rules govern API usage safety, resource provisioning, and model deployment best practices for AI agents.",
+      "technologies": [
+        "vertexai"
+      ],
+      "rule_count": 2,
+      "content_hash": "0e99d41a1331eea3bfc84d6b0b20e7b25a5ef88376e09c098a5e593ab613b268",
+      "content_signature": "4ecf8712a5a93d23b79ba21e01bb696773492a6633217639310013560c84558e2dd5693f54cd809916239a7148d2f83507f95d80b6e0300287aa91819735d600",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.521Z"
+    },
+    {
+      "id": "rules-vite",
+      "path": "rulesets/rules-vite",
+      "rules_path": "rulesets/rules-vite/.sigmashake/rules",
+      "title": "rules-vite",
+      "description": "Vite is a frontend build tool that provides a fast and modern development experience. These rules govern dev server security and build optimization best practices for AI agents.",
+      "technologies": [
+        "vite"
+      ],
+      "rule_count": 2,
+      "content_hash": "1c4dda94762efbc23fd6bdad156840fe2fbfe5398e6bbdf78876bf3745bb16e9",
+      "content_signature": "8c9647ddd543bd59d8f9991b12916f40eddec993443d5636cbb88a752f2878343988801ca4ff439de0006f802816d6578352c1893b3902477215d7b3dfae970e",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.538Z"
+    },
+    {
+      "id": "rules-vitest",
+      "path": "rulesets/rules-vitest",
+      "rules_path": "rulesets/rules-vitest/.sigmashake/rules",
+      "title": "rules-vitest",
+      "description": "Vitest is a Vite-native unit test framework. These rules govern test suite reliability, hook usage, and best practices for AI agents.",
+      "technologies": [
+        "vitest"
+      ],
+      "rule_count": 2,
+      "content_hash": "7b850a5a95f5f820c51e4bc87bc8ebf523f143d1cf92bd98d00634646cc8d1a7",
+      "content_signature": "8ca229c35313bc55e7bfaf100aa76e88a03e58d1f00636a7d87880cad7812fa078fd2fd9f5127ee7d273d8c810a4954607c3766fb86903e69ef1e04b14930302",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.560Z"
+    },
+    {
+      "id": "rules-vlang",
+      "path": "rulesets/rules-vlang",
+      "rules_path": "rulesets/rules-vlang/.sigmashake/rules",
+      "title": "rules-vlang",
+      "description": "V is a statically typed compiled programming language designed for building maintainable software. These rules govern memory safety, syntax idioms, and compiler safety for AI agents.",
+      "technologies": [
+        "vlang"
+      ],
+      "rule_count": 2,
+      "content_hash": "cf4598688dd40d72e81c3d0fa239122b11ecbc5db649d407c411366e9324c209",
+      "content_signature": "dacc43f3e233a5e1777b0f256e7a3e3957a6f5c35d5f1507d7005c4f97f83efc15809432321d5b36cd7b76c98c24be3d625b15da7e7b7f55afca6c5e29c1420e",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.025Z"
+    },
+    {
+      "id": "rules-vue",
+      "path": "rulesets/rules-vue",
+      "rules_path": "rulesets/rules-vue/.sigmashake/rules",
+      "title": "rules-vue",
+      "description": "Vue.js is a progressive JavaScript framework for building user interfaces. These rules govern component structure, reactivity safety, and security best practices for AI agents.",
+      "technologies": [
+        "vue"
+      ],
+      "rule_count": 21,
+      "content_hash": "e7836e871f9dc3c2246747e5370a6d7b476ccd4ac6d3d1251e32fa4f03cdab38",
+      "content_signature": "5578395456e30f82d6a2f66bd66b484133ae525a739f38de44bdf919797e2f7f5a1a317184fd7e38852f8838b0a651d0a7c3c3ff41977b80e6e8176eec48970f",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.081Z"
+    },
+    {
+      "id": "rules-waypoint",
+      "path": "rulesets/rules-waypoint",
+      "rules_path": "rulesets/rules-waypoint/.sigmashake/rules",
+      "title": "rules-waypoint",
+      "description": "HashiCorp Waypoint is a tool to build, deploy, and manage applications across any platform. These rules govern deployment configuration safety and application management for AI agents.",
+      "technologies": [
+        "waypoint"
+      ],
+      "rule_count": 2,
+      "content_hash": "ad7af682296d56bfdd5011f0494d7cfda98b15b9e912ea47104e4033c1e8d227",
+      "content_signature": "3ebfd127b8bebe13cd37ffb6de0d2a0ba18e63efa7c62063deb255b5550b195eecb3e1aa402d1e5f954ace9bf0f861195e14b3e054ccbceec09a6650dfb3d70a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.038Z"
+    },
+    {
+      "id": "rules-weaviate",
+      "path": "rulesets/rules-weaviate",
+      "rules_path": "rulesets/rules-weaviate/.sigmashake/rules",
+      "title": "rules-weaviate",
+      "description": "Weaviate is an open-source vector database that allows you to store data objects and vector embeddings. These rules govern schema definitions, query efficiency, and indexing best practices for AI agents.",
+      "technologies": [
+        "weaviate"
+      ],
+      "rule_count": 2,
+      "content_hash": "d3903f4d1bd1be5187da6ebc2446e7539f6370d05c1993fe08008ac2fd20469c",
+      "content_signature": "276f38db96999e7535edc0a04d510f1442fd8d243f3935b282182a6f5448ff108c4e03aafe653eac091a823f6b1fd3dc7f36aac89f9e0093066ae38f68a35c05",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.514Z"
+    },
+    {
+      "id": "rules-webassembly",
+      "path": "rulesets/rules-webassembly",
+      "rules_path": "rulesets/rules-webassembly/.sigmashake/rules",
+      "title": "rules-webassembly",
+      "description": "WebAssembly is a binary instruction format for a stack-based virtual machine. These rules govern module loading safety and security boundary enforcement for AI agents.",
+      "technologies": [
+        "webassembly"
+      ],
+      "rule_count": 2,
+      "content_hash": "243e18f43ee393c641919221c9be7083c936190963cc31865809f28583e53fb7",
+      "content_signature": "a9cac270977e182fbb6ae139a963cf7a6c5b15d9742d582423768500e8d7e750aeb76ceca200aa33534342130c528cc239b538fa859cd1afa42f7a8dab0d920c",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.536Z"
+    },
+    {
+      "id": "rules-webgl",
+      "path": "rulesets/rules-webgl",
+      "rules_path": "rulesets/rules-webgl/.sigmashake/rules",
+      "title": "rules-webgl",
+      "description": "WebGL is a JavaScript API for rendering high-performance interactive 3D and 2D graphics. These rules govern shader safety and resource management for AI agents.",
+      "technologies": [
+        "webgl"
+      ],
+      "rule_count": 2,
+      "content_hash": "6ffcaa46ff1ff3c844f196d14d37f69a53be4807e0b8a90466e1a434c596c5ca",
+      "content_signature": "4a596c80c06b1b56f14b5bf5d8a2e8f043d32ba0163148a36d9b9955e9c8b3c7fa293ada8b4d66f4f4a9468402cfec9600302e7745bbae0ea518dca53315200e",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.021Z"
+    },
+    {
+      "id": "rules-webpack",
+      "path": "rulesets/rules-webpack",
+      "rules_path": "rulesets/rules-webpack/.sigmashake/rules",
+      "title": "rules-webpack",
+      "description": "webpack is a static module bundler for modern JavaScript applications. These rules govern plugin safety, security configurations, and build performance for AI agents.",
+      "technologies": [
+        "webpack"
+      ],
+      "rule_count": 2,
+      "content_hash": "c1d972fa076c212b22db226c0a559d3bb12a1567f46dcebe7f78b7f05a16f111",
+      "content_signature": "fdd2331f7fc0e0f5d53f03072fa263bf78f8a3a07871ee0798a03148b5f663220a84f49aa818f25d73b7897dc6f2b1672174346e9f7ddbcccf421cac2295030c",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T13:48:47.525Z"
+    },
+    {
+      "id": "rules-webrtc",
+      "path": "rulesets/rules-webrtc",
+      "rules_path": "rulesets/rules-webrtc/.sigmashake/rules",
+      "title": "rules-webrtc",
+      "description": "WebRTC is an open-source project that enables real-time communication in web browsers and mobile applications. These rules govern peer connection safety and media handling for AI agents.",
+      "technologies": [
+        "webrtc"
+      ],
+      "rule_count": 2,
+      "content_hash": "a03d114512c7eb674d44a2e99b1d4fed68fb0192a5fe76d16d97c6afd1a49a1d",
+      "content_signature": "2f0f0931482dffc09bd1a3d4a86cfec1dbf5197e7cb68a0087f4cc1ccae71d9c09ad05e05c783c8eca4e88b8dc1a34d437c6f213e773c4237c0b89d33c5c030a",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.034Z"
+    },
+    {
+      "id": "rules-windows",
+      "path": "rulesets/rules-windows",
+      "rules_path": "rulesets/rules-windows/.sigmashake/rules",
+      "title": "rules-windows",
+      "description": "Windows is a major family of operating systems developed by Microsoft. These rules govern system security, administrative safety, and configuration best practices for AI agents.",
+      "technologies": [
+        "windows"
+      ],
+      "rule_count": 23,
+      "content_hash": "464b6dd77c41e0bd1561b331a6ff9e71a960cfc5dcc7853ef959c533c77f0cb5",
+      "content_signature": "37546eff7fb6bf78b8f34ff862f8f5f612b7cdf9456523920a6b8df3d0d0c4752da6196a42aa153513bb0320d12fa5013b97c56b0c3aae0b577628f82afbfb05",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.081Z"
+    },
+    {
+      "id": "rules-windsurf",
+      "path": "rulesets/rules-windsurf",
+      "rules_path": "rulesets/rules-windsurf/.sigmashake/rules",
+      "title": "rules-windsurf",
+      "description": "",
+      "technologies": [
+        "windsurf"
+      ],
+      "rule_count": 3,
+      "content_hash": "be9be77421592d7c0d568cc97197141fefc41b22e83f370d7545029f842465e6",
+      "content_signature": "04f9f92b117db8f16a7775d2f5f0dfcfee56d0060dec2bdfb81f75a2ce2d8222f0656eb90eeadc1cde3e749413f96fc0bbd1c4977b0b493be2702d38d239b701",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-10T00:44:03.774Z"
+    },
+    {
+      "id": "rules-wrangler",
+      "path": "rulesets/rules-wrangler",
+      "rules_path": "rulesets/rules-wrangler/.sigmashake/rules",
+      "title": "rules-wrangler",
+      "description": "Wrangler is Cloudflare's CLI for deploying Workers, managing D1, KV, R2, and Durable Objects. These rules protect AI agents from destructive remote-database operations, secrets leakage in wrangler.toml, missing compatibility dates, public-bucket misconfiguration, and production deploys without environment gates.",
+      "technologies": [
+        "wrangler"
+      ],
+      "rule_count": 30,
+      "content_hash": "39fb979930c4d87f93db32c38bef8315978552ee8f55228d7d2059973a1b1ddf",
+      "content_signature": "cd53ec5416d3f56dafbf19e7ce73b458d3d24a2a2d9319d03d6867f60db143c89b45cb30d0fb90fec079b241f9c8224eebb48ac49a0feec3e14839bf53b5910d",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T06:34:00.409Z"
+    },
+    {
+      "id": "rules-xamarin",
+      "path": "rulesets/rules-xamarin",
+      "rules_path": "rulesets/rules-xamarin/.sigmashake/rules",
+      "title": "rules-xamarin",
+      "description": "Xamarin is an open-source platform for building modern and performant applications for iOS, Android, and Windows with .NET. These rules govern native interop and application security for AI agents.",
+      "technologies": [
+        "xamarin"
+      ],
+      "rule_count": 2,
+      "content_hash": "f3923574d00da68c8368ee66eccb23030e86ec864a450cade706abb557323cbd",
+      "content_signature": "4332d58b707125e064df93fd87ef96346b79f8776c615b82188764baf0fc228e8146a6782b6bfcb362b0799b268678cc33bae549ebdb788afaef21990f6fa903",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.021Z"
+    },
+    {
+      "id": "rules-xgboost",
+      "path": "rulesets/rules-xgboost",
+      "rules_path": "rulesets/rules-xgboost/.sigmashake/rules",
+      "title": "rules-xgboost",
+      "description": "XGBoost is an optimized distributed gradient boosting library designed to be highly efficient, flexible and portable. These rules govern model parameter safety and data handling for AI agents.",
+      "technologies": [
+        "xgboost"
+      ],
+      "rule_count": 2,
+      "content_hash": "db3e89dfb85d8da0cc6b8382f939f243884d59a1984738ffb22727a148084a90",
+      "content_signature": "caed1c911a288b76e857d6698fb20d70e7c0b5ad606124a3cea9cb37ce36a692b84a51a3530ec08038b2c8a50872a502ce18b701e3741d40ae1c3a01c5993e0d",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-07T20:43:30.037Z"
+    },
+    {
+      "id": "rules-yarn",
+      "path": "rulesets/rules-yarn",
+      "rules_path": "rulesets/rules-yarn/.sigmashake/rules",
+      "title": "rules-yarn",
+      "description": "Yarn is a package manager that doubles as a project manager. These rules govern dependency version pinning and lockfile integrity for AI agents.",
+      "technologies": [
+        "yarn"
+      ],
+      "rule_count": 9,
+      "content_hash": "0cc97440ffa7a1e69fd83812472e944c5fe87a7bcdf0189386a8fedf98ff3e18",
+      "content_signature": "fe77f6999786b0ec8541a828581880d16e1c0e28d9099567b2b555cb230b8427ff8dfec4acf04920ae60466b7985f70d16eeeeb0755afe4d07207ab1f959c303",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-06T02:15:56.906Z"
+    },
+    {
+      "id": "rules-zig",
+      "path": "rulesets/rules-zig",
+      "rules_path": "rulesets/rules-zig/.sigmashake/rules",
+      "title": "rules-zig",
+      "description": "Zig is a general-purpose programming language and toolchain for maintaining robust, optimal and reusable software. These rules govern memory management safety and coding best practices for AI agents.",
+      "technologies": [
+        "zig"
+      ],
+      "rule_count": 21,
+      "content_hash": "ccbe582e58c9efd09974e8d3c878d5265d64bf20ed8b6aae7a37901837e2756d",
+      "content_signature": "917c5dd47576aff9d221fa9e6abc42f30d3e51e391d64d6f783a6c65955031683fe7f94f57695eb8e16ccb124096879b8985bacc6904d0ce791bc303e48c7203",
+      "required_tier": "free",
+      "kind": "rules",
+      "updated_at": "2026-04-19T14:54:58.082Z"
+    }
+  ],
+  "envelope_signature": "a3a36329658fcf109880af0a2a05cde015d1ac9dd8511c1b234d9ff3a21f026c0eb3784da27735ff986f5405b807d44d032be929716d443e50cbd1cf1e6f2708"
+}

@@ -1,0 +1,3 @@
+{
+  "description": "Wrangler is Cloudflare's CLI for deploying Workers, managing D1, KV, R2, and Durable Objects. These rules protect AI agents from destructive remote-database operations, secrets leakage in wrangler.toml, missing compatibility dates, public-bucket misconfiguration, and production deploys without environment gates."
+}

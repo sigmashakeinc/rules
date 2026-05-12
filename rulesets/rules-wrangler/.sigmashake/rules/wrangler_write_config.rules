@@ -1,0 +1,87 @@
+# wrangler_write_config.rules
+# Technology: wrangler | Capability: write
+
+rule wrangler-secret-in-vars {
+  enabled true
+  priority 100
+  severity error
+  DENY write
+  IF path GLOB "**/wrangler.toml" AND content LINE_REGEX "(api_key|api-key|secret|token|password|private_key|private-key|bearer|auth_token)\\s*=\\s*\"[A-Za-z0-9]"
+  OR path GLOB "**/wrangler.jsonc" AND content LINE_REGEX "\"(api_key|api-key|secret|token|password|private_key|private-key|bearer|auth_token)\"\\s*:\\s*\"[A-Za-z0-9]"
+  OR path GLOB "**/wrangler.json" AND content LINE_REGEX "\"(api_key|api-key|secret|token|password|private_key|private-key|bearer|auth_token)\"\\s*:\\s*\"[A-Za-z0-9]"
+  MESSAGE "Secrets in wrangler.toml [vars] are committed to git and visible in plaintext on the Cloudflare dashboard. Use `wrangler secret put NAME` (encrypted at rest, env-scoped). The binding name stays identical — only storage changes."
+}
+
+rule wrangler-missing-compat-date {
+  enabled true
+  priority 90
+  severity error
+  DENY write
+  IF path GLOB "**/wrangler.toml" AND content NOT LINE_REGEX "compatibility_date\\s*=\\s*\"\\d{4}-\\d{2}-\\d{2}\""
+  MESSAGE "Missing `compatibility_date` in wrangler.toml. Without it, Workers runtime behavior is undefined and may break on deploy. Set to today's date or a pinned date matching tested behavior."
+}
+
+rule wrangler-stale-compat-date {
+  enabled true
+  priority 60
+  severity warning
+  LOG write
+  IF path GLOB "**/wrangler.toml" AND content LINE_REGEX "compatibility_date\\s*=\\s*\"20(19|20|21|22)-"
+  MESSAGE "compatibility_date is more than 3 years old. Recent Workers features (nodejs_compat v2, streaming, Python support) require dates >= 2024. Review the runtime changelog before bumping."
+}
+
+rule wrangler-public-r2-bucket {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/wrangler.toml" AND content LINE_REGEX "public_bucket\\s*=\\s*true"
+  MESSAGE "public_bucket = true makes every object in the R2 bucket world-readable via the r2.dev URL. Use a Worker or signed URLs for controlled access. Only enable for exclusively public assets."
+}
+
+rule wrangler-wildcard-route {
+  enabled true
+  priority 85
+  severity error
+  DENY write
+  IF path GLOB "**/wrangler.toml" AND content LINE_REGEX "pattern\\s*=\\s*\"\\*/?\""
+  OR path GLOB "**/wrangler.toml" AND content LINE_REGEX "route\\s*=\\s*\"\\*/?\""
+  MESSAGE "A bare `*` route catches every request on every zone in the account — it will hijack traffic from unrelated sites. Scope routes: `example.com/api/*` or `*.example.com/*`."
+}
+
+rule wrangler-node-compat-deprecated {
+  enabled true
+  priority 70
+  severity warning
+  LOG write
+  IF path GLOB "**/wrangler.toml" AND content LINE_REGEX "node_compat\\s*=\\s*true"
+  MESSAGE "node_compat = true (webpack polyfills) is deprecated and removed in wrangler v4. Switch to the `nodejs_compat` compatibility_flag for native workerd Node APIs."
+}
+
+rule wrangler-usage-model-removed {
+  enabled true
+  priority 65
+  severity warning
+  LOG write
+  IF path GLOB "**/wrangler.toml" AND content LINE_REGEX "usage_model\\s*="
+  MESSAGE "`usage_model` in wrangler.toml is ignored as of 2024 — billing is set per-account on the dashboard (Standard/Unbound). Remove this field to avoid confusion."
+}
+
+rule wrangler-hyperdrive-connection-string {
+  enabled true
+  priority 95
+  severity error
+  DENY write
+  IF path GLOB "**/wrangler.toml" AND content LINE_REGEX "(connection_string|localConnectionString)\\s*=\\s*\"(postgres|postgresql|mysql)://[^\"]*:[^\"@]+@"
+  OR path GLOB "**/wrangler.jsonc" AND content LINE_REGEX "\"(connection_string|localConnectionString)\"\\s*:\\s*\"(postgres|postgresql|mysql)://[^\"]*:[^\"@]+@"
+  MESSAGE "Hyperdrive connection strings containing DB credentials in wrangler.toml get committed to git. Store the URL with `wrangler hyperdrive create --connection-string=...` (server-side) and reference the binding id; for local dev put the URL in `.dev.vars` (gitignored)."
+}
+
+rule wrangler-main-missing {
+  enabled true
+  priority 80
+  severity warning
+  LOG write
+  IF path GLOB "**/wrangler.toml" AND content NOT LINE_REGEX "^main\\s*="
+  MESSAGE "No `main` entry in wrangler.toml — deploy will fail unless main is passed via CLI. Declare the entry point explicitly for reproducible deploys."
+}
